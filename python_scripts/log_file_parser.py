@@ -34,6 +34,50 @@ class GripperObservation:
         self.x_change_obs = int(x_change) ##Multiplied by 10
         self.y_change_obs = int(y_change) ##Multiplied by 10
         self.terminal_state_obs = int(terminal_state_bit)
+    def convert_to_array(self):
+        obs = self.sensor_obs[:]
+        obs.append(self.gripper_l_obs)
+        obs.append(self.gripper_r_obs)
+        obs.append(self.x_w_obs)
+        obs.append(self.y_w_obs)
+        return obs
+
+class VrepGripperState:
+    def __init__(self, values):
+        #print values
+        self.g_x = values[0]
+        self.g_y = values[1]
+        self.g_z = values[2]
+        self.o_x = values[7]
+        self.o_y = values[8]
+        self.o_z = values[9]
+        self.fj1 = values[14]
+        self.fj2 = values[15]
+        self.fj3 = values[16]
+        self.fj4 = values[17]
+
+class VrepGripperObs:
+    def __init__(self, values):
+        #print values
+        self.g_x = values[0]
+        self.g_y = values[1]
+        self.g_z = values[2]
+        self.fj1 = values[14]
+        self.fj2 = values[15]
+        self.fj3 = values[16]
+        self.fj4 = values[17]
+        self.sensor_obs = [values[18], values[19]]
+    
+    def convert_to_array(self):
+        obs = self.sensor_obs[:]
+        obs.append(self.g_x)
+        obs.append(self.g_y)
+        obs.append(self.fj1)
+        obs.append(self.fj2)
+        obs.append(self.fj3)
+        obs.append(self.fj4)
+        return obs
+        
         
 class ParseLogFile:
     numeric_const_pattern = r"""
@@ -48,9 +92,15 @@ class ParseLogFile:
      """
     rx =  re.compile(numeric_const_pattern, re.VERBOSE)
     
-    def __init__(self, logFileName , parsePlanningBelief=True, round_no = 0):
+    def __init__(self, logFileName , belief_type = '', round_no = 0, state_type = 'toy', method = 2):
         self.logFileName_ = logFileName
-        self.parseLogFile(logFileName, parsePlanningBelief, round_no)
+        if method == 1:
+            self.parseLogFile(logFileName, True, round_no)
+        if method == 2:
+            if state_type == 'toy':
+                self.parseToyLogFile(logFileName,belief_type,round_no)
+            if state_type == 'vrep':
+                self.parseVrepLogFile(logFileName,belief_type,round_no)
     
     def getFullDataWithoutBelief(self):
         stepInfoWithoutBelief = []
@@ -82,6 +132,28 @@ class ParseLogFile:
         f = open(outFileName, 'w')
         f.write(self.yamlLog)
 
+    def parseVrepLogBelief(self, line, beliefArray):
+        modeEnd = re.search('INFO-thread', line)
+        if modeEnd:
+            self.stateStarted = False
+            self.beliefParsingMode = False
+            self.stateParsingMode = True
+        particle = re.search('|', line)
+        if particle:
+            self.stateStarted = True
+            values = ParseLogFile.rx.findall(line)
+            #TODO : Add belief in array
+            belief = {}
+            belief['weight'] = values[0]
+            belief['state'] = VrepGripperState(values[1:])
+            beliefArray['belief'].append(belief)
+        else:
+            if self.stateStarted:
+                self.stateStarted = False
+                self.beliefParsingMode = False
+                self.stateParsingMode = True
+                #print len(stepInfo[stepNo]['belief'])
+        
     def parsePlanningBelief(self, line, beliefArray):
         particle = re.search('Gripper at:', line)
         if particle:
@@ -124,11 +196,11 @@ class ParseLogFile:
                 if re.search('for State', line):
                     self.stateStarted=True
 
-    def parseLogFileIter(self, logFileName=None, parsePlanningBelief=True, round_no = 0):
+    def parseLogFileIter(self, logFileName=None, belief_type = 'planning', round_no = 0, state_type = 'toy'):
         if not logFileName:
             logFileName = self.logFileName_
         #print logFileName
-        #f = open(logFileName, 'r')
+        f = open(logFileName, 'r')
         #print f
         #fileText = f.readlines()
         self.beliefParsingMode = False
@@ -152,6 +224,9 @@ class ParseLogFile:
             if roundStart: #round_no -1 for getting information of last round
                 #print line
                 self.initialStateParsingMode = True
+                if round_no < 0:
+                    step_info = {}
+                    step_info['belief'] = []
                 
             regular_expression = 'Round (\d+) Step (\d+)'
             step_re_id = 2
@@ -172,43 +247,85 @@ class ParseLogFile:
             if self.initialStateParsingMode:
                 step_info['initial_state'] = f.readline()
                 self.initialStateParsingMode = False
+                yield stepNo, roundNo, step_info
             
             if self.beliefParsingMode:
-                if parsePlanningBelief:
+                if belief_type == 'planning':
                     self.parsePlanningBelief(line,step_info)
-                else:
+                elif belief_type == 'learning':
                     self.parseLearningBelief(line,step_info)
+                elif belief_type == 'vrep':
+                    self.parseVrepLogBelief(line,step_info)
+                else :
+                    self.stateStarted = False
+                    self.beliefParsingMode = False
+                    self.stateParsingMode = True
 
             if self.stateParsingMode:
                 if re.match('- Action = ', line):
-                    stepInfo[stepNo]['action'] = line
-                if re.search('Gripper at:', line):
-                    if not stepInfo[stepNo].has_key('state'):
-                        values = ParseLogFile.rx.findall(line)
-                        stepInfo[stepNo]['state'] = GripperState(values[0], values[1], values[6], values[7], values[2], values[3], values[4])
-                if re.search('for State', line):
+                    step_info['action'] = line
+                if re.search('- State:', line):
+                    if not step_info.has_key('state'):
+                        values = ParseLogFile.rx.findall(f.readline())
+                        if state_type == 'toy':
+                            step_info['state'] = GripperState(values[0], values[1], values[6], values[7], values[2], values[3], values[4])
+                        elif state_type == 'vrep':
+                            step_info['state'] = VrepGripperState(values)
+                        else:
+                            assert 0 == 1
+                if re.search('- Observation = ', line):
                     values = ParseLogFile.rx.findall(line)
-                    stepInfo[stepNo]['obs'] = GripperObservation(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7])
+                    if state_type == 'toy':
+                        values = ParseLogFile.rx.findall(f.readline())
+                        step_info['obs'] = GripperObservation(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7])
+                    elif state_type == 'vrep' :
+                        step_info['obs'] = VrepGripperObs(values)
+                    else:
+                            assert 0 == 1
                 if re.search('- ObsProb', line):
                     values = ParseLogFile.rx.findall(line)
-                    stepInfo[stepNo]['obsProb'] = float(values[0])
+                    step_info['obsProb'] = float(values[0])
                 if re.search('- Reward', line):
                     values = ParseLogFile.rx.findall(line)
-                    stepInfo[stepNo]['reward'] = float(values[0])
+                    step_info['reward'] = float(values[0])
                     self.stateParsingMode = False
-                
-                    
-                
-                    
-                
-        #print len(stepInfo)
-        #pprint.pprint( roundInfo)
+                    yield stepNo, roundNo, step_info
+
+    
+    def parseLogFileUsingIter(self, stepInfoIter, round_no):
+        stepInfo = []
+        roundInfo= {}
+        roundInfo['round'] = round_no
+        for stepNo, roundNo, step_info in stepInfoIter:
+            if(round_no < 0):
+                if roundNo != roundInfo['round'] :
+                   stepInfo=[] 
+            else :
+               assert roundNo == round_no
+            #print step_info
+            roundInfo['round'] = roundNo
+            if 'initial_state' in step_info:
+                roundInfo['state'] = step_info['initial_state']
+            else:
+                stepInfo.append(step_info.copy())
+            assert len(stepInfo) == (stepNo + 1)
+        
         self.roundInfo_ = roundInfo
         self.stepInfo_ = stepInfo
-                    
-            #else:
-                #print "Not matched " + line 
 
+    def parseVrepLogFile(self, logFileName = None, belief_type = 'vrep', round_no = 0):
+        stepInfoIter = self.parseLogFileIter(logFileName, belief_type, round_no, 'vrep')
+        self.parseLogFileUsingIter(stepInfoIter,round_no)
+        
+                
+    
+    def parseToyLogFile(self, logFileName = None, belief_type = 'planning', round_no = 0):
+        stepInfoIter = self.parseLogFileIter(logFileName, belief_type, round_no, 'toy')
+        self.parseLogFileUsingIter(stepInfoIter,round_no)
+            
+            
+        
+        
     def parseLogFile(self, logFileName=None, parsePlanningBelief=True, round_no = 0):
         if not logFileName:
             logFileName = self.logFileName_
@@ -314,6 +431,7 @@ def readLearningLog():
     print "TOSO"
 def main():
     dumpAllPlanningLogs()
+
 
 if __name__=="__main__":
     main()

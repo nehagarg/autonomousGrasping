@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/python_scripts/')
+sys.path.append('../')
 import tensorflow as tf
 import json
 import os
@@ -28,7 +28,11 @@ class Encoder(object):
 
     def transform_x(self, x):
         #print x
-        trans_x = np.zeros(self.size_x(), dtype=np.int8)
+        #for toy problem
+        #trans_x = np.zeros(self.size_x(), dtype=np.int8)
+        #for vrep problem
+        trans_x = np.zeros(self.size_x(), dtype=np.float32)
+        
         if x == STUMP:
             trans_x[-2] = 1
         elif x == PAD:
@@ -72,7 +76,10 @@ class Seq2SeqGraph(object):
 
         # sequence data
         for i in xrange(seq_length):
-            self.inputs.append(tf.placeholder(tf.int8, shape=(None, input_length), name="input_{0}".format(i)))
+            #for toy problem
+            #self.inputs.append(tf.placeholder(tf.int8, shape=(None, input_length), name="input_{0}".format(i)))
+            #for vrep problem
+            self.inputs.append(tf.placeholder(tf.float32, shape=(None, input_length), name="input_{0}".format(i)))
             self.outputs.append(tf.placeholder(tf.bool, shape=(None, output_length), name="output_{0}".format(i)))
         ### for c++ calling
         # valid action mask for action filtering in sampling
@@ -356,7 +363,10 @@ def parse_data(fileName):
     #encoder = Encoder(*get_problem_info(problem, size, number))
     #print xseqs[0]
     #print yseqs[0]
-    encoder = Encoder(10, 26)
+    #for toy problem
+    #encoder = Encoder(10, 26)
+    #for vrep problem
+    encoder = Encoder(19, 8)
     return (seqs, xseqs, yseqs, encoder, maxlen)
 
 class DataGenerator(object):
