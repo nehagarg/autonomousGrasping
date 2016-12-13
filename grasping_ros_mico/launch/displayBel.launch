@@ -1,0 +1,5 @@
+<launch>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find grasping_ros_mico)/launch/belief.rviz"/>
+
+</launch>

@@ -45,7 +45,12 @@ public:
 
 };
 */
-    DSPOMDP* TUI::InitializeModel(option::Option* options) {
+class Box2DTUI : public TUI {
+public:
+    Box2DTUI()  {
+        
+    }
+    DSPOMDP* InitializeModel(option::Option* options) {
      DSPOMDP* model;
     /*if (options[E_DATA_FILE])
             {
@@ -76,7 +81,7 @@ public:
     return model;
   }
 
-
+};
 int main(int argc, char* argv[]) {
-  return TUI().run(argc, argv);
+  return Box2DTUI().run(argc, argv);
 }

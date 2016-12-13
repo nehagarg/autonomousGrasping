@@ -23,3 +23,7 @@ void LearningModel::GenerateAdaboostTestFile(uint64_t obs, History h) const {
 int LearningModel::GetStartStateIndex() const {
     return -1;
 }
+
+bool LearningModel::StepActual(State& state, double random_num, int action, double& reward, uint64_t& obs) const {
+    return Step(state, random_num, action, reward, obs);
+}
