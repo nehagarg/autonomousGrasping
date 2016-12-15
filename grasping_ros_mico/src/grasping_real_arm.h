@@ -49,7 +49,7 @@ public:
      /* Deterministic simulative model.*/
     bool Step(State& state, double random_num, int action,
         double& reward, uint64_t& obs) const {
-        std::cout << "Step: This should not have been printed";
+        //std::cout << "Step: This should not have been printed";
         ObservationClass observation;
         bool isTerminal = Step(state, random_num, action, reward, observation);
         obs = observation.GetHash();
@@ -58,7 +58,7 @@ public:
     ;
     bool StepActual(State& state, double random_num, int action,
         double& reward, uint64_t& obs) const { //Function for actual step in simulation or real robot
-                std::cout << "Step: This should not have been printed";
+                //std::cout << "Step: This should not have been printed";
         ObservationClass observation;
         bool isTerminal = StepActual(state, random_num, action, reward, observation);
         obs = observation.GetHash();
@@ -73,7 +73,7 @@ public:
     
     /* Functions related to beliefs and starting states.*/
     double ObsProb(uint64_t obs, const State& state, int action) const {
-        std::cout << "ObsProb: This should not have been printed"; 
+        //std::cout << "ObsProb: This should not have been printed"; 
         ObservationClass observation;
         observation.SetIntObs(obs);
         return ObsProb(observation, state, action);
@@ -90,7 +90,7 @@ public:
          
                 
     };
-    ScenarioLowerBound* CreateScenarioLowerBound(std::string name = "DEFAULT", std::string particle_bound_name = "DEFAULT");
+    ScenarioLowerBound* CreateScenarioLowerBound(std::string name = "DEFAULT", std::string particle_bound_name = "DEFAULT") const;
  
     /* Memory management.*/
     State* Allocate(int state_id, double weight) const {

@@ -41,7 +41,7 @@ public:
     bool ExecuteAction(int action, double& reward, OBS_TYPE& obs) {
 
         bool ans = POMDPEvaluatorExt::ExecuteAction(action, reward, obs);
-        ((GraspingRealArm*)model_)->DisplayBeliefs((ParticleBelief* )(solver_->belief()),std::cout);
+       ((GraspingRealArm*)model_)->DisplayBeliefs((ParticleBelief* )(solver_->belief()),std::cout);
         ((GraspingRealArm*)model_)->DisplayState(*state_, std::cout);
         return ans;
     }

@@ -101,7 +101,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     initial_state.finger_joint_state[3] = -0.00118446 ;
     
     
-    if (start_state_index >= 0 ) 
+   /* if (start_state_index >= 0 ) 
     {
         std::cout << "Start_state index is " << start_state_index << std::endl;
         
@@ -115,7 +115,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     }
     else
     {
-        while(true){
+*/        while(true){
             
                 // the engine for generator samples from a distribution
             unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -127,7 +127,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
                 break;
             }
             
-        }
+  //      }
     }
     
     

@@ -38,8 +38,9 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
     #print action_string_hash
     #print fullData
     num_steps = len(fullData['stepInfo'])
+    num_actions = len(action_string_hash.keys())
     successTraj = False
-    if fullData['stepInfo'][-1]['reward'] == 20:
+    if len(fullData['stepInfo']) > 0 and fullData['stepInfo'][-1]['reward'] == 20:
         successTraj = True
     if (successTraj or not isTraining):
         seq = []
@@ -47,9 +48,7 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
         #if not isTraining:
         #    j_range = j_range - 1
         for j in range(0,j_range):
-            act = 11
-            if state_type == 'vrep':
-                act = 20
+            act = num_actions
             obs = None
             if 'action' in fullData['stepInfo'][j]:
                 act = action_string_hash[("").join(fullData['stepInfo'][j]['action'][:-1].split(" "))]
@@ -61,6 +60,8 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
                 #obs.append(fullData['stepInfo'][j]['obs'].x_w_obs)
                 #obs.append(fullData['stepInfo'][j]['obs'].y_w_obs)
             seq.append((act,obs))
+        if not isTraining:
+            seq.append((num_actions,None))
         seqs.append(seq)
 
 def parse_file(file_name, belief_type = '', isTraining = True, round_no = 0, state_type = 'toy'):
@@ -94,7 +95,9 @@ def parse(fileName, belief_type = '', isTraining = False):
             
 
     else:
-        seqs = seqs + parse_file(fileName, '', isTraining, -1, 'toy')
+       # seqs = seqs + parse_file(fileName, '', isTraining, -1, 'toy')
+         seqs = seqs + parse_file(fileName, '', isTraining, -1, 'vrep')
+         #print seqs
     return seqs
 
 

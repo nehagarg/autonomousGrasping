@@ -35,12 +35,13 @@ public:
         {
             
         }
-    bool RunStep(int step, int round) {
-        std::cout << *(solver_->belief()) << std::endl;
+    /*bool RunStep(int step, int round) {
+        
         return POMDPEvaluator::RunStep(step, round);
     }
-    
+    */
     bool ExecuteAction(int action, double& reward, OBS_TYPE& obs) {
+        std::cout << *(solver_->belief()) << std::endl;
 	double random_num = random_.NextDouble();
 	bool terminal = ((LearningModel*)model_)->StepActual(*state_, random_num, action, reward, obs);
 

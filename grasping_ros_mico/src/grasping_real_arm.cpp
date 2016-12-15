@@ -486,6 +486,10 @@ void GraspingRealArm::PrintObs(const State& state, ObservationClass& obs, std::o
 void GraspingRealArm::PrintState(const State& state, std::ostream& out) const {
     const GraspingStateRealArm& grasping_state = static_cast<const GraspingStateRealArm&> (state);
     robotInterface->PrintState(grasping_state, out);
+    if(out != std::cout)
+    {
+        out << "\n";
+    }
     
 }
 
@@ -686,7 +690,7 @@ public:
     }
 };
 */
-ScenarioLowerBound* GraspingRealArm::CreateScenarioLowerBound(std::string name, std::string particle_bound_name ) {
+ScenarioLowerBound* GraspingRealArm::CreateScenarioLowerBound(std::string name, std::string particle_bound_name ) const {
     if (name == "TRIVIAL" || name == "DEFAULT") {
         //the default lower bound from lower_bound.h
         return new TrivialParticleLowerBound(this);

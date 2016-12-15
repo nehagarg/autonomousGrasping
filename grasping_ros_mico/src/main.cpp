@@ -39,6 +39,43 @@ DSPOMDP* RosTUI::InitializeModel(option::Option* options) {
 
 
 
+class RosWithoutDisplayTUI: public TUI {
+public:
+  RosWithoutDisplayTUI() {
+  }
+
+    DSPOMDP* InitializeModel(option::Option* options) {
+     DSPOMDP* model;
+    /*if (options[E_DATA_FILE])
+            {
+                if (options[E_NUMBER]) {
+                        int number = atoi(options[E_NUMBER].arg);
+                        
+                        model = new GraspingV4(options[E_DATA_FILE].arg, number);
+                }
+                else
+                {
+                    model = new GraspingV4(options[E_DATA_FILE].arg, -1);
+                }
+            }
+            else
+    */
+     //{
+       if (options[E_NUMBER]) {
+                        int number = atoi(options[E_NUMBER].arg);
+                        model = new GraspingRealArm( number);
+                }
+                else
+                {
+                    model = new GraspingRealArm(-1);
+                }
+             
+     //       }
+     
+    return model;
+  }
+};
+
 
 
 
@@ -67,7 +104,7 @@ int main(int argc, char* argv[]) {
     //test_python();
     //return 0;
    
-  return RosTUI().run(argc, argv);
+  return RosWithoutDisplayTUI().run(argc, argv);
 }
 
 
