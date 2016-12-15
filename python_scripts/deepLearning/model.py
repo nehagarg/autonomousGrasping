@@ -10,6 +10,7 @@ import deepLearning_data_generator as traces
 #from tensorflow.python.ops import variable_scope
 from tensorflow.python.ops import rnn, rnn_cell
 import random
+import config
 
 import numpy as np
 STUMP = '$'
@@ -440,7 +441,7 @@ def train():
     input_length = data_generator.encoder.size_x()
     output_length = data_generator.encoder.size_y()
 
-    with tf.Session() as sess:
+    with tf.Session(config=config.get_tf_config()) as sess:
         print "building model"
         model = Seq2SeqModel(session=sess,
                 hidden_units=hidden_units,
@@ -494,7 +495,7 @@ def test(fileName=None):
     seq_length = data_generator.seq_length
     input_length = data_generator.encoder.size_x()
     output_length = data_generator.encoder.size_y()
-    with tf.Session() as sess:
+    with tf.Session(config=config.get_tf_config()) as sess:
         #print "building model"
         model = Seq2SeqModel(session=sess,
                 hidden_units=hidden_units,
