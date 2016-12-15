@@ -505,7 +505,7 @@ def test(fileName=None):
                 output_length=output_length,
                 batch_size=training_batch_size,
                 scope="model")
-        model.load('version9/model.ckpt-800')
+        model.load('model.ckpt-800')
 
         #print "finished building and loading model"
         if fileName is None:
@@ -525,6 +525,7 @@ def test(fileName=None):
             prediction = np.argmax([probs_without_dummy_actions], axis=2)
             #prob_prediction = get_prob_prediction(probs_without_dummy_actions)
             
+            #print prediction[0]
             print prediction[0][-2]
             #if prob_prediction == -1:
             #    print prediction[0][-2]
@@ -576,10 +577,11 @@ def main():
     else:
         #if len(sys.argv) > 1:
         #     i = int(sys.argv[1])
+        logfileName = '../../grasping_ros_mico/despot_logs/learning_trial_'+ repr(i) + '.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
         #test_dataGenerator(1,logfileName)
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version7/dagger_data/graspingV4_state_' + repr(i) + '_t10_n10_multi_runs_obs_prob_change_particles_as_state_4objects.log'
-        logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version9/state_' + repr(i) + '_multi_runs.log'
+        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version9/state_' + repr(i) + '_multi_runs.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/test.log'
         #test_dataGenerator(1,logfileName)
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_same_objects/sensor_observation_sum/state_' + repr(i) + '.log'

@@ -3,8 +3,12 @@
 
 
 
-  
-    DSPOMDP* TUI::InitializeModel(option::Option* options) {
+class GraspingV4TUI: public TUI {
+public:
+  GraspingV4TUI() {
+  }
+
+    DSPOMDP* InitializeModel(option::Option* options) {
      DSPOMDP* model;
     /*if (options[E_DATA_FILE])
             {
@@ -34,6 +38,8 @@
      
     return model;
   }
+};
+
 int main(int argc, char* argv[]) {
-  return TUI().run(argc, argv);
+  return GraspingV4TUI().run(argc, argv);
 }
