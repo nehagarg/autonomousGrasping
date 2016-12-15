@@ -5,7 +5,7 @@ add_subdirectory(despot_ext)
 
 #
 add_subdirectory(graspingV4)
-add_subdirectory(grasping_despot_box2D)
+#add_subdirectory(grasping_despot_box2D)
 #add_subdirectory(grasping_ros_mico)
 
 

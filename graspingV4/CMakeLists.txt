@@ -4,7 +4,7 @@ project(graspingV4)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++0x -Wall -Wno-sign-compare")
 #LDFLAGS = -O3 -std=c++0x -Wno-sign-compare
-set(DESPOT_HOME "/home/neha/WORK_FOLDER/phd2013/phdTopic/AdaCompNus/despot/")
+set(DESPOT_HOME "../despot/")
 set(BINARY_INSTALL_PATH "bin" CACHE PATH "Binary install path")
 set(LIBRARY_INSTALL_PATH "lib" CACHE PATH "Library install path")
 set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")

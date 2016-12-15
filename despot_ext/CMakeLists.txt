@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(despot_ext)
 
-set(DESPOT_HOME "/home/neha/WORK_FOLDER/phd2013/phdTopic/AdaCompNus/despot/")
+set(DESPOT_HOME "../despot/")
 set(BINARY_INSTALL_PATH "bin" CACHE PATH "Binary install path")
 set(LIBRARY_INSTALL_PATH "lib" CACHE PATH "Library install path")
 set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")
