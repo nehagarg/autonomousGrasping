@@ -35,5 +35,11 @@
 #for i in range(0,400):
 #    print "./bin/despot --problem=graspingV4 -v 3 -t 10 -n 10 --number=%d --belief=SINGLE_OBJECT > single_object_belief/training_objects/graspingV4_state_%d_t10_n10_obs_prob_change_single_object_radius_1_4objects_100_particles.log 2>&1" % (i,i)
 
-for i in range(0,100):
-    print "./bin/apc_despot_interface -v3 -t 5 -n 1 --number=%d -l CAP > ./results/despot_logs/VrepData_single_particle_belief_t5_n1_state_%d.log 2>&1" %(i,i)
+#for i in range(0,100):
+#    print "./bin/apc_despot_interface -v3 -t 5 -n 1 --number=%d -l CAP > ./results/despot_logs/VrepData_single_particle_belief_t5_n1_state_%d.log 2>&1" %(i,i)
+
+#for i in range(0,1000):
+#    print "./bin/apc_despot_interface -v3 -t 5 -n 10 --number=-1 -l CAP > ./results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
+
+for i in range(0,1000):
+    print "./bin/apc_despot_interface -v3 -t 1 --solver=DEEPLEARNING --number=%d -l CAP > ./despot_logs/learning_trial_%d.log 2>&1" %(i,i)
