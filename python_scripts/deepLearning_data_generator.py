@@ -75,8 +75,8 @@ def parse_file(file_name, belief_type = '', isTraining = True, round_no = 0, sta
 def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName is None:
-        for i in range(0,100):
-            logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/ros/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_single_particle_belief_t5_n1_state_'+ repr(i) +'.log'
+        for i in range(0,1000):
+            logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
         #for i in range(0,400):
         #    for round_no in range(0,4):
