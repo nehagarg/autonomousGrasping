@@ -1251,7 +1251,7 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
         set_integer_signal_srv.request.signalName = signal_name;
         set_integer_signal_srv.request.signalValue = signal_on_value;
         std_msgs::StringConstPtr msg = NULL;
-        while(True)
+        while(true)
         {
             if(msg == NULL){
                 if(sim_set_integer_signal_client.call(set_integer_signal_srv))
