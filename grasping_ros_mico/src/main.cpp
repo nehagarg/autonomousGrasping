@@ -85,6 +85,7 @@ void GatherSimulationData()
     VrepInterface* vrepInterfacePointer = new VrepInterface();
     std::cout<< "Gathering data" << std::endl;
     vrepInterfacePointer->GatherData(1);
+    //vrepInterfacePointer->GatherJointData(0);
     //model->GatherJointData(0);
     //model->GatherGripperStateData(0);
 }
@@ -98,13 +99,13 @@ void test_python()
 
 int main(int argc, char* argv[]) {
     ros::init(argc,argv,"despot");
-    //GatherSimulationData();
-    //return 0;
+    GatherSimulationData();
+    return 0;
     
     //test_python();
     //return 0;
    
-  return RosWithoutDisplayTUI().run(argc, argv);
+  //return RosWithoutDisplayTUI().run(argc, argv);
 }
 
 

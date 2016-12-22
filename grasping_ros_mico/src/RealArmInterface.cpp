@@ -20,12 +20,12 @@ RealArmInterface::~RealArmInterface() {
 bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
 
     mico_action_feedback::MicoActionFeedback micoActionFeedback_srv;
-    if(action < 16)
+    if(action < A_CLOSE)
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_MOVE;
         micoActionFeedback_srv.request.move_x = 0;
         micoActionFeedback_srv.request.move_y = 0;
-        int action_offset = (action/4) * 4;
+        int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
         double movement_value = get_action_range(action, action_offset);
         if(action_offset == A_INCREASE_X)
         {
@@ -52,7 +52,7 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_OPEN;
     }
-    else if (action == 18)
+    else if (action == A_PICK)
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_PICK;
     }

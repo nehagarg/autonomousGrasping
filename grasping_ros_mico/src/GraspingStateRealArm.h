@@ -53,6 +53,10 @@ class GraspingStateRealArm : public despot::State {
         finger_joint_state[2]= initial_state.finger_joint_state[2] ;
         finger_joint_state[3]= initial_state.finger_joint_state[3] ;
         object_id = initial_state.object_id;
+        touch[0] = initial_state.touch[0];
+        touch[1] = initial_state.touch[1];
+        pre_action = initial_state.pre_action;
+        gripper_status = initial_state.gripper_status;
     }
 
     ~GraspingStateRealArm() {

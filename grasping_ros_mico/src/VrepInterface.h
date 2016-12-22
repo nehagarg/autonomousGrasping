@@ -35,6 +35,7 @@ public:
     void GatherData(int object_id = 0) const;
     void GatherJointData(int object_id = 0) const;
     void GatherGripperStateData(int object_id = 0) const;
+   
 
     bool StepActual(GraspingStateRealArm& state, double random_num, int action,
         double& reward, GraspingObservation& obs) const;
@@ -56,10 +57,11 @@ private:
     mutable ros::ServiceClient sim_set_integer_signal_client;
     mutable ros::ServiceClient sim_clear_integer_signal_client;
     
+    
     int mico_target_handle;
     int mico_tip_handle;
     int target_object_handle;
-    int force_sensor_handles[2];
+    int force_sensor_handles[48];
     int finger_joint_handles[4];
     int arm_joint_handles[6];
     
@@ -84,7 +86,8 @@ private:
     void SetGripperPose(int i, int j, geometry_msgs::PoseStamped micoTargetPose) const;
     void SetGripperPose(int i, int j) const;
     void GetNextStateAndObservation(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, geometry_msgs::PoseStamped micoTargetPose) const;
-    
+    void WaitForArmToStabilize() const;
+    void WaitForStability(std::string signal_name, std::string topic_name, int signal_on_value, int signal_off_value) const;
    
 
 };

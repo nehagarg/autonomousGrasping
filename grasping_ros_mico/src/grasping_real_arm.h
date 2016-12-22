@@ -36,14 +36,14 @@ class GraspingRealArm : public LearningModel {
 public:
 
     GraspingRealArm(const GraspingRealArm& orig);
-    GraspingRealArm(int start_state_index_, int interfaceType = 1);
+    GraspingRealArm(int start_state_index_, int interfaceType = 0);
     GraspingRealArm(int start_state_index_, VrepInterface* roboInterface_);
     GraspingRealArm(std::string dataFileName, int start_state_index_);
     
     virtual ~GraspingRealArm();
 
     int NumActions() const {
-        return 19;
+        return robotInterface->A_PICK + 1;
     };
     
      /* Deterministic simulative model.*/

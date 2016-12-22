@@ -108,7 +108,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
     
     //Get next state and observation
-    if(action < 16)
+    if(action < A_CLOSE)
     {
         if(gripper_status == 0) //gripper is open
         {
@@ -121,7 +121,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
             GetObsFromData(grasping_state, grasping_obs, random_num, action, debug);
         }
     }
-    else if (action == 16) //Close gripper
+    else if (action == A_CLOSE) //Close gripper
     { 
         if(gripper_status == 0) //gripper is open
         {
@@ -134,7 +134,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
             GetObsFromData(grasping_state, grasping_obs, random_num, action, debug);
         }
     }
-    else if (action == 17) // Open gripper
+    else if (action == A_OPEN) // Open gripper
     {
         if(gripper_status > 0) // gripper is closed
         {
@@ -146,7 +146,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
             GetObsFromData(grasping_state, grasping_obs, random_num, action, debug); 
         }
     }
-    else if (action == 18) // Pick object
+    else if (action == A_PICK) // Pick object
     {
         if(gripper_status > 0)
         {
@@ -192,7 +192,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     
     //Update next state parameters dependent on previous state
     UpdateNextStateValuesBasedAfterStep(grasping_state,grasping_obs,reward, action);
-     if(action == 18 || !validState) //Wither pick called or invalid state reached
+     if(action == A_PICK || !validState) //Wither pick called or invalid state reached
     {
         return true;
     }
@@ -402,11 +402,11 @@ void RobotInterface::PrintState(const GraspingStateRealArm& grasping_state, std:
 }
 
 double RobotInterface::get_action_range(int action, int action_type) const {
-if ((action - action_type) >= 4) {
+if ((action - action_type) >= (A_DECREASE_X - A_INCREASE_X)) {
         std::cout << "Action " << action << "out of range of action type " << action_type << std::endl;
         assert(false);
     }
-    return epsilon * pow(2, action - action_type);
+    return epsilon * pow(epsilon_multiplier, action - action_type);
 }
 
 bool sort_functor(double x1, double y1, double x2, double y2)
@@ -507,7 +507,7 @@ bool sort_by_gripper_pose_next_state_y (SimulationData data1,SimulationData data
 }
 
 void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug) const {
-    if(action != 18 && IsValidState(current_grasping_state)) //State is not terminal
+    if(action != A_PICK && IsValidState(current_grasping_state)) //State is not terminal
     {
         int gripper_status = GetGripperStatus(current_grasping_state.finger_joint_state);
         if(gripper_status > 0)
@@ -898,44 +898,44 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
 
 void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, int action, bool debug) const {
  
-    if(action < 16)
+    if(action < A_CLOSE)
     {
-        int action_offset = (action/4) * 4;
-        if(action < 4)
+        int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
+        if(action < A_DECREASE_X)
         {
             grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + epsilon*pow(2,action-action_offset);
         }
-        else if (action < 8)
+        else if (action < A_INCREASE_Y)
         {
             grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - epsilon*pow(2,action-action_offset);
             
         }
-        else if (action < 12)
+        else if (action < A_DECREASE_Y)
         {
             grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + epsilon*pow(2,action-action_offset);
             
         }
-        else if (action < 16)
+        else if (action < A_CLOSE)
         {
             grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.x + epsilon*pow(2,action-action_offset);
             
         }
     }
-    else if (action == 16)
+    else if (action == A_CLOSE)
     {
         grasping_state.finger_joint_state[0] = 22*3.14/180;
         grasping_state.finger_joint_state[1] = 90*3.14/180;
         grasping_state.finger_joint_state[2] = 22*3.14/180;
         grasping_state.finger_joint_state[3] = 90*3.14/180;
     }
-    else if (action == 17)
+    else if (action == A_OPEN)
     {
         grasping_state.finger_joint_state[0] = 0*3.14/180;
         grasping_state.finger_joint_state[1] = 0*3.14/180;
         grasping_state.finger_joint_state[2] = 0*3.14/180;
         grasping_state.finger_joint_state[3] = 0*3.14/180;
     }
-    else if(action == 18)
+    else if(action == A_PICK)
     {
         GetDefaultPickState(grasping_state);
         
