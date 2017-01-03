@@ -68,7 +68,7 @@ void SimulationData::PrintSimulationData(std::ostream& out){
     out << mico_target_pose.pose.orientation.w << " ";
     out << "|";
 
-    for(int i = 0; i < 48; i++)
+    for(int i = 0; i < 2; i++)
     {
         out <<  touch_sensor_reading[i]; 
         out << " ";
@@ -86,7 +86,16 @@ SimulationDataReader::~SimulationDataReader() {
     
 }
 
-void SimulationDataReader::parseSimulationDataLine(std::ifstream& simulationDataFile, SimulationData& simData, int& action, int& reward)
+void SimulationDataReader::parseSimulationDataLineTableData(std::ifstream& simulationDataFile, SimulationData& simData, int& action, double& reward) {
+    int i;
+    simulationDataFile >> i;
+    //std::cout << i << " ";
+    simulationDataFile >> i;
+    //std::cout << i << "|" ;
+    parseSimulationDataLine(simulationDataFile, simData, action, reward);
+}
+
+void SimulationDataReader::parseSimulationDataLine(std::ifstream& simulationDataFile, SimulationData& simData, int& action, double& reward)
 {
     char c; double temp_read;
     simulationDataFile >> simData.current_gripper_pose.pose.position.x;
@@ -161,7 +170,8 @@ void SimulationDataReader::parseSimulationDataLine(std::ifstream& simulationData
     }
     simulationDataFile >> c;
 
-    for(int i = 0; i < 48; i++)
+    //for(int i = 0; i < 48; i++)
+    for(int i = 0; i < 2; i++)
     {
         simulationDataFile >> simData.touch_sensor_reading[i]; 
     }

@@ -46,14 +46,22 @@ RobotInterface::RobotInterface() {
     //Read simualtion data with object
     SimulationDataReader simDataReader;
     std::ifstream simulationDataFile;
-    simulationDataFile.open("data/simulationData1_allParts.txt");
-        
+    
+    //simulationDataFile.open("data/simulationData1_allParts.txt");
+    simulationDataFile.open("data_table_exp/SASOData_Cylinder_10cm_allActions.txt");
+    //int t_count = 0;    
     while(!simulationDataFile.eof())
     {
-        SimulationData simData; int reward; int action;
+        SimulationData simData; double reward; int action;
         //simData.current_gripper_pose.pose.position.x = temp_read;
-        simDataReader.parseSimulationDataLine(simulationDataFile, simData, action, reward);
-        //std::cout << reward << " ";
+       // simDataReader.parseSimulationDataLine(simulationDataFile, simData, action, reward);
+        simDataReader.parseSimulationDataLineTableData(simulationDataFile, simData, action, reward);
+        /*t_count++;
+        if(t_count > 10)
+        {
+            exit(0);
+        }*/
+        //std::cout << reward << " " << action << "*";
         if(reward != -1000 && reward != -2000)
         {
             if(action!= A_OPEN)
@@ -69,13 +77,17 @@ RobotInterface::RobotInterface() {
     //std::cout << std::endl;
     simulationDataFile.close();
     
-    simulationDataFile.open("data/simulationData_1_openAction.txt");
+    //simulationDataFile.open("data/simulationData_1_openAction.txt");
+    simulationDataFile.open("data_table_exp/SASOData_Cylinder_10cm_openAction.txt");
+   
     
     while(!simulationDataFile.eof())
     {
-        SimulationData simData; int reward; int action;
+        SimulationData simData; double reward; int action;
         //simData.current_gripper_pose.pose.position.x = temp_read;
-        simDataReader.parseSimulationDataLine(simulationDataFile, simData, action, reward);
+        //simDataReader.parseSimulationDataLine(simulationDataFile, simData, action, reward);
+        simDataReader.parseSimulationDataLineTableData(simulationDataFile, simData, action, reward);
+        
         //std::cout << reward << " ";
         if(reward != -1000 && reward != -2000)
         {
@@ -176,7 +188,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     }
     else
     {
-        std::cout << "Invalid Action" << std::endl;
+        std::cout << "Invalid Action " << action << std::endl;
         assert(false);
     }
         
@@ -639,11 +651,11 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
             {
                 grasping_obs.finger_joint_state[i] = tempData.next_finger_joint_state[i];
             }
-            //for(int i = 0; i < 48; i++)
-            //{
-            //    grasping_obs.touch_sensor_reading[i] = tempData.touch_sensor_reading[i];
-            //}
-            ConvertObs48ToObs2(tempData.touch_sensor_reading, grasping_obs.touch_sensor_reading);
+            for(int i = 0; i < 2; i++)
+            {
+                grasping_obs.touch_sensor_reading[i] = tempData.touch_sensor_reading[i];
+            }
+            //ConvertObs48ToObs2(tempData.touch_sensor_reading, grasping_obs.touch_sensor_reading);
 
         }
         else
@@ -874,11 +886,11 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             grasping_state.finger_joint_state[i] = tempData.next_finger_joint_state[i];
             grasping_obs.finger_joint_state[i] = tempData.next_finger_joint_state[i];
         }
-        /*for(int i = 0; i < 48; i++)
+        for(int i = 0; i < 2; i++)
         {
             grasping_obs.touch_sensor_reading[i] = tempData.touch_sensor_reading[i];
-        }*/
-        ConvertObs48ToObs2(tempData.touch_sensor_reading, grasping_obs.touch_sensor_reading);
+        }
+        //ConvertObs48ToObs2(tempData.touch_sensor_reading, grasping_obs.touch_sensor_reading);
         
     }
     else
@@ -1050,6 +1062,8 @@ bool validState = IsValidState(grasping_state);
 
 //Conert 48 sensor observation to 2 sensor observation on front fingers by taking max
 void RobotInterface::ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const {
+    
+    
     for(int j = 0; j < 2; j ++)
     {
         on_bits[j] = 0.0;

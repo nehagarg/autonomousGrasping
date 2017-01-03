@@ -37,6 +37,7 @@ VrepInterface::VrepInterface() {
     sim_get_joint_state_client = grasping_n.serviceClient<vrep_common::simRosGetJointState>("/vrep/simRosGetJointState"); 
     sim_set_joint_position_client = grasping_n.serviceClient<vrep_common::simRosSetJointPosition>("/vrep/simRosSetJointPosition");     
     sim_set_integer_signal_client = grasping_n.serviceClient<vrep_common::simRosSetIntegerSignal>("/vrep/simRosSetIntegerSignal"); 
+    //sim_get_integer_signal_client = grasping_n.serviceClient<vrep_common::simRosGetIntegerSignal>("/vrep/simRosGetIntegerSignal"); 
     
     
         
@@ -1004,7 +1005,7 @@ void VrepInterface::GatherData(int object_id) const {
     //return;
 
     std::ofstream myfile;
-    myfile.open ("data_table_exp/SASOData_Cylinder_10cm_allActions.txt");
+    myfile.open ("data_table_exp/SASOData_Cylinder_11cm_openAction.txt");
     GraspingStateRealArm initial_state ;
     if(initial_state.object_id == -1)
     {
@@ -1034,8 +1035,8 @@ void VrepInterface::GatherData(int object_id) const {
     int i_loop_min = 0;  //20
     int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
     int j_loop_min = 0;//16;
-    int k_loop_max = A_CLOSE + 1; 
-    int k_loop_min = 0; 
+    int k_loop_max = A_OPEN + 1; 
+    int k_loop_min = A_OPEN; 
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
@@ -1250,10 +1251,15 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
         vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
         set_integer_signal_srv.request.signalName = signal_name;
         set_integer_signal_srv.request.signalValue = signal_on_value;
+        
+        //vrep_common::simRosGetIntegerSignal get_integer_signal_srv;
+        //get_integer_signal_srv.request.signalName = signal_name;
         std_msgs::StringConstPtr msg = NULL;
-        while(true)
-        {
-            if(msg == NULL){
+        //while(true)
+        //{
+        //    if(msg == NULL){
+                
+                
                 if(sim_set_integer_signal_client.call(set_integer_signal_srv))
                 {
                     while(set_integer_signal_srv.response.result != 1)
@@ -1262,37 +1268,43 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
                         sim_set_integer_signal_client.call(set_integer_signal_srv);
 
                     }
-                }
+                }     
+                    
+                    std::cout << "Waiting for ros message on topic " << topic_name << std::endl;
+                    msg = ros::topic::waitForMessage<std_msgs::String>(topic_name, grasping_n);
+                     std::cout << "Got ros message" << std::endl;
+         
+                    
+                    set_integer_signal_srv.request.signalName = signal_name;
+                    set_integer_signal_srv.request.signalValue = signal_off_value;
+                    if(!sim_set_integer_signal_client.call(set_integer_signal_srv))
+                    {
+                        std::cout << "Call to set integer signal "<< signal_name << " " << signal_off_value << " failed " << std::endl;         
+                        assert(false);
+                    }
+              //  }
                      
-                else
-                {
-                    std::cout << "Call to set integer signal "<< signal_name << " " << signal_on_value << " failed " << std::endl;
-                    assert(false);
-                }
+              //  else
+               // {
+                //    std::cout << "Call to set integer signal "<< signal_name << " " << signal_on_value << " failed " << std::endl;
+                //    assert(false);
+               // }
 
    
-                std::cout << "Waiting for ros message on topic " << topic_name << std::endl;
-                msg = ros::topic::waitForMessage<std_msgs::String>(topic_name, grasping_n, ros::Duration(10));
-                
-            }
-            else
-            {
+               
+          //  }
+          //  else
+          //  {
                     
-                std::cout << "Got ros message" << std::endl;
-                break;
-            }
-        }
+             //   std::cout << "Got ros message" << std::endl;
+          //      break;
+           // }
+        //}
             
             
         
       
-        set_integer_signal_srv.request.signalName = signal_name;
-        set_integer_signal_srv.request.signalValue = signal_off_value;
-        if(!sim_set_integer_signal_client.call(set_integer_signal_srv))
-        {
-       std::cout << "Call to set integer signal "<< signal_name << " " << signal_off_value << " failed " << std::endl;         
-        assert(false);
-        }
+        
 }
 /* bool VrepInterface::IsValidState(GraspingStateRealArm grasping_state) const {
     bool isValid = true;

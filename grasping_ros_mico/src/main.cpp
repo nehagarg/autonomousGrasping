@@ -46,6 +46,7 @@ public:
 
     DSPOMDP* InitializeModel(option::Option* options) {
      DSPOMDP* model;
+     std::cout << "Initializing model" << std::endl;
     /*if (options[E_DATA_FILE])
             {
                 if (options[E_NUMBER]) {
@@ -98,14 +99,16 @@ void test_python()
 
 
 int main(int argc, char* argv[]) {
+    std::cout << "In main" << std::endl;
     ros::init(argc,argv,"despot");
-    GatherSimulationData();
-    return 0;
+    
+    //GatherSimulationData();
+    //return 0;
     
     //test_python();
     //return 0;
    
-  //return RosWithoutDisplayTUI().run(argc, argv);
+  return RosWithoutDisplayTUI().run(argc, argv);
 }
 
 

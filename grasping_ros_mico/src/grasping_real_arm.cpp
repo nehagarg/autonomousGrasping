@@ -570,11 +570,11 @@ public:
         //std::cout << "Taking action in CAP" << std::endl;
         
         if (history.Size()) {
-            if (history.LastAction() == 16) {
-                return 18; //18 is Pick 16 is close gripper
+            if (history.LastAction() == 8) {
+                return 10; //10 is Pick 8 is close gripper
             }
         }
-        return 16;
+        return 8;
     }
 };
 /*

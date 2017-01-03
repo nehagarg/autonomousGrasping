@@ -74,6 +74,9 @@ public:
     double pick_z_diff = 0.06;
     double pick_x_val = 0.3079;
     double pick_y_val = 0.1516;
+    
+    double initial_gripper_pose_z = 1.10835; //1.73337; // for amazon shelf
+    double initial_object_pose_z = 1.1248; //1.7066; //for amazon shelf
 
     
 protected:
@@ -86,10 +89,10 @@ protected:
     double touch_sensor_max[48];
     double touch_sensor_mean_closed_without_object[48];
     double touch_sensor_mean_closed_with_object[48];
-    mutable std::vector<SimulationData> simulationDataCollectionWithObject[19];
-    mutable std::vector<int> simulationDataIndexWithObject[19];
-    mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[19];
-    mutable std::vector<int> simulationDataIndexWithoutObject[19];
+    mutable std::vector<SimulationData> simulationDataCollectionWithObject[A_PICK+1];
+    mutable std::vector<int> simulationDataIndexWithObject[A_PICK+1];
+    mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[A_PICK+1];
+    mutable std::vector<int> simulationDataIndexWithoutObject[A_PICK+1];
     
     double get_action_range(int action, int action_type) const ;
     void GetObsFromData(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug = false) const; //state is the state reached after performing action

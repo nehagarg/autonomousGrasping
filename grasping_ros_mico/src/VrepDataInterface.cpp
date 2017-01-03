@@ -83,14 +83,14 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
 
     initial_state.gripper_pose.pose.position.x = min_x_i + 0.01*i;
     initial_state.gripper_pose.pose.position.y = min_y_i + 0.01*j;
-    initial_state.gripper_pose.pose.position.z = 1.73337;
+    initial_state.gripper_pose.pose.position.z = initial_gripper_pose_z;
     initial_state.gripper_pose.pose.orientation.x = -0.694327;
     initial_state.gripper_pose.pose.orientation.y = -0.0171483;
     initial_state.gripper_pose.pose.orientation.z = -0.719 ;
     initial_state.gripper_pose.pose.orientation.w = -0.0255881;
     initial_state.object_pose.pose.position.x = 0.498689;
     initial_state.object_pose.pose.position.y = 0.148582;
-    initial_state.object_pose.pose.position.z = 1.7066;
+    initial_state.object_pose.pose.position.z = initial_object_pose_z;
     initial_state.object_pose.pose.orientation.x = -0.0327037 ;
     initial_state.object_pose.pose.orientation.y = 0.0315227;
     initial_state.object_pose.pose.orientation.z = -0.712671 ; 
@@ -101,7 +101,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     initial_state.finger_joint_state[3] = -0.00118446 ;
     
     
-   /* if (start_state_index >= 0 ) 
+    if (start_state_index >= 0 ) 
     {
         std::cout << "Start_state index is " << start_state_index << std::endl;
         
@@ -115,7 +115,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     }
     else
     {
-*/        while(true){
+       while(true){
             
                 // the engine for generator samples from a distribution
             unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -127,7 +127,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
                 break;
             }
             
-  //      }
+      }
     }
     
     
@@ -285,6 +285,7 @@ bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const 
 }
 
 bool VrepDataInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
+    std::cout << action << std::endl;
     return Step(state, random_num, action, reward, obs, false);
 }
 

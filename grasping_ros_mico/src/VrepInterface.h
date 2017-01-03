@@ -55,6 +55,7 @@ private:
     mutable ros::ServiceClient sim_get_joint_state_client;
     mutable ros::ServiceClient sim_set_joint_position_client;
     mutable ros::ServiceClient sim_set_integer_signal_client;
+    //mutable ros::ServiceClient sim_get_integer_signal_client;
     mutable ros::ServiceClient sim_clear_integer_signal_client;
     
     
