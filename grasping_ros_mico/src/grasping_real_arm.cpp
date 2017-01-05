@@ -351,20 +351,25 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     int num_particles = 0;
     
     //Gaussian belief for gaussian start state
-   /* for(int i = 0; i < 50; i++)
+    if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN")
     {
+        for(int i = 0; i < 50; i++)
+        {
+            GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+            robotInterface->CreateStartState(*grasping_state, type);
+            particles.push_back(grasping_state);
+            num_particles = num_particles + 1;
+        }
+    }
+    
+    
+    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN" )
+    {
+    //Single Particle Belief 
         GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
-        robotInterface->CreateStartState(*grasping_state, type);
         particles.push_back(grasping_state);
         num_particles = num_particles + 1;
     }
-    */
-    
-    //Single Particle Belief 
-    GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
-      particles.push_back(grasping_state);
-    num_particles = num_particles + 1;
-    
      
      
     /*

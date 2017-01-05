@@ -38,8 +38,8 @@
 #for i in range(0,100):
 #    print "./bin/apc_despot_interface -v3 -t 5 -n 1 --number=%d -l CAP > ./results/despot_logs/VrepData_single_particle_belief_t5_n1_state_%d.log 2>&1" %(i,i)
 
-#for i in range(0,1000):
-#    print "./bin/apc_despot_interface -v3 -t 5 -n 10 --number=-1 -l CAP > ./results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
-
 for i in range(0,1000):
-    print "./bin/apc_despot_interface -v3 -t 1 --solver=DEEPLEARNING --number=%d -l CAP > ./despot_logs/learning_trial_%d.log 2>&1" %(i,i)
+    print "./bin/apc_despot_interface -v3 -t 5 -n 10 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/TableScene_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
+
+#for i in range(0,1000):
+#    print "./bin/apc_despot_interface -v3 -t 1 --solver=DEEPLEARNING --number=%d -l CAP > ./despot_logs/learning_trial_%d.log 2>&1" %(i,i)
