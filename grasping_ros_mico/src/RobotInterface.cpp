@@ -680,18 +680,18 @@ double degree_readings[4];
         degree_readings[i] = finger_joint_state[i]*180/3.14;
     }
     
-    if(degree_readings[0] > 20 &&
+    if(degree_readings[0] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
        degree_readings[1] > 85 &&
-       degree_readings[2] > 20 &&
+       degree_readings[2] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
        degree_readings[3] > 85)
     {//joint1 > 20 joint2 > 85 
         return 1;
     }
    
     if(//degree_readings[0] > 2 &&
-       degree_readings[1] > 45 &&
+       degree_readings[1] > 25 && //Changed from 45 to 25 looking at data
        //degree_readings[2] > 2 &&
-       degree_readings[3] > 45)
+       degree_readings[3] > 25)  //Changed from 45 to 25 looking at data
     {//joint1 > 2 joint2 > 45 return 2
         return 2;
     }
