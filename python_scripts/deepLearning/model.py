@@ -366,8 +366,10 @@ def parse_data(fileName):
     #print yseqs[0]
     #for toy problem
     #encoder = Encoder(10, 26)
+    #for old vrep problem
+    #encoder = Encoder(19, 8)
     #for vrep problem
-    encoder = Encoder(19, 8)
+    encoder = Encoder(11, 8)
     return (seqs, xseqs, yseqs, encoder, maxlen)
 
 class DataGenerator(object):

@@ -11,7 +11,7 @@ def createActionHash(state_type = 'toy'):
         action_string_array = action_string[:-2].split(", ")        
         for i in range(0,len(action_string_array)):
             action_string_hash[action_string_array[i]] = i
-    if state_type == 'vrep':
+    if state_type == 'vrep_old':
         action_string_hash['-Action=ActionisINCREASEXby0.01'] = 0
         action_string_hash['-Action=ActionisINCREASEXby0.02'] = 1
         action_string_hash['-Action=ActionisINCREASEXby0.04'] = 2
@@ -31,6 +31,18 @@ def createActionHash(state_type = 'toy'):
         action_string_hash['-Action=ActionisCLOSEGRIPPER'] = 16
         action_string_hash['-Action=ActionisOPENGRIPPER'] = 17
         action_string_hash['-Action=ActionisPICK'] = 18
+    if state_type == 'vrep':
+        action_string_hash['-Action=ActionisINCREASEXby0.01'] = 0
+        action_string_hash['-Action=ActionisINCREASEXby0.08'] = 1
+        action_string_hash['-Action=ActionisDECREASEXby0.01'] = 2
+        action_string_hash['-Action=ActionisDECREASEXby0.08'] = 3
+        action_string_hash['-Action=ActionisINCREASEYby0.01'] = 4
+        action_string_hash['-Action=ActionisINCREASEYby0.08'] = 5
+        action_string_hash['-Action=ActionisDECREASEYby0.01'] = 6
+        action_string_hash['-Action=ActionisDECREASEYby0.08'] = 7
+        action_string_hash['-Action=ActionisCLOSEGRIPPER'] = 8
+        action_string_hash['-Action=ActionisOPENGRIPPER'] = 9
+        action_string_hash['-Action=ActionisPICK'] = 10
     return action_string_hash
 
 def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
@@ -38,11 +50,15 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
     #print action_string_hash
     #print fullData
     num_steps = len(fullData['stepInfo'])
+
+        
     num_actions = len(action_string_hash.keys())
     successTraj = False
     if len(fullData['stepInfo']) > 0 and fullData['stepInfo'][-1]['reward'] == 20:
         successTraj = True
     if (successTraj or not isTraining):
+        if num_steps > 89:
+            print num_steps
         seq = []
         j_range = len(fullData['stepInfo'])
         #if not isTraining:
@@ -77,8 +93,11 @@ def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName is None:
         for i in range(0,1000):
-            logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
+            #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/TableScene_cylinder_10cm_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
+            #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            
         #for i in range(0,400):
         #    for round_no in range(0,4):
         #        logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_multi_runs_t10_n10_obs_prob_change_particles_as_state_4objects.log'
@@ -121,17 +140,18 @@ def test_parsing_methods(filename):
     print seqs1
 
 def test_parser(filename):
-    seqs = parse(filename)
+    seqs = parse(filename, '', True)
     print seqs
     
 def main():
     i = 0
-    filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_multi_runs_t10_n10_obs_prob_change_particles_as_state_4objects.log'
+    #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_multi_runs_t10_n10_obs_prob_change_particles_as_state_4objects.log'
     #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/'
     
+    filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/TableScene_cylinder_10cm_gaussian_belief_with_state_in_belief_t5_n10_trial_0.log'
     
-    #test_parser(filename)
-    test_parsing_methods(filename)
+    test_parser(filename)
+    #test_parsing_methods(filename)
     
 
 if __name__=="__main__":

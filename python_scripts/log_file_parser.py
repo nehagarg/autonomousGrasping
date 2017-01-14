@@ -42,36 +42,40 @@ class GripperObservation:
         obs.append(self.y_w_obs)
         return obs
 
+class VrepConstants:
+    reference_g_x = 0.3379 + 0.01*0
+    reference_g_y = 0.0816 + 0.01*7
 class VrepGripperState:
     def __init__(self, values):
         #print values
-        self.g_x = values[0]
-        self.g_y = values[1]
-        self.g_z = values[2]
-        self.o_x = values[7]
-        self.o_y = values[8]
-        self.o_z = values[9]
-        self.fj1 = values[14]
-        self.fj2 = values[15]
-        self.fj3 = values[16]
-        self.fj4 = values[17]
+        self.g_x = float(values[0])
+        self.g_y = float(values[1])
+        self.g_z = float(values[2])
+        self.o_x = float(values[7])
+        self.o_y = float(values[8])
+        self.o_z = float(values[9])
+        self.fj1 = float(values[14])
+        self.fj2 = float(values[15])
+        self.fj3 = float(values[16])
+        self.fj4 = float(values[17])
 
 class VrepGripperObs:
+    
     def __init__(self, values):
         #print values
-        self.g_x = values[0]
-        self.g_y = values[1]
-        self.g_z = values[2]
-        self.fj1 = values[14]
-        self.fj2 = values[15]
-        self.fj3 = values[16]
-        self.fj4 = values[17]
-        self.sensor_obs = [values[18], values[19]]
+        self.g_x = float(values[0])
+        self.g_y = float(values[1])
+        self.g_z = float(values[2])
+        self.fj1 = float(values[14])
+        self.fj2 = float(values[15])
+        self.fj3 = float(values[16])
+        self.fj4 = float(values[17])
+        self.sensor_obs = [float(values[18]), float(values[19])]
     
-    def convert_to_array(self):
+    def convert_to_array(self): #used for generating deep learning data
         obs = self.sensor_obs[:]
-        obs.append(self.g_x)
-        obs.append(self.g_y)
+        obs.append(self.g_x - VrepConstants.reference_g_x) #subtract reference so that it can be used with real arm also
+        obs.append(self.g_y - VrepConstants.reference_g_y )  #subtract reference so that it can be used with real arm also
         obs.append(self.fj1)
         obs.append(self.fj2)
         obs.append(self.fj3)
@@ -133,13 +137,14 @@ class ParseLogFile:
         f.write(self.yamlLog)
 
     def parseVrepLogBelief(self, line, beliefArray):
-        modeEnd = re.search('INFO-thread', line)
+        modeEnd = re.search('Time spent in ExecuteAction', line)
         if modeEnd:
             self.stateStarted = False
             self.beliefParsingMode = False
             self.stateParsingMode = True
-        particle = re.search('|', line)
+        particle = re.search('\|', line)
         if particle:
+            #print line
             self.stateStarted = True
             values = ParseLogFile.rx.findall(line)
             #TODO : Add belief in array
@@ -245,7 +250,14 @@ class ParseLogFile:
                 #stepInfo[stepNo]['state'] = GripperState()  
               
             if self.initialStateParsingMode:
-                step_info['initial_state'] = f.readline()
+                values = ParseLogFile.rx.findall(f.readline())
+                if state_type == 'toy':
+                    step_info['initial_state'] = GripperState(values[0], values[1], values[6], values[7], values[2], values[3], values[4])
+                elif state_type == 'vrep':
+                    step_info['initial_state'] = VrepGripperState(values)
+                else:
+                    assert 0 == 1
+                #step_info['initial_state'] = f.readline()
                 self.initialStateParsingMode = False
                 yield stepNo, roundNo, step_info
             
