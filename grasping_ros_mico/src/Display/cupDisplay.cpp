@@ -130,7 +130,7 @@ void CUPDISPLAY::DrawRviz()
 			marker.color.r = 0.0f;
 			marker.color.g = 1.0f;
 			marker.color.b = 0.0f;
-			marker.color.a = 0.5 + 0.5*(object_pose_bel_weight[i]);
+			marker.color.a = 0.2 + 0.8*(object_pose_bel_weight[i] );
 			marker.lifetime = ros::Duration();
 			// marker.lifetime = one_second;
 			pub_belief.publish(marker);
@@ -181,7 +181,7 @@ void CUPDISPLAY::DrawRviz()
 			marker.color.r = 0.0f;
 			marker.color.g = 0.0f;
 			marker.color.b = 1.0f;
-			marker.color.a = 0.5;
+			marker.color.a = 1.0;
 			marker.lifetime = ros::Duration();
 			// marker.lifetime = one_second;
 			pub_belief.publish(marker); 
