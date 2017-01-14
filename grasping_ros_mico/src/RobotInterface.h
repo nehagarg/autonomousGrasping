@@ -11,6 +11,7 @@
 #include "GraspingStateRealArm.h"
 #include "GraspingObservation.h"
 #include "simulation_data_reader.h"
+#include <cmath> //To make abs work for double
 
 class RobotInterface {
 public:
@@ -34,6 +35,18 @@ public:
         double& reward, GraspingObservation& obs) const = 0;
     virtual bool IsValidState(GraspingStateRealArm grasping_state) const = 0;
     
+    void GenerateGaussianParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
+
+    double abs(double x) const{
+        if (x < 0) 
+        {
+            return -1*x;
+        }
+        else
+        {
+            return x;
+        }
+    }
     /*enum { //action for amazon shelf
         A_INCREASE_X = 0 ,
         A_DECREASE_X = 4 ,
@@ -77,7 +90,9 @@ public:
     
     double initial_gripper_pose_z = 1.10835; //1.73337; // for amazon shelf
     double initial_object_pose_z = 1.1248; //1.7066; //for amazon shelf
-
+    double initial_object_x = 0.498689;
+    double initial_object_y = 0.148582;
+ 
     
 protected:
     double epsilon = 0.01; //Smallest step value
@@ -104,6 +119,7 @@ protected:
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
     
+    
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
     virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
     virtual bool IsValidPick(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs) const = 0;
@@ -113,6 +129,11 @@ protected:
 
 
 
+inline double Gaussian_Distribution(std::default_random_engine& generator, double mean, double var)
+{
+	std::normal_distribution<double> distrbution(mean, var);
+	return distrbution(generator);
+}
 
 #endif	/* ROBOTINTERFACE_H */
 
