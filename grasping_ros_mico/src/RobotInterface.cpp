@@ -6,6 +6,8 @@
  */
 
 #include "RobotInterface.h"
+#include <chrono>
+
 
 
 RobotInterface::RobotInterface() {
@@ -48,7 +50,7 @@ RobotInterface::RobotInterface() {
     std::ifstream simulationDataFile;
     
     //simulationDataFile.open("data/simulationData1_allParts.txt");
-    simulationDataFile.open("data_table_exp/SASOData_Cylinder_10cm_allActions.txt");
+    simulationDataFile.open("data_table_exp/SASOData_Cylinder_9cm_allActions.txt");
     //int t_count = 0;    
     while(!simulationDataFile.eof())
     {
@@ -78,7 +80,7 @@ RobotInterface::RobotInterface() {
     simulationDataFile.close();
     
     //simulationDataFile.open("data/simulationData_1_openAction.txt");
-    simulationDataFile.open("data_table_exp/SASOData_Cylinder_10cm_openAction.txt");
+    simulationDataFile.open("data_table_exp/SASOData_Cylinder_9cm_openAction.txt");
    
     
     while(!simulationDataFile.eof())
@@ -111,8 +113,9 @@ RobotInterface::~RobotInterface() {
 
 bool RobotInterface::Step(GraspingStateRealArm& grasping_state, double random_num, int action, double& reward, GraspingObservation& grasping_obs, bool debug) const {
 GraspingStateRealArm initial_grasping_state = grasping_state;
+//debug = true;
     //PrintState(grasping_state, std::cout);
-    //PrintAction(action);
+    // PrintAction(action);
    // GraspingStateRealArm nearest_grasping_state = GetNearestGraspingStates(grasping_state,0);
     //Get next state
     
@@ -193,7 +196,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     }
         
     //PrintState(grasping_state, std::cout);
-    //PrintObs(grasping_obs, std::cout);
+   //PrintObs(grasping_obs, std::cout);
     
     
     bool validState = IsValidState(grasping_state);
@@ -201,6 +204,8 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     
     //Decide Reward
     GetReward(initial_grasping_state, grasping_state, grasping_obs, action, reward);
+    
+   // std::cout << "Reward " << reward << std::endl;
     
     //Update next state parameters dependent on previous state
     UpdateNextStateValuesBasedAfterStep(grasping_state,grasping_obs,reward, action);
@@ -216,6 +221,8 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
         GraspingObservation grasping_obs_expected;
     
     GetObsFromData(grasping_state, grasping_obs_expected, despot::Random::RANDOM.NextDouble(), action);
+    
+   // PrintObs(grasping_obs_expected);
     double total_distance = 0;
     double finger_weight = 1;
     if(action == A_CLOSE)
@@ -240,7 +247,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     {
         sensor_distance = sensor_distance + abs(grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i]);
     }
-    sensor_distance = sensor_distance/4.0;
+    sensor_distance = sensor_distance/2.0;
     
     double gripper_distance = 0;
     gripper_distance = gripper_distance + pow(grasping_obs.gripper_pose.pose.position.x - grasping_obs_expected.gripper_pose.pose.position.x, 2);
@@ -257,8 +264,8 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
                      (sensor_distance*sensor_weight) + 
                      (gripper_distance*gripper_position_weight) + 
                      (gripper_quaternion_distance*gripper_orientation_weight);
-    
-    double prob = pow(2, -1*total_distance/tau);
+    double temperature = 5;
+    double prob = pow(2, -1*temperature*total_distance/tau);
 
     return prob;
 }
@@ -412,6 +419,31 @@ void RobotInterface::PrintState(const GraspingStateRealArm& grasping_state, std:
     //out << " Gripper Pose" << grasping_state.gripper_pose.pose.position.x;
     //out << std::endl;
 }
+
+void RobotInterface::GenerateGaussianParticleFromState(GraspingStateRealArm& initial_state, std::string type) const {
+   
+    while(true)
+    {
+                // the engine for generator samples from a distribution
+            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::default_random_engine generator(seed);
+            initial_state.object_pose.pose.position.x = Gaussian_Distribution(generator,initial_object_x, 0.03 );
+            initial_state.object_pose.pose.position.y = Gaussian_Distribution(generator,initial_object_y, 0.03 );
+
+            
+            break;
+            if((initial_state.object_pose.pose.position.x < initial_object_x + 0.035) &&
+                 (initial_state.object_pose.pose.position.x > initial_object_x - 0.035) &&
+                 (initial_state.object_pose.pose.position.y < initial_object_y + 0.035) &&
+                 (initial_state.object_pose.pose.position.y > initial_object_y - 0.035))
+            {
+                break;
+            }
+            
+      }
+      
+}
+
 
 double RobotInterface::get_action_range(int action, int action_type) const {
 if ((action - action_type) >= (A_DECREASE_X - A_INCREASE_X)) {
@@ -734,6 +766,13 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
             if(abs(y1-y2) <= 0.005)
             {
+               /* if(debug)
+                {
+                    std::cout << "Pushing particle with difference(" << abs(x1-x2) << ", " << abs(y1-y2) << ")" << std::endl;
+                    std::cout << "x1 = " << x1 << " x2 = " << x2 << " y1 = " << y1 << " y2 = " << y2 << std::endl;
+                    simulationDataCollectionWithObject[action][i].PrintSimulationData();
+                    PrintState(current_grasping_state);
+                }*/
                 tempDataVector.push_back(simulationDataCollectionWithObject[action][i]);
             }
         }
@@ -826,11 +865,11 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             for(std::vector<SimulationData> :: iterator it = xy_lower_bound; it < xy_upper_bound; it++)
             {
                 double temp_distance = 0;
-                if(action < 8 || action > 15)
+                if(action < A_INCREASE_Y || action > A_CLOSE-1)
                 { // if move in x check distance between only x
                     temp_distance = pow(((*it).current_gripper_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x), 2);
                 }
-                if (action >= 8)
+                if (action >= A_INCREASE_Y)
                 {
                     // if move in y check distance between only y 
                     temp_distance = temp_distance + pow(((*it).current_gripper_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y), 2);
@@ -871,13 +910,82 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
            grasping_state.object_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + tempData.next_object_pose.pose.position.z - tempData.next_gripper_pose.pose.position.z;
         
         //}
-        grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + tempData.next_gripper_pose.pose.position.x - tempData.current_gripper_pose.pose.position.x;
-        grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + tempData.next_gripper_pose.pose.position.y - tempData.current_gripper_pose.pose.position.y;
+
+        double next_gripper_pose_boundary_margin_x = 0.0;
+        double next_gripper_pose_boundary_margin_y = 0.0;
+        
+        if(action < A_CLOSE)
+        {
+            int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
+            double action_range = get_action_range(action, action_offset);
+            int on_bits[2];
+            if(action < A_DECREASE_X) //action is increase x
+            {
+                if((tempData.next_gripper_pose.pose.position.x - tempData.current_gripper_pose.pose.position.x ) < action_range)
+                {
+                    if(tempData.next_gripper_pose.pose.position.x > max_x_i)
+                    {
+                        if(!CheckTouch(tempData.touch_sensor_reading, on_bits))
+                        {
+                            next_gripper_pose_boundary_margin_x = action_range - (tempData.next_gripper_pose.pose.position.x - tempData.current_gripper_pose.pose.position.x );
+                        }
+                    }
+                }
+            }
+            else if (action < A_INCREASE_Y) //action is decrease x
+            {
+                if((-tempData.next_gripper_pose.pose.position.x + tempData.current_gripper_pose.pose.position.x ) < action_range)
+                {
+                    if(tempData.next_gripper_pose.pose.position.x < min_x_i)
+                    {
+                        if(!CheckTouch(tempData.touch_sensor_reading, on_bits))
+                        {
+                            next_gripper_pose_boundary_margin_x = - action_range + (-tempData.next_gripper_pose.pose.position.x + tempData.current_gripper_pose.pose.position.x );
+                        }
+                    }
+                }
+            }
+            else if (action < A_DECREASE_Y) //action is increase y
+            {
+                if((tempData.next_gripper_pose.pose.position.y - tempData.current_gripper_pose.pose.position.y ) < action_range)
+                {
+                    if(tempData.next_gripper_pose.pose.position.y > max_y_i)
+                    {
+                        if(!CheckTouch(tempData.touch_sensor_reading, on_bits))
+                        {
+                            next_gripper_pose_boundary_margin_y = action_range - (tempData.next_gripper_pose.pose.position.y - tempData.current_gripper_pose.pose.position.y );
+                        }
+                    }
+                }
+            }
+            else //action is decrease y
+            {
+                if((-tempData.next_gripper_pose.pose.position.y + tempData.current_gripper_pose.pose.position.y ) < action_range)
+                {
+                    if(tempData.next_gripper_pose.pose.position.y < min_y_i)
+                    {
+                        if(!CheckTouch(tempData.touch_sensor_reading, on_bits))
+                        {
+                            next_gripper_pose_boundary_margin_y = - action_range + (-tempData.next_gripper_pose.pose.position.y + tempData.current_gripper_pose.pose.position.y );
+                        }
+                    }
+                }
+            }
+        }
+            
+            
+            
+            
+        grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x + tempData.next_gripper_pose.pose.position.x - tempData.current_gripper_pose.pose.position.x;
+        grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y + tempData.next_gripper_pose.pose.position.y - tempData.current_gripper_pose.pose.position.y;
+        
+        
+        grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + tempData.next_object_pose.pose.position.x - (tempData.next_gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x );
+        grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + tempData.next_object_pose.pose.position.y - (tempData.next_gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y );
+        
         CheckAndUpdateGripperBounds(grasping_state, action);
-        
-        grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + tempData.next_object_pose.pose.position.x - tempData.next_gripper_pose.pose.position.x;
-        grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + tempData.next_object_pose.pose.position.y - tempData.next_gripper_pose.pose.position.y;
-        
+           
+           
         //Update next observation
         grasping_obs.gripper_pose = grasping_state.gripper_pose;
         grasping_obs.mico_target_pose = tempData.mico_target_pose; //No need
@@ -915,29 +1023,29 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
         int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
         if(action < A_DECREASE_X)
         {
-            grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + epsilon*pow(2,action-action_offset);
+            grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + get_action_range(action, action_offset);
         }
         else if (action < A_INCREASE_Y)
         {
-            grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - epsilon*pow(2,action-action_offset);
+            grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - get_action_range(action, action_offset);
             
         }
         else if (action < A_DECREASE_Y)
         {
-            grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + epsilon*pow(2,action-action_offset);
+            grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + get_action_range(action,action_offset);
             
         }
         else if (action < A_CLOSE)
         {
-            grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.x + epsilon*pow(2,action-action_offset);
+            grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y - get_action_range(action, action_offset);
             
         }
     }
     else if (action == A_CLOSE)
     {
-        grasping_state.finger_joint_state[0] = 22*3.14/180;
+        grasping_state.finger_joint_state[0] = 22.5*3.14/180;
         grasping_state.finger_joint_state[1] = 90*3.14/180;
-        grasping_state.finger_joint_state[2] = 22*3.14/180;
+        grasping_state.finger_joint_state[2] = 22.5*3.14/180;
         grasping_state.finger_joint_state[3] = 90*3.14/180;
     }
     else if (action == A_OPEN)
