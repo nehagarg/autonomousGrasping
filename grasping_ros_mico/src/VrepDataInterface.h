@@ -48,10 +48,5 @@ private:
 };
 
 
-inline double Gaussian_Distribution(std::default_random_engine& generator, double mean, double var)
-{
-	std::normal_distribution<double> distrbution(mean, var);
-	return distrbution(generator);
-}
 #endif	/* VREPDATAINTERFACE_H */
 

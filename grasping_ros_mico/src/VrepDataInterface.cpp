@@ -7,7 +7,6 @@
 
 #include "VrepDataInterface.h"
 #include "RobotInterface.h"
-#include <chrono>
 
 VrepDataInterface::VrepDataInterface(int start_state_index_) : start_state_index(start_state_index_){
 }
@@ -117,12 +116,21 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     {
        while(true){
             
-                // the engine for generator samples from a distribution
-            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+          //GenerateGaussianParticleFromState(initial_state, type);
+           //initial_state.object_pose.pose.position.x = 0.531724;
+           //initial_state.object_pose.pose.position.y = 0.106093;
+           initial_state.object_pose.pose.position.x = initial_object_x + 0.03;
+           initial_state.object_pose.pose.position.y = initial_object_y + 0.03;
+           // the engine for generator samples from a distribution
+           /* unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             std::default_random_engine generator(seed);
             initial_state.object_pose.pose.position.x = Gaussian_Distribution(generator,0.498689, 0.03 );
             initial_state.object_pose.pose.position.y = Gaussian_Distribution(generator,0.148582, 0.03 );
-            if(IsValidState(initial_state))
+            
+            */
+           
+           
+           if(IsValidState(initial_state))
             {
                 break;
             }
@@ -199,6 +207,7 @@ void VrepDataInterface::GetRewardBasedOnGraspStability(GraspingStateRealArm gras
     
     //grasp stability criteria 2
     int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+    
     if (gripper_status ==2)
     {
         grasp_stable = true;

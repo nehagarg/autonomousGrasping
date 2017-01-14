@@ -10,7 +10,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float64.h"
 
-VrepInterface::VrepInterface() {
+VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_state_index_) {
    
         
     //Read joint angles for initial state
@@ -139,6 +139,19 @@ void VrepInterface::GetNextStateAndObservation(GraspingStateRealArm& grasping_st
  
 }
 
+void VrepInterface::SetObjectPose(geometry_msgs::PoseStamped object_pose, int handle, int relativeHandle) const {
+        vrep_common::simRosSetObjectPose set_object_pose_srv;
+        set_object_pose_srv.request.handle = handle;
+        set_object_pose_srv.request.relativeToObjectHandle = relativeHandle;
+        set_object_pose_srv.request.pose = object_pose.pose;
+        if(!sim_set_object_pose_client.call(set_object_pose_srv))
+        {
+            std::cout << "Call to set mico target pose failed " << std::endl;
+            assert(false);
+        }
+}
+
+
 void VrepInterface::SetMicoTargetPose(geometry_msgs::PoseStamped mico_target_pose) const {
         
         vrep_common::simRosSetObjectPose set_object_pose_srv;
@@ -219,7 +232,11 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
     //Otherwise it gets reset
     mico_target_pose.pose.position.x = min_x_i + 0.01*i;
     mico_target_pose.pose.position.y = min_y_i + 0.01*j;
-
+    mico_target_pose.pose.position.z = initial_gripper_pose_z;
+    mico_target_pose.pose.orientation.x = -0.694327;
+    mico_target_pose.pose.orientation.y = -0.0171483;
+    mico_target_pose.pose.orientation.z = -0.719 ;
+    mico_target_pose.pose.orientation.w = -0.0255881;
 
     vrep_common::simRosSetObjectPose set_object_pose_srv;
     set_object_pose_srv.request.handle = mico_target_handle;
@@ -459,12 +476,19 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
     double y_val = mico_target_pose.pose.position.y;
     
     bool take_step = true;
+    
+    if(step_no == 0) 
+    { //Check gripper status only for first step because while generating data gripper is always open 
+        //In real simulation gripper can be open initially 
+        //but can close midway in decreasex/y action due to previous close action
+        //This leads to termination of step midway which is not captured in data and leads to inconsistent belief update
     if(gripper_status > 0)
     {
         //Do not take action if gripper is closed
+        std::cout << "Not taking action because gripper closed" << std::endl;
         take_step = false;
     }
-    
+    }
     if(action_offset == A_INCREASE_X )
     {
         if(x_val+0.01 > max_x_i+0.005)
@@ -594,15 +618,18 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
     {
         if(stateValid)
         {
+            
             return stop_due_to_touch;
         }
         else
         {
+            std::cout<< "Stopping due to invalid state" <<  " ";
             return true; //Step should stop as state reached is invalid
         }
     }
     else
     {
+        std::cout<< "Stopping due to invalid state" <<  " ";
         return true; // Step should stop as state is not changed and no action can be taken in current state
     }
 }
@@ -1005,7 +1032,8 @@ void VrepInterface::GatherData(int object_id) const {
     //return;
 
     std::ofstream myfile;
-    myfile.open ("data_table_exp/SASOData_Cylinder_11cm_openAction.txt");
+    //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
+    myfile.open ("dummy.txt");
     GraspingStateRealArm initial_state ;
     if(initial_state.object_id == -1)
     {
@@ -1031,12 +1059,12 @@ void VrepInterface::GatherData(int object_id) const {
     vrep_common::simRosStopSimulation stop_srv;
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
-    int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
-    int i_loop_min = 0;  //20
-    int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
-    int j_loop_min = 0;//16;
-    int k_loop_max = A_OPEN + 1; 
-    int k_loop_min = A_OPEN; 
+    int i_loop_max = 10 ; //(int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    int i_loop_min = 9 ; //0;  //20
+    int j_loop_max = 7 ; (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    int j_loop_min = 6 ;//0;//16;
+    int k_loop_max = A_CLOSE+1; 
+    int k_loop_min = A_CLOSE; 
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
@@ -1473,6 +1501,19 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
 void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
         
         
+    
+            //Stop Simulation if its already running
+        vrep_common::simRosStopSimulation stop_srv;
+        if(sim_stop_client.call(stop_srv) ){
+                        if(stop_srv.response.result ==0)
+                        {
+                             std::cout << "Simulation already stopped" << std::endl;
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "Failed to stop simualtion" << std::endl ;
+                    }
         int i = 0;
         int j = 7;
         
@@ -1481,9 +1522,16 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         SetGripperPose(i,j);
         std::cout << "Gripper pose set" << std::endl;
         
+
+        VrepDataInterface::CreateStartState(initial_state, type);
+        SetObjectPose(initial_state.object_pose, target_object_handle, -1);
+            
+        
+        
         //std::cout << "Getting initial state" << std::endl;
         GetStateFromVrep(initial_state);
         //std::cout<< "Got initial state" << std::endl;
+        
 }
 
 

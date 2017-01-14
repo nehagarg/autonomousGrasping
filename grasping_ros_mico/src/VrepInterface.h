@@ -28,7 +28,7 @@
 
 class VrepInterface : public VrepDataInterface {
 public:
-    VrepInterface();
+    VrepInterface(int start_state_index_ = -1);
     VrepInterface(const VrepInterface& orig);
     virtual ~VrepInterface();
     
@@ -83,13 +83,14 @@ private:
     bool TakeStepInVrep(int action_offset, int step_no, bool& alreadyTouching, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, double& reward) const;
     void OpenCloseGripperInVrep(int action_offset, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, double& reward) const;
     void PickActionInVrep(int action_offset, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, double& reward) const;
+    void SetObjectPose(geometry_msgs::PoseStamped object_pose, int handle, int relativeHandle = -1) const;
     void SetMicoTargetPose(geometry_msgs::PoseStamped micoTargetPose) const;
     void SetGripperPose(int i, int j, geometry_msgs::PoseStamped micoTargetPose) const;
     void SetGripperPose(int i, int j) const;
     void GetNextStateAndObservation(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, geometry_msgs::PoseStamped micoTargetPose) const;
     void WaitForArmToStabilize() const;
     void WaitForStability(std::string signal_name, std::string topic_name, int signal_on_value, int signal_off_value) const;
-   
+    
 
 };
 
