@@ -1,7 +1,7 @@
 
 import re
 
-def parse_pocman_trace(filename, round=-1):
+def parse(filename, round=-1):
     f = open(filename, 'r')
     seqs = []
     parse_act_obs = False
@@ -38,7 +38,7 @@ def parse_pocman_trace(filename, round=-1):
 
 
 def test_parser(filename):
-    seqs = parse_pocman_trace(filename, 2)
+    seqs = parse(filename, 2)
     print seqs
     
 def main():
