@@ -1,7 +1,7 @@
 
 import re
 
-def parse(filename, round=-1):
+def parse_pocman_trace(filename, round=-1):
     f = open(filename, 'r')
     seqs = []
     parse_act_obs = False
@@ -35,10 +35,13 @@ def parse(filename, round=-1):
     
 
 
-
+def parse(filename=None, round = -1):
+    if filename is None:
+        filename = 'pocman_t10_100runs_access9.log'
+    return parse_pocman_trace(filename)
 
 def test_parser(filename):
-    seqs = parse(filename, 2)
+    seqs = parse_pocman_trace(filename, 2)
     print seqs
     
 def main():
