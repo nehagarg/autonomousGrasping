@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/python_scripts/')
+sys.path.append('../')
 import tensorflow as tf
 import json
 import os
