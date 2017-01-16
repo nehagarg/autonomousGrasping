@@ -9,7 +9,16 @@ public:
   }
   
     DSPOMDP* InitializeModel(option::Option* options) {
-    DSPOMDP* model = new FullPocman();
+    DSPOMDP* model;
+        if (options[E_NUMBER]) {
+                        int number = atoi(options[E_NUMBER].arg);
+                        std::cout << "Number is " <<  number;
+                        model = new FullPocman( number);
+                }
+        else
+        {
+            model = new FullPocman();
+        }
     return model;
   }
 
