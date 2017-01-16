@@ -778,6 +778,7 @@ void Pocman::PrintState(const State& state, ostream& ostr) const {
 
 void Pocman::PrintObs(const State& state, OBS_TYPE observation,
 	ostream& ostr) const {
+        ostr << observation << endl;
 	const PocmanState& pocstate = static_cast<const PocmanState&>(state);
 	Grid<char> obs(maze_.xsize(), maze_.ysize());
 	obs.SetAllValues(' ');
@@ -861,7 +862,7 @@ void Pocman::PrintBelief(const Belief& belief, ostream& out) const {
 }
 
 void Pocman::PrintAction(int action, ostream& out) const {
-	out << Compass::CompassString[action] << endl;
+	out << Compass::CompassString[action] << " " << action <<  endl;
 }
 
 State* Pocman::Allocate(int state_id, double weight) const {
