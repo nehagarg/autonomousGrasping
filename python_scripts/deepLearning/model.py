@@ -308,7 +308,7 @@ class Seq2SeqModel(object):
         probs = np.transpose(probs, (1,0,2))
         return probs
 
-    def validate(self, val_set):
+    def validate_old(self, val_set):
         num_correct = 0
         num_samples = 0
         for batch in val_set:
@@ -318,6 +318,20 @@ class Seq2SeqModel(object):
             
             num_correct += sum([int(np.all(t==p)) for t, p in zip(target, prediction)])
             num_samples += len(x)
+            #if num_correct < num_samples :
+            print "NC:" + repr(num_correct) + " NS:" + repr(num_samples) + " Target: " + repr(target) + " Prediction: " + repr(prediction)
+        return 1.0 - float(num_correct)/num_samples
+    
+    def validate(self, val_set):
+        num_correct = 0
+        num_samples = 0
+        for batch in val_set:
+            x, y = batch
+            target = np.argmax(y, axis=2)
+            prediction = np.argmax(self.predict(x), axis=2)
+            
+            num_correct += sum([int(sum(t==p)) for t, p in zip(target, prediction)])
+            num_samples += sum([len(x1) for x1 in x])
             #if num_correct < num_samples :
             print "NC:" + repr(num_correct) + " NS:" + repr(num_samples) + " Target: " + repr(target) + " Prediction: " + repr(prediction)
         return 1.0 - float(num_correct)/num_samples
