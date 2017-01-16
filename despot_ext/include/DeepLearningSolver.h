@@ -19,7 +19,7 @@ public:
 
     virtual ValuedAction Search();
     virtual void Update(int action, uint64_t obs);
-
+    
     /*virtual void Update(int action, ObservationClass obs){
         Solver::Update(action, obs.GetHash());
     }*/

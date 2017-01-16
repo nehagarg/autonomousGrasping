@@ -41,7 +41,9 @@ std::string to_string(T const& value) {
 ValuedAction DeepLearningSolver::Search() {
     std::cout << "Starting search" << std::endl;
     
-    std::string cmd_string = "cd python_scripts/deepLearning ; python model.py " + to_string((int)((LearningModel*)model_)->GetStartStateIndex()) + "; cd - ;";
+   // std::string cmd_string = "cd python_scripts/deepLearning ; python model.py " + to_string((int)((LearningModel*)model_)->GetStartStateIndex()) + "; cd - ;";
+    
+    std::string cmd_string = ((LearningModel*)model_)->GetPythonExecutionString();
     
     std::cout << "Before calling exec" << std::endl;
     std::string result = exec(cmd_string.c_str());
