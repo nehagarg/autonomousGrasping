@@ -33,7 +33,7 @@ class Encoder(object):
         elif x == PAD:
             trans_x[-1] = 1
         else:
-            print x
+            #print x
             act = x[0]
             obs = int(x[1])
             index_obs = [i for i, c in enumerate(reversed('{0:b}'.format(obs))) if c=='1']
