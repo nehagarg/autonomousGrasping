@@ -19,6 +19,8 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
     parse_act_obs = False
     parse_round = True
     reward = 0
+    act = 5
+    obs = None
     while True:
         line = f.readline()
         if not line:
@@ -52,13 +54,25 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
             if re.search('- Reward', line):
                 values = rx.findall(line)
                 reward = int(values[0])
-            regular_expression = 'history and root with action (\d+), observation (\d+)'
-            act_obs_found = re.search(regular_expression, line)
-            if(act_obs_found):
-                act = int(act_obs_found.group(1))
-                obs = int(act_obs_found.group(2))
-                seqs[-1].append((act,obs))
-                parse_act_obs = False
+
+            if not isTraining: #Slightly different file format
+                if re.search('- Action', line):
+                    values = rx.findall(line)
+                    act = int(values[0])
+                if re.search('- Observation', line):
+                    values = rx.findall(line)
+                    obs = int(values[0])
+                    seqs[-1].append((act,obs)) 
+                    parse_act_obs = False
+            else: #Original despot trace
+            
+                regular_expression = 'history and root with action (\d+), observation (\d+)'
+                act_obs_found = re.search(regular_expression, line)
+                if(act_obs_found):
+                    act = int(act_obs_found.group(1))
+                    obs = int(act_obs_found.group(2))
+                    seqs[-1].append((act,obs))
+                    parse_act_obs = False
 
     return seqs    
     
