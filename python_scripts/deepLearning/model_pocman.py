@@ -496,7 +496,7 @@ def test(fileName=None):
                 output_length=output_length,
                 batch_size=training_batch_size,
                 scope="model")
-        model.load('version8/model.ckpt-800')
+        model.load('pocman/t10/model.ckpt-812')
 
         #print "finished building and loading model"
         if fileName is None:
@@ -529,7 +529,7 @@ def test(fileName=None):
             #print data_generator.seqs
             #print data_generator.xseqs
             print data_generator.yseqs
-            print 'version8/model.ckpt-800'
+            print 'pocman/t10/model.ckpt-812'
             #print np.argmax(y, axis=2)[0]
         '''
         X = ['$', (6, 1), (0, 0), (0, 0), (4, 0), (7, 2), (5, 2), (1, 0), (1, 0), (10, 1), (0, 0), (1, 0), (4, 0), (12, 2), (2, 0), (2, 0), (2, 0), (8, 1), (2, 0), (3, 0), (4, 0), (1, 0), (2, 0), (9, 1), (4, 0), (1, 0), (11, 1), (4, 0), (13, 2), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1), (4, 0), (1, 0), '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*']
@@ -571,7 +571,8 @@ def main():
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
         #test_dataGenerator(1,logfileName)
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version7/dagger_data/graspingV4_state_' + repr(i) + '_t1_n10_obs_prob_change_particles_as_state_4objects.log'
-        logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_different_objects/version8/state_' + repr(i) + '.log'
+        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_different_objects/version8/state_' + repr(i) + '.log'
+	logfileName = '../../pocman/results/learning/full_pocman_t10_trial_' + repr(i) + '.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/test.log'
         #test_dataGenerator(1,logfileName)
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_same_objects/sensor_observation_sum/state_' + repr(i) + '.log'

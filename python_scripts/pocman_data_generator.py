@@ -25,6 +25,8 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
             if isTraining and reward < -1: #Criteria for selecting trace in full pocman
                     print "Removing Seq " + repr(round_no - 1)
                     del(seqs[-1])
+	    if not isTraining:
+		seqs[-1].append((5,None))
             break;
             
         regular_expression = 'Round (\d+) Step (\d+)'
@@ -65,7 +67,10 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
 def parse(filename=None, round = -1):
     if filename is None:
         filename = '../pocman_t10_100runs_access9.log'
-    return parse_pocman_trace(filename)
+	
+    	return parse_pocman_trace(filename)
+    else:
+	return parse_pocman_trace(filename, -1, False)
 
 def test_parser(filename):
     seqs = parse_pocman_trace(filename, 11)
