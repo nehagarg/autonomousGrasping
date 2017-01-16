@@ -100,7 +100,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     initial_state.finger_joint_state[3] = -0.00118446 ;
     
     
-    if (start_state_index >= 0 ) 
+    /*if (start_state_index >= 0 ) 
     {
         std::cout << "Start_state index is " << start_state_index << std::endl;
         
@@ -113,7 +113,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     //return  initial_states[ii];
     }
     else
-    {
+    {*/
        while(true){
             
           GenerateGaussianParticleFromState(initial_state, type);
@@ -143,7 +143,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
             }
             
       }
-    }
+    //}
     
     
         
