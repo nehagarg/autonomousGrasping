@@ -522,7 +522,7 @@ def test(fileName=None):
                 output_length=output_length,
                 batch_size=training_batch_size,
                 scope="model")
-        model.load('model.ckpt-800')
+        model.load('vrep/version1/model.ckpt-967')
 
         #print "finished building and loading model"
         if fileName is None:
@@ -556,6 +556,7 @@ def test(fileName=None):
             #print data_generator.seqs
             #print data_generator.xseqs
             print data_generator.yseqs
+	    print 'vrep/version/model.ckpt-967'
             #print np.argmax(y, axis=2)[0]
         '''
         X = ['$', (6, 1), (0, 0), (0, 0), (4, 0), (7, 2), (5, 2), (1, 0), (1, 0), (10, 1), (0, 0), (1, 0), (4, 0), (12, 2), (2, 0), (2, 0), (2, 0), (8, 1), (2, 0), (3, 0), (4, 0), (1, 0), (2, 0), (9, 1), (4, 0), (1, 0), (11, 1), (4, 0), (13, 2), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1), (4, 0), (1, 0), '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*']
@@ -594,8 +595,9 @@ def main():
     else:
         #if len(sys.argv) > 1:
         #     i = int(sys.argv[1])
-        logfileName = '../../grasping_ros_mico/despot_logs/learning_trial_'+ repr(i) + '.log'
-        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
+        #logfileName = '../../grasping_ros_mico/despot_logs/learning_trial_'+ repr(i) + '.log'
+        logfileName = '../../grasping_ros_mico/results/learning/version1/TableScene_9cm_trial_' + repr(i) + '.log'
+	#logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
         #test_dataGenerator(1,logfileName)
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version7/dagger_data/graspingV4_state_' + repr(i) + '_t10_n10_multi_runs_obs_prob_change_particles_as_state_4objects.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version9/state_' + repr(i) + '_multi_runs.log'
