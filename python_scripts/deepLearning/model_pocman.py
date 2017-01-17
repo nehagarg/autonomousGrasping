@@ -346,7 +346,7 @@ def parse_data(fileName):
         for act_obs_string in fileName.split('*'):
             values = act_obs_string.split(",")
             act = int(values[0])
-            obs = [float(x) for x in values[1:]]
+            obs = int(values[1])
             seqs[0].append((act,obs))
     #print seqs
     #seqs = traces.parse('canadian_bridge_trace', 'canadian_bridge')
