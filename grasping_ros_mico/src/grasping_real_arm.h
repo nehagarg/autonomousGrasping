@@ -195,8 +195,8 @@ public:
                 oss << (o.gripper_pose.pose.position.y -y_ref) << ",";
                 for(int j = 0; j < 4; j++)
                 {
-                    char c = ",";
-                    if (j==3){c = "*";}
+                    char c = ',';
+                    if (j==3){c = '*';}
                     oss << o.finger_joint_state[j] << c;
                 }
                 
