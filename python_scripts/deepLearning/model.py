@@ -364,7 +364,7 @@ def parse_data(fileName):
         seqs = traces.parse(fileName)
     else:
         seqs = [[]]
-        for act_obs_string in filename.split('*'):
+        for act_obs_string in fileName.split('*'):
             values = act_obs_string.split(",")
             act = int(values[0])
             obs = [float(x) for x in values[1:]]

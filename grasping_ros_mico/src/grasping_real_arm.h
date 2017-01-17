@@ -175,6 +175,37 @@ public:
     int GetStartStateIndex() const {
         return start_state_index;
     }
+    
+
+    std::string GetPythonExecutionString(History h) const
+    {
+        std::ostringstream oss;
+        double x_ref = robotInterface->min_x_i;
+        double y_ref = robotInterface->min_y_i + (0.01*7);
+            oss << "cd python_scripts/deepLearning ; python model.py ";
+            for(int i = 0; i < h.Size(); i++)
+            {
+                oss << h.Action(i) << ",";
+                GraspingObservation o = obsHashMap.at(h.Observation(i));
+                for(int j = 0; j < 2; j++)
+                {
+                    oss << o.touch_sensor_reading[j] << ",";
+                }
+                oss << (o.gripper_pose.pose.position.x -x_ref) << ",";
+                oss << (o.gripper_pose.pose.position.y -y_ref) << ",";
+                for(int j = 0; j < 4; j++)
+                {
+                    char c = ",";
+                    if (j==3){c = "*";}
+                    oss << o.finger_joint_state[j] << c;
+                }
+                
+            }
+            oss << NumActions() << ",-1, -1, -1, -1, -1, -1, -1, -1 ; cd - ;" ;
+           
+            return oss.str();
+    }
+
         
 };
 
