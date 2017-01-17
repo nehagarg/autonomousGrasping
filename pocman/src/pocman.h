@@ -41,6 +41,7 @@ public:
         std::string text() const {
             std::ostringstream oss;
             oss << "Number of particles: " << particles_.size() << std::endl;
+            model_->PrintBelief(*this, oss);
             return oss.str();
         }
 };
@@ -120,6 +121,21 @@ public:
         std::string GetPythonExecutionString() const {
                 std::string cmd_string = "cd python_scripts/deepLearning ; python model_pocman.py " + to_string((int)(GetStartStateIndex())) + "; cd - ;";
                 return cmd_string;
+        }
+        
+
+        std::string GetPythonExecutionString(History h) const {
+            std::ostringstream oss;
+            oss << "cd python_scripts/deepLearning ; python model_pocman.py ";
+            for(int i = 0; i < h.Size(); i++)
+            {
+                oss << h.Action(i) << ",";
+                oss << h.Observation(i) << "*";
+            }
+            oss << "5,-1 ; cd - ;" ;
+           
+            return oss.str();
+                
         }
 
 

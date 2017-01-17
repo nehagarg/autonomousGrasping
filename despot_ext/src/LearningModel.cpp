@@ -33,3 +33,7 @@ std::string LearningModel::GetPythonExecutionString() const {
     return cmd_string;
 }
 
+std::string LearningModel::GetPythonExecutionString(History h) const {
+    return GetPythonExecutionString();
+}
+

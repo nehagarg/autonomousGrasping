@@ -25,6 +25,7 @@ public:
     virtual int GetStartStateIndex() const;
     virtual bool StepActual(State& state, double random_num, int action, double& reward, uint64_t& obs) const;
     virtual std::string GetPythonExecutionString() const;
+    virtual std::string GetPythonExecutionString(History h) const;
 };
 
 #endif	/* LEARNINGMODEL_H */
