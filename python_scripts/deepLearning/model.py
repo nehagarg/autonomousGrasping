@@ -360,7 +360,15 @@ class Seq2SeqModel(object):
         saver.restore(self.session, os.path.join(output_dir, checkpoint_file))
 
 def parse_data(fileName):
-    seqs = traces.parse(fileName)
+    if(fileName is None) or (fileName.endswith('log')):
+        seqs = traces.parse(fileName)
+    else:
+        seqs = [[]]
+        for act_obs_string in filename.split('*'):
+            values = act_obs_string.split(",")
+            act = int(values[0])
+            obs = [float(x) for x in values[1:]]
+            seqs[0].append((act,obs))
     #print seqs
     #seqs = traces.parse('canadian_bridge_trace', 'canadian_bridge')
     st = [STUMP]
@@ -587,22 +595,27 @@ def main():
     i = 0
     if len(sys.argv) > 1:
         action = 'test'
-        i = int(sys.argv[1])
+        try:
+            i = int(sys.argv[1])
+        except ValueError:
+            action = 'testWithSeq'
     
     if action == 'train':
         train()
     else:
-        #if len(sys.argv) > 1:
-        #     i = int(sys.argv[1])
-        logfileName = '../../grasping_ros_mico/despot_logs/learning_trial_'+ repr(i) + '.log'
-        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
-        #test_dataGenerator(1,logfileName)
-        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version7/dagger_data/graspingV4_state_' + repr(i) + '_t10_n10_multi_runs_obs_prob_change_particles_as_state_4objects.log'
-        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version9/state_' + repr(i) + '_multi_runs.log'
-        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/test.log'
-        #test_dataGenerator(1,logfileName)
-        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_same_objects/sensor_observation_sum/state_' + repr(i) + '.log'
-    
+        if action == 'test' :
+            #if len(sys.argv) > 1:
+            #     i = int(sys.argv[1])
+            logfileName = '../../grasping_ros_mico/despot_logs/learning_trial_'+ repr(i) + '.log'
+            #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
+            #test_dataGenerator(1,logfileName)
+            #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version7/dagger_data/graspingV4_state_' + repr(i) + '_t10_n10_multi_runs_obs_prob_change_particles_as_state_4objects.log'
+            #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_same_objects/version9/state_' + repr(i) + '_multi_runs.log'
+            #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/test.log'
+            #test_dataGenerator(1,logfileName)
+            #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_same_objects/sensor_observation_sum/state_' + repr(i) + '.log'
+        else:
+            logfileName = sys.argv[1]
         test(logfileName)
     #test()
     #test_dataGenerator(1,logfileName)
