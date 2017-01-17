@@ -201,7 +201,7 @@ public:
                 }
                 
             }
-            oss << NumActions() << ",-1, -1, -1, -1, -1, -1, -1, -1 ; cd - ;" ;
+            oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 ; cd - ;" ;
            
             return oss.str();
     }
