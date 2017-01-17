@@ -544,7 +544,9 @@ def test(fileName=None):
         
         else:
             x,y = data_generator.next_batch(validation=True)
+            start = time.time()
             probs = model.predict(x)
+            end = time.time()
             #print probs.shape
             probs_without_dummy_actions = [i[:-2] for i in probs[0] ]
             prediction = np.argmax([probs_without_dummy_actions], axis=2)
@@ -565,6 +567,8 @@ def test(fileName=None):
             #print data_generator.xseqs
             print data_generator.yseqs
 	    print 'vrep/version/model.ckpt-967'
+            print ' time to predict: {:.5f}'.format((end-start))
+        
             #print np.argmax(y, axis=2)[0]
         '''
         X = ['$', (6, 1), (0, 0), (0, 0), (4, 0), (7, 2), (5, 2), (1, 0), (1, 0), (10, 1), (0, 0), (1, 0), (4, 0), (12, 2), (2, 0), (2, 0), (2, 0), (8, 1), (2, 0), (3, 0), (4, 0), (1, 0), (2, 0), (9, 1), (4, 0), (1, 0), (11, 1), (4, 0), (13, 2), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1), (4, 0), (1, 0), '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*']
