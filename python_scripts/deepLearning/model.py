@@ -519,8 +519,11 @@ def test(fileName=None):
     seq_length = data_generator.seq_length
     input_length = data_generator.encoder.size_x()
     output_length = data_generator.encoder.size_y()
+    model_create_time = 0
+    model_load_time = 0
     with tf.Session(config=config.get_tf_config()) as sess:
         #print "building model"
+        start = time.time()
         model = Seq2SeqModel(session=sess,
                 hidden_units=hidden_units,
                 model=model,
@@ -530,7 +533,11 @@ def test(fileName=None):
                 output_length=output_length,
                 batch_size=training_batch_size,
                 scope="model")
+        end = time.time()
+        model_create_time = end-start
         model.load('vrep/version1/model.ckpt-967')
+        start = time.time()
+        model_load_time = start-end
 
         #print "finished building and loading model"
         if fileName is None:
@@ -567,6 +574,8 @@ def test(fileName=None):
             #print data_generator.xseqs
             print data_generator.yseqs
 	    print 'vrep/version/model.ckpt-967'
+            print 'model create time : {:.5f}'.format(model_create_time)
+            print 'model load time : {:.5f}'.format(model_load_time)
             print ' time to predict: {:.5f}'.format((end-start))
         
             #print np.argmax(y, axis=2)[0]
