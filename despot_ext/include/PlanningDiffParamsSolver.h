@@ -21,11 +21,22 @@ public:
     
    // LearningPlanningSolver(const LearningModel* model, DESPOT despotSolver_, DeepLearningSolver deepLearningSolver_, Belief* belief = NULL);
 
-    virtual ~PlanningDiffParamsSolver();
+    virtual ~PlanningDiffParamsSolver(){}
     
 
     ValuedAction Search() {
+        int hist_size = history_.Size();
+        if ((hist_size/20) % 2 == 0)
+        {
         Globals::config.time_per_move = 10;
+         Globals::config.num_scenarios = 500;
+        }
+        else
+        {
+           Globals::config.time_per_move = 1;
+           Globals::config.num_scenarios = 100; 
+        }
+        
         return despotSolver.Search();
         
     }
