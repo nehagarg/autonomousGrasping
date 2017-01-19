@@ -14,6 +14,7 @@
 #include "grasping_v4.h"
 #include "DeepLearningSolver.h"
 #include "LearningPlanningSolver.h"
+#include "PlanningDiffParamsSolver.h"
 #include "LearningModel.h"
 
 using namespace despot;
@@ -147,6 +148,12 @@ public:
       }
       else if (solver_type == "DEEPLEARNING") {
 		solver = new DeepLearningSolver((LearningModel*)model, NULL);
+        }
+      else if (solver_type == "PLANNINGDIFFPARAMS") {
+          DESPOT *despotSolver = (DESPOT *)InitializeSolver(model, "DESPOT", options);
+          solver = new PlanningDiffParamsSolver(model, despotSolver->lower_bound(), despotSolver->upper_bound(), NULL);
+
+		
         }
       else {
           solver = SimpleTUI::InitializeSolver(model,solver_type,options);
