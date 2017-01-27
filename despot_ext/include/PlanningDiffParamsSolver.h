@@ -8,14 +8,14 @@
 #ifndef PLANNINGDIFFPARAMSSOLVER_H
 #define	PLANNINGDIFFPARAMSSOLVER_H
 
-
+#include "LearningModel.h"
 #include <despot/solver/despot.h>
 
 
 
 class PlanningDiffParamsSolver : public Solver{
 public:
-    PlanningDiffParamsSolver(const DSPOMDP* model, ScenarioLowerBound* lb, ScenarioUpperBound* ub, Belief* belief = NULL) 
+    PlanningDiffParamsSolver(const LearningModel* model, ScenarioLowerBound* lb, ScenarioUpperBound* ub, Belief* belief = NULL) 
             : Solver(model,belief), despotSolver(model, lb, ub, belief) {}
             //(const LearningModel* model, Belief* belief, RandomStreams& streams);
     
@@ -25,8 +25,12 @@ public:
     
 
     ValuedAction Search() {
+      
+        double uncertainty = ((LearningModel*)model_)->GetUncertaintyValue(despotSolver.Solver::belief());
+        std::cout << "Belief uncertainty: " << uncertainty << std::endl;
         int hist_size = history_.Size();
-        if ((hist_size/20) % 2 == 0)
+        //if ((hist_size/20) % 2 == 0)
+        if(uncertainty > 4.5)
         {
         Globals::config.time_per_move = 10;
          Globals::config.num_scenarios = 500;

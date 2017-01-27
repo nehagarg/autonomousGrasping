@@ -37,3 +37,7 @@ std::string LearningModel::GetPythonExecutionString(History h) const {
     return GetPythonExecutionString();
 }
 
+double LearningModel::GetUncertaintyValue(Belief* b) const {
+    return -1.0;
+}
+

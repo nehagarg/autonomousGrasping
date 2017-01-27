@@ -6,6 +6,7 @@
 #include <despot/util/coord.h>
 #include <despot/util/grid.h>
 #include "LearningModel.h"
+#include <math.h>
 
 namespace despot {
 
@@ -42,6 +43,7 @@ public:
             std::ostringstream oss;
             oss << "Number of particles: " << particles_.size() << std::endl;
             model_->PrintBelief(*this, oss);
+            
             return oss.str();
         }
 };
@@ -137,6 +139,52 @@ public:
             return oss.str();
                 
         }
+        
+
+        double GetUncertaintyValue(Belief* b) const {
+            std::vector< Grid<int> > count_vector ;
+            for (int g = 0; g < num_ghosts_; g++)
+            {
+                Grid<int> counts(maze_.xsize(), maze_.ysize());
+                counts.SetAllValues(0);
+                count_vector.push_back(counts);
+            }
+            std::vector<State*> particles = static_cast<const ParticleBelief*>(b)->particles();
+            for (int i = 0; i < particles.size(); i++) {
+		const PocmanState* pocstate = static_cast<const PocmanState*>(particles[i]);
+
+		for (int g = 0; g < num_ghosts_; g++)
+			count_vector[g](pocstate->ghost_pos[g])++;
+            }
+            
+            std::vector<double> ans_vector ;
+            for (int g = 0; g < num_ghosts_; g++)
+            {
+                ans_vector.push_back(0.0);
+            }
+            for (int y = maze_.ysize() - 1; y >= 0; y --) {
+		for (int x = 0; x < maze_.xsize(); x++) {
+                    for (int g = 0; g < num_ghosts_; g++)
+                    {
+                        if(count_vector[g](x,y) > 0)
+                        {
+                            double p =  (double) count_vector[g](x, y) / (particles.size());
+                            ans_vector[g] = ans_vector[g] + p*log(1/p);
+                        }
+                    }
+			
+		}
+		
+            }
+            double ans = 0;
+            for (int g = 0; g < num_ghosts_; g++)
+            {
+                ans = ans + ans_vector[g];
+            }
+            
+            return ans/num_ghosts_;
+        }
+
 
 
         
