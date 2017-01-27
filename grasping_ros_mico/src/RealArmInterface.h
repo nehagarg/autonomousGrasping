@@ -13,7 +13,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "sensor_msgs/JointState.h"
 #include "std_msgs/Float32MultiArray.h"
-#include "mico_action_feedback/MicoActionFeedback.h"
+#include "grasping_ros_mico/MicoActionFeedback.h"
 
 class RealArmInterface : public RobotInterface{
 public:

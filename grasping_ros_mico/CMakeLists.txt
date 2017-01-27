@@ -25,7 +25,7 @@ set(CMAKE_CXX_COMPILER "g++")
 #uncomment if you have defined messages
 rosbuild_genmsg()
 #uncomment if you have defined services
-#rosbuild_gensrv()
+rosbuild_gensrv()
 
 
 #create despot lib

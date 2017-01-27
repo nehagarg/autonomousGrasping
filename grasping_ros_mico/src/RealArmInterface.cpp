@@ -8,7 +8,7 @@
 #include "RealArmInterface.h"
 
 RealArmInterface::RealArmInterface() {
-    micoActionFeedbackClient = grasping_n.serviceClient<mico_action_feedback::MicoActionFeedback>("mico_action_feedback_server");
+    micoActionFeedbackClient = grasping_n.serviceClient<grasping_ros_mico::MicoActionFeedback>("mico_action_feedback_server");
 }
 
 RealArmInterface::RealArmInterface(const RealArmInterface& orig) {
@@ -19,7 +19,7 @@ RealArmInterface::~RealArmInterface() {
 
 bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
 
-    mico_action_feedback::MicoActionFeedback micoActionFeedback_srv;
+    grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
     if(action < A_CLOSE)
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_MOVE;
@@ -107,6 +107,7 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     
     initial_state.object_pose = initial_state.gripper_pose;
     initial_state.object_pose.pose.position.x = min_x_o + 0.03;
+    
     
 
 }
