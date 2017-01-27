@@ -44,8 +44,10 @@ void CUPDISPLAY::Init(int state_index)
         //Initialize rviz display
         int i = state_index /10;
         int j = state_index % 10;
-        double o_y = MIN_Y_O + (j*(MAX_Y_O - MIN_Y_O)/9.0);
-        double o_x = MIN_X_O + (i*(MAX_X_O - MIN_X_O)/9.0);
+        //double o_y = MIN_Y_O + (j*(MAX_Y_O - MIN_Y_O)/9.0);
+        //double o_x = MIN_X_O + (i*(MAX_X_O - MIN_X_O)/9.0);
+        double o_y =0.1485;
+        double o_x = 0.5019;
         double g_x = MIN_X;
         double g_y = MIN_Y + 0.07;
         Init(g_x, g_y, o_x, o_y);
@@ -73,8 +75,8 @@ void CUPDISPLAY::GripperPoseCallback(const grasping_ros_mico::State::ConstPtr& m
 {
 	gripper_pose.first = msg->gripper_pose.pose.position.x;
 	gripper_pose.second = msg->gripper_pose.pose.position.y;
-        object_pose.first = msg->object_pose.pose.position.x;
-	object_pose.second = msg->object_pose.pose.position.y;
+        //object_pose.first = msg->object_pose.pose.position.x;
+	//object_pose.second = msg->object_pose.pose.position.y;
     obs = msg->observation;
 }
 
