@@ -5,13 +5,12 @@
  * Created on October 25, 2016, 3:01 PM
  */
 
-#ifndef GRASPING_TUI_H
-#define	GRASPING_TUI_H
+#ifndef EXT_TUI_H
+#define	EXT_TUI_H
 
 
 #include <despot/simple_tui.h>
 #include <despot/util/optionparser.h>
-#include "grasping_v4.h"
 #include "DeepLearningSolver.h"
 #include "LearningPlanningSolver.h"
 #include "PlanningDiffParamsSolver.h"
@@ -151,7 +150,7 @@ public:
         }
       else if (solver_type == "PLANNINGDIFFPARAMS") {
           DESPOT *despotSolver = (DESPOT *)InitializeSolver(model, "DESPOT", options);
-          solver = new PlanningDiffParamsSolver(model, despotSolver->lower_bound(), despotSolver->upper_bound(), NULL);
+          solver = new PlanningDiffParamsSolver((LearningModel*)model, despotSolver->lower_bound(), despotSolver->upper_bound(), NULL);
 
 		
         }
@@ -201,5 +200,5 @@ public:
 
 
 
-#endif	/* GRASPING_TUI_H */
+#endif	/* EXT_TUI_H */
 

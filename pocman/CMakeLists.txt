@@ -10,7 +10,7 @@ set(LIBRARY_INSTALL_PATH "lib" CACHE PATH "Library install path")
 set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")
 set(CONFIG_INSTALL_PATH "${LIBRARY_INSTALL_PATH}/${PROJECT_NAME}/cmake")
 
-include_directories("${DESPOT_HOME}/include" "../despot_ext/include" "../graspingV4/src")
+include_directories("${DESPOT_HOME}/include" "../despot_ext/include" )
 find_library(DESPOT_LIB NAMES despot HINTS "${DESPOT_HOME}/build")
 find_library(DESPOT_EXT_LIB NAMES despot_ext HINTS "../build/despot_ext")
 add_executable("${PROJECT_NAME}"

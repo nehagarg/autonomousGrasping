@@ -9,7 +9,7 @@
 #define	GRASPING_ROS_TUI_H
 
 
-#include "grasping_tui.h"
+#include "ext_tui.h"
 #include "grasping_real_arm.h"
 
 using namespace despot;
