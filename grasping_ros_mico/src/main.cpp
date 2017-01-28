@@ -100,15 +100,17 @@ void test_python()
 
 int main(int argc, char* argv[]) {
     std::cout << "In main" << std::endl;
-    ros::init(argc,argv,"despot");
+    ros::init(argc,argv,"despot" + to_string(getpid()));
     
-    //GatherSimulationData();
-    //return 0;
+  //  GatherSimulationData();
+  //  return 0;
     
     //test_python();
     //return 0;
    
-  return RosWithoutDisplayTUI().run(argc, argv);
+ return RosWithoutDisplayTUI().run(argc, argv);
+  
+ // return RosTUI().run(argc, argv);
 }
 
 
