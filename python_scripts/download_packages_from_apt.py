@@ -15,3 +15,10 @@ def main():
     
 if __name__ == '__main__':
     main()
+    
+    
+"""
+
+Url explaining how to add local directory to apt repository
+http://askubuntu.com/questions/458748/is-it-possible-to-add-a-location-folder-on-my-hard-disk-to-sources-list
+"""
