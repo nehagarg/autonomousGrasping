@@ -12,3 +12,6 @@ def main():
             additional_command = additional_command + '| grep -v "' + ignore_name + '" '
             
     os.system(main_command + additional_command +  ')')
+    
+if __name__ == '__main__':
+    main()
