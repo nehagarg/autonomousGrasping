@@ -1112,11 +1112,11 @@ bool validState = IsValidState(grasping_state);
     {
         if(IsValidPick(grasping_state, grasping_obs))
         {
-            reward = 20;
+            reward = pick_reward;
         }
         else
         {
-            reward = -100;
+            reward = pick_penalty;
         }
     }
     else
@@ -1162,7 +1162,7 @@ bool validState = IsValidState(grasping_state);
         }
         else
         {
-            reward = -100;
+            reward = invalid_state_penalty;
         }
        
     }
