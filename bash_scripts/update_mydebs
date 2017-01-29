@@ -1,3 +1,7 @@
 #! /bin/bash
-cd /media/Data/Ubuntu
+cd $1
 dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+echo "To see the new packages please do sudo apt-get update"
+echo "If running this script for the first time in current folder, please add following line to /etc/apt/sources.list before doing sudo apt-get update  "
+echo "deb file:$1 ./"
+
