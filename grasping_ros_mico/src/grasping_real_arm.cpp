@@ -16,6 +16,7 @@
 #include "grasping_ros_mico/State.h"
 #include "Display/parameters.h"
 
+
 #include <string>
 #include "boost/bind.hpp"  
 
@@ -39,6 +40,40 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, VrepInterface* robotInt
 
 GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     YAML::Node config = YAML::LoadFile(modelParamFileName);
+    
+    if(config["object_mapping"]) 
+    {
+        for(int i = 0; i < config["object_mapping"].size(); i++)
+        {
+            RobotInterface::object_id_to_filename.push_back(config["object_mapping"][i].as<std::string>());
+        }
+    }
+    
+    test_object_id = 0;
+    if(config["test_object_id"]) 
+    {
+        test_object_id = config["test_object_id"].as<int>();
+        RobotInterface::objects_to_be_loaded.push_back(test_object_id);
+
+    }
+    
+    if(config["belief_object_ids"]) 
+    {
+        for(int i = 0; i < config["belief_object_ids"].size(); i++)
+        {
+            int belief_object_id = config["belief_object_ids"][i].as<int>();
+            if (belief_object_id != test_object_id)
+            {
+                RobotInterface::objects_to_be_loaded.push_back(belief_object_id);
+            }
+            belief_object_ids.push_back(belief_object_id);
+        }
+    }
+    else
+    {
+        belief_object_ids.push_back(test_object_id);
+    }
+    
     int interface_type = 0;
     if(config["interface_type"])
     {
@@ -51,10 +86,30 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     }
      
     InitializeRobotInterface(interface_type);
+    
+    if(config["pick_reward"])
+    {
+        robotInterface->pick_reward = config["pick_reward"].as<int>();
+        reward_max = robotInterface->pick_reward;
+    }
+   
+    if(config["pick_penalty"])
+    {
+        robotInterface->pick_penalty = config["pick_penalty"].as<int>();
+    }
+    
+    if(config["invalid_state_penalty"])
+    {
+        robotInterface->invalid_state_penalty = config["invalid_state_penalty"].as<int>();
+    }
+    
+    
+    
     if(config["num_belief_particles"])
     {
         num_belief_particles = config["num_belief_particles"].as<int>();
     }
+    
     
 }
 
@@ -386,20 +441,24 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     {
         for(int i = 0; i < num_belief_particles; i++)
         {
-            GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
-            while(true)
+            for(int j = 0; j < belief_object_ids.size(); j++)
             {
-                 robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
-                 if (robotInterface->IsValidState(*grasping_state))
-                 {
-                     break;
-                 }
+                
+                    GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+                    while(true)
+                    {
+                        robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
+                        if (robotInterface->IsValidState(*grasping_state))
+                        {
+                            break;
+                        }
+                    }
+                    grasping_state->object_id = belief_object_ids[j];
+                    particles.push_back(grasping_state);
+                    num_particles = num_particles + 1;
             }
-            particles.push_back(grasping_state);
-            num_particles = num_particles + 1;
         }
     }
-    
     
     if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN" || type == "DEFAULT" )
     {
@@ -480,7 +539,7 @@ State* GraspingRealArm::CreateStartState(std::string type) const {
     
     if(initial_state.object_id == -1)
     {
-        initial_state.object_id = 0;
+        initial_state.object_id = test_object_id;
         //std::cout << "Creating staet state" << std::endl;
         robotInterface->CreateStartState(initial_state, type);
         

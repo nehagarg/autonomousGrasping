@@ -150,6 +150,8 @@ public:
     std::hash<std::string> obsHash;
     mutable std::map<uint64_t, GraspingObservation> obsHashMap;
     mutable GraspingStateRealArm initial_state;
+    std::vector<int> belief_object_ids;
+    int test_object_id;
     
     //vector<HistoryWithReward*> LearningData() const;
     //ObservationClass GetInitialObs() const;

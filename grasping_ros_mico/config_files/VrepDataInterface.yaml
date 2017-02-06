@@ -1,1 +1,11 @@
-{interface_type: 1, num_belief_particles: 1000, start_state_index: -1}
+belief_object_ids: [0]
+interface_type: 1
+invalid_state_penalty: -100
+num_belief_particles: 1000
+object_mapping: [data_table_exp/SASOData_Cylinder_9cm_, data_table_exp/SASOData_Cylinder_8cm_,
+  data_table_exp/SASOData_Cylinder_7cm_, data_table_exp/SASOData_Cuboid_9cm_, data_table_exp/SASOData_Cuboid_8cm_,
+  data_table_exp/SASOData_Cuboid_7cm_]
+pick_penalty: -100
+pick_reward: 100
+start_state_index: -1
+test_object_id: 0

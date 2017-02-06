@@ -132,10 +132,10 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
            
            if(IsValidState(initial_state))
             {
-               if((initial_state.object_pose.pose.position.x < initial_object_x + 0.03) &&
-                 (initial_state.object_pose.pose.position.x > initial_object_x - 0.03) &&
-                 (initial_state.object_pose.pose.position.y < initial_object_y + 0.03) &&
-                 (initial_state.object_pose.pose.position.y > initial_object_y - 0.03))
+               if((initial_state.object_pose.pose.position.x <= initial_object_x + 0.03) &&
+                 (initial_state.object_pose.pose.position.x >= initial_object_x - 0.03) &&
+                 (initial_state.object_pose.pose.position.y <= initial_object_y + 0.03) &&
+                 (initial_state.object_pose.pose.position.y >= initial_object_y - 0.03))
             {
                 break;
             }

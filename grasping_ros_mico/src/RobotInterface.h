@@ -68,6 +68,8 @@ public:
         A_PICK = 10
     };
     
+    static const int NUMBER_OF_OBJECTS = 10;
+    
     //For data collected
     double min_x_i = 0.3379; //range for gripper movement
     double max_x_i = 0.5279;  // range for gripper movement
@@ -94,21 +96,23 @@ public:
     double initial_object_y = 0.148582;
  
     
-protected:
+
     double pick_reward = 20;
     double pick_penalty = -100;
     double invalid_state_penalty = -100;
     double epsilon = 0.01; //Smallest step value
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
+    static std::vector<int> objects_to_be_loaded;
+    static std::vector<std::string> object_id_to_filename;
     
     double touch_sensor_mean[48];
     double touch_sensor_std[48];
     double touch_sensor_max[48];
     double touch_sensor_mean_closed_without_object[48];
     double touch_sensor_mean_closed_with_object[48];
-    mutable std::vector<SimulationData> simulationDataCollectionWithObject[A_PICK+1];
-    mutable std::vector<int> simulationDataIndexWithObject[A_PICK+1];
+    mutable std::vector<SimulationData> simulationDataCollectionWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
+    mutable std::vector<int> simulationDataIndexWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[A_PICK+1];
     mutable std::vector<int> simulationDataIndexWithoutObject[A_PICK+1];
     
@@ -121,6 +125,7 @@ protected:
     void GetReward(GraspingStateRealArm initial_grasping_state, GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, int action, double& reward) const;
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
+    void getSimulationData(int object_id);
     
     
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
