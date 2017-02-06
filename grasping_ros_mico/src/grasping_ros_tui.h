@@ -11,6 +11,7 @@
 
 #include "ext_tui.h"
 #include "grasping_real_arm.h"
+#include "ros/ros.h"
 
 using namespace despot;
 
@@ -111,6 +112,49 @@ public:
 
 
 };
+
+
+
+DSPOMDP* InitializeModelCommon(option::Option* options) {
+     DSPOMDP* model;
+     
+      /*if (options[E_DATA_FILE])
+            {
+                if (options[E_NUMBER]) {
+                        int number = atoi(options[E_NUMBER].arg);
+                        model = new GraspingRealArm(options[E_DATA_FILE].arg, number);
+                }
+                else
+                {
+                    model = new GraspingRealArm(options[E_DATA_FILE].arg, -1);
+                }
+            }
+            else
+            {
+       
+        */  
+     
+       if (options[E_PARAMS_FILE]) {
+                    
+           std::cout << "Config file is " << options[E_PARAMS_FILE].arg << std::endl;
+                       
+                        model = new GraspingRealArm(options[E_PARAMS_FILE].arg );
+                }
+                else
+                {
+                    model = new GraspingRealArm(-1);
+                }
+        //    }
+   
+     
+    return model;
+  }
+
+void main_init(int argc, char* argv[]){
+
+    ros::init(argc,argv,"despot" + to_string(getpid()));
+}
+
 
 
 #endif	/* GRASPING_ROS_TUI_H */

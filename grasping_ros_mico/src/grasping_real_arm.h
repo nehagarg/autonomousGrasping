@@ -36,9 +36,11 @@ class GraspingRealArm : public LearningModel {
 public:
 
     GraspingRealArm(const GraspingRealArm& orig);
-    GraspingRealArm(int start_state_index_, int interfaceType = 1);
+    GraspingRealArm(int start_state_index_, int interfaceType = 0);
     GraspingRealArm(int start_state_index_, VrepInterface* roboInterface_);
     GraspingRealArm(std::string dataFileName, int start_state_index_);
+    GraspingRealArm(std::string modelParamFileName);
+    
     
     virtual ~GraspingRealArm();
 
@@ -132,6 +134,7 @@ public:
     void PrintBelief(const Belief& belief, std::ostream& out = std::cout) const;
     void DisplayBeliefs(ParticleBelief* belief, std::ostream& ostr) const;
     void DisplayState(const State& state, std::ostream& ostr) const;
+    void InitializeRobotInterface(int interface_type) ;
     
     int  num_sampled_objects = 27;
     std::string learning_data_file_name;
@@ -140,6 +143,7 @@ public:
     double reward_max = 20;
     double step_cost = -1;
     int start_state_index = -1;
+    int num_belief_particles = 1000;
        
     RobotInterface* robotInterface;
     

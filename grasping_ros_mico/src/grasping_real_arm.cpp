@@ -23,7 +23,45 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, int interfaceType) {
  
      std::cout << "Initializing grasping real arm with interface type" << interfaceType <<  std::endl;
      start_state_index = start_state_index_;  
-     if(interfaceType == 0)
+     InitializeRobotInterface(interfaceType);
+     
+     //Calling this constructor gives segmentation fault on calling robotinterface functions
+     //Because cannot call constructor from constructor
+    //GraspingRealArm(start_state_index_, vrepInterfacePointer);
+}
+
+GraspingRealArm::GraspingRealArm(int start_state_index_, VrepInterface* robotInterface_) {
+   
+    start_state_index = start_state_index_;  
+    robotInterface = robotInterface_;
+    
+}
+
+GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
+    YAML::Node config = YAML::LoadFile(modelParamFileName);
+    int interface_type = 0;
+    if(config["interface_type"])
+    {
+        interface_type = config["interface_type"].as<int>();
+    }
+    start_state_index = -1;
+    if(config["start_state_index"])
+    {
+        start_state_index = config["start_state_index"].as<int>();
+    }
+     
+    InitializeRobotInterface(interface_type);
+    if(config["num_belief_particles"])
+    {
+        num_belief_particles = config["num_belief_particles"].as<int>();
+    }
+    
+}
+
+void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
+   
+  
+    if(interfaceType == 0)
      {
         VrepInterface* vrepInterfacePointer = new VrepInterface();
     //
@@ -34,7 +72,7 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, int interfaceType) {
      {
          std::cout << "Initializing Vrep Data Interface" << std::endl;
         
-        VrepDataInterface* interfacePointer = new VrepDataInterface(start_state_index_);
+        VrepDataInterface* interfacePointer = new VrepDataInterface(start_state_index);
     //
         robotInterface = interfacePointer;
      }
@@ -45,23 +83,14 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, int interfaceType) {
     //
         robotInterface = interfacePointer;
      }
-     
-     
+    
      // Display the belief partilces
     pub_gripper = grasping_display_n.advertise<grasping_ros_mico::State>("gripper_pose", 10);
     pub_belief = grasping_display_n.advertise<grasping_ros_mico::Belief>("object_pose", 10);
      
-     //Calling this constructor gives segmentation fault on calling robotinterface functions
-     //TODO: investigate why
-    //GraspingRealArm(start_state_index_, vrepInterfacePointer);
+     
 }
 
-GraspingRealArm::GraspingRealArm(int start_state_index_, VrepInterface* robotInterface_) {
-   
-    start_state_index = start_state_index_;  
-    robotInterface = robotInterface_;
-    
-}
 
 
 GraspingRealArm::GraspingRealArm(std::string dataFileName, int start_state_index_) {
@@ -77,6 +106,8 @@ GraspingRealArm::GraspingRealArm(std::string dataFileName, int start_state_index
     
     
 }
+
+
 
 /*vector<HistoryWithReward*> GraspingRealArm::LearningData() const {
     
@@ -353,7 +384,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     //Gaussian belief for gaussian start state
     if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN")
     {
-        for(int i = 0; i < 100; i++)
+        for(int i = 0; i < num_belief_particles; i++)
         {
             GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
             while(true)
@@ -370,9 +401,9 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     }
     
     
-    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN" )
+    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN" || type == "DEFAULT" )
     {
-    //Single Particle Belief 
+    //Single Particle Belief  
         GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
         particles.push_back(grasping_state);
         num_particles = num_particles + 1;
