@@ -27,6 +27,8 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
     if filename == "VrepInterface.yaml" :
         ans["interface_type"] = 0
+    if filename == "RealArmInterface.yaml" :
+        ans["interface_type"] = 2
         
         
 def main():

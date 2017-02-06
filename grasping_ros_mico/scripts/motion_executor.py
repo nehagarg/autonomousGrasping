@@ -26,6 +26,7 @@ class Executor(object):
         self.curr_pose = None
         self.last_touch = 0
         self.max_pressure = 0
+        self.detected_pressure = 0
 
     def cb_touch(self, msg):
         print 'touch=', msg.data
@@ -116,6 +117,7 @@ class Executor(object):
 
     @property
     def is_touched(self):
+        self.detected_pressure = self.max_pressure
         return self.max_pressure > THRES_TOUCH
 
     def move_until_touch_old(self, dx=0, dy=0, dz=0, max_count=20):
