@@ -20,7 +20,7 @@ LearningPlanningSolver::~LearningPlanningSolver() {
 ValuedAction LearningPlanningSolver::Search() {
     ValuedAction ans;
     int hist_size = history_.Size();
-    if ((hist_size/20) % 2 == 0)
+    if ((hist_size/10) % 2 == 0)
     {
         ans =  deepLearningSolver.Search();
         std::cout << "(" << ans.action << "," << ans.value << ")" << std::endl;
