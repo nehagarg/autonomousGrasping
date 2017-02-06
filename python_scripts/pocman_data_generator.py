@@ -1,6 +1,25 @@
 
 import re
+import sys
 
+
+def get_mean_std_for_pocman(filename):
+    import numpy as np
+    import math
+    a = []
+    sum2 = 0.0
+    with open(filename, 'r') as f:
+        for line in f:
+          a.append(int(line)) 
+          sum2 = sum2+ a[-1]*a[-1]
+    mean = np.mean(a)
+    std = np.std(a)
+    std2 = math.sqrt((sum2/(len(a)*len(a))) - (mean*mean/len(a)))
+    print mean
+    print std
+    print std2
+    
+    
 def parse_pocman_trace(filename, round=-1, isTraining = True):
     numeric_const_pattern = r"""
     [-+]? # optional sign
@@ -96,10 +115,13 @@ def main():
     #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_multi_runs_t10_n10_obs_prob_change_particles_as_state_4objects.log'
     #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/'
     
-    filename = 'pocman_t10_100runs_access9.log'
-    
-    test_parser(filename)
+    #filename = 'pocman_t10_100runs_access9.log'
+    filename = 't10_n100_rewards.txt'
+    if sys.argv[1]:
+        filename = sys.argv[1]
+    #test_parser(filename)
     #test_parsing_methods(filename)
+    get_mean_std_for_pocman(filename)
     
 
 if __name__=="__main__":
