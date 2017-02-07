@@ -7,6 +7,7 @@ from sensor_msgs.msg import (
 )
 import motion_executor
 from motion_executor import Executor
+import time 
 
 motion_executor.THRES_TOUCH_GRASPED = 650
 motion_executor.THRES_TOUCH = 15
@@ -66,11 +67,11 @@ def handle_action_request(req):
     return res
 
 def mico_action_feedback_server():
-    rospy.init_node('mico_action_feedback_server')
+    
     rospy.Service('mico_action_feedback', MicoActionFeedback, handle_action_request)
     rospy.spin()
     
-if __name__ == main():
+if __name__ == '__main__':
     """
     global arm
     arm = MoveGroupCommander("arm")
@@ -78,7 +79,13 @@ if __name__ == main():
     sc=slip_classifier()
     c,m,s=sc.train_svm_classifier
     """
-    
+    rospy.init_node('mico_action_feedback_server')
     global finger, myMotionExecutor
     myMotionExecutor = Executor()
+    myMotionExecutor.open_gripper()
+    myMotionExecutor.goto('home')
+    time.sleep(10)
+    myMotionExecutor.goto('table_pre_grasp2')
+    myMotionExecutor.move(dy=-0.04)
+    myMotionExecutor.move(dy=-0.04)
     mico_action_feedback_server()
