@@ -17,7 +17,10 @@ def create_basic_config():
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_9cm_")
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_8cm_")
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_7cm_")
-    ans["test_object_id"] = 0
+    ans["object_min_z"] = [1.1200]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+    ans["object_initial_pose_z"] = [1.1248]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+    
+    ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
     
     return ans
@@ -25,8 +28,14 @@ def create_basic_config():
 def modify_basic_config(filename, ans):
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
+        ans["test_object_id"] = 0
+    if filename == "VrepInterfaceMultiCylinderObject.yaml" :
+        ans["interface_type"] = 0
+        ans["belief_object_ids"] = [0, 1, 2]
+        
     if filename == "VrepInterface.yaml" :
         ans["interface_type"] = 0
+        ans["test_object_id"] = 0
     if filename == "RealArmInterface.yaml" :
         ans["interface_type"] = 2
         

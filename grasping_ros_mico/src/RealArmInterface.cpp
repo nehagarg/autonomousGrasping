@@ -237,6 +237,7 @@ bool RealArmInterface::IsValidPick(GraspingStateRealArm grasping_state, Grasping
 //Copying from vrep interface
 bool RealArmInterface::IsValidState(GraspingStateRealArm grasping_state) const {
  bool isValid = true;
+ int object_id = grasping_state.object_id;
     //Check gripper is in its range
     if(grasping_state.gripper_pose.pose.position.x < min_x_i - 0.005 ||
        grasping_state.gripper_pose.pose.position.x > max_x_i + 0.005||
@@ -263,7 +264,7 @@ bool RealArmInterface::IsValidState(GraspingStateRealArm grasping_state) const {
        grasping_state.object_pose.pose.position.x > max_x_o ||
        grasping_state.object_pose.pose.position.y < min_y_o ||
        grasping_state.object_pose.pose.position.y > max_y_o ||
-       grasping_state.object_pose.pose.position.z < min_z_o) // Object has fallen
+       grasping_state.object_pose.pose.position.z < min_z_o[object_id]) // Object has fallen
     {
         return false;
     }

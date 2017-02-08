@@ -40,7 +40,12 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, VrepInterface* robotInt
 
 GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     YAML::Node config = YAML::LoadFile(modelParamFileName);
-    
+     int interface_type = 0;
+    if(config["interface_type"])
+    {
+        interface_type = config["interface_type"].as<int>();
+    }
+     
     if(config["object_mapping"]) 
     {
         for(int i = 0; i < config["object_mapping"].size(); i++)
@@ -53,7 +58,10 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     if(config["test_object_id"]) 
     {
         test_object_id = config["test_object_id"].as<int>();
-        RobotInterface::objects_to_be_loaded.push_back(test_object_id);
+        if (interface_type == 1) //Vrep Data interface
+        {
+            RobotInterface::objects_to_be_loaded.push_back(test_object_id);
+        }
 
     }
     
@@ -62,7 +70,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         for(int i = 0; i < config["belief_object_ids"].size(); i++)
         {
             int belief_object_id = config["belief_object_ids"][i].as<int>();
-            if (belief_object_id != test_object_id)
+            if ((interface_type != 1)|| (belief_object_id != test_object_id))
             {
                 RobotInterface::objects_to_be_loaded.push_back(belief_object_id);
             }
@@ -74,11 +82,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         belief_object_ids.push_back(test_object_id);
     }
     
-    int interface_type = 0;
-    if(config["interface_type"])
-    {
-        interface_type = config["interface_type"].as<int>();
-    }
+   
     start_state_index = -1;
     if(config["start_state_index"])
     {
@@ -87,6 +91,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
      
     InitializeRobotInterface(interface_type);
     
+    //Set other variables of Robot Interface    
     if(config["pick_reward"])
     {
         robotInterface->pick_reward = config["pick_reward"].as<int>();
@@ -103,12 +108,42 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         robotInterface->invalid_state_penalty = config["invalid_state_penalty"].as<int>();
     }
     
+    if(config["object_min_z"])
+    {
+        for(int i = 0; i < config["object_min_z"].size();i++)
+        {
+            robotInterface->min_z_o.push_back(config["object_min_z"][i].as<double>());
+        }
+    }
+    else
+    {
+        for(int i = 0; i < RobotInterface::object_id_to_filename.size() + 1; i++)
+        {
+            robotInterface->min_z_o.push_back(robotInterface->default_min_z_o);
+        }
+    }
     
+    if(config["object_initial_pose_z"])
+    {
+        for(int i = 0; i < config["object_initial_pose_z"].size();i++)
+        {
+            robotInterface->initial_object_pose_z.push_back(config["object_initial_pose_z"][i].as<double>());
+        }
+    }
+    else
+    {
+        for(int i = 0; i < RobotInterface::object_id_to_filename.size() + 1; i++)
+        {
+            robotInterface->initial_object_pose_z.push_back(robotInterface->default_initial_object_pose_z);
+        }
+    }
     
+    //Set model variBLES
     if(config["num_belief_particles"])
     {
         num_belief_particles = config["num_belief_particles"].as<int>();
     }
+    
     
     
 }
