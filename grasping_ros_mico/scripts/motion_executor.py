@@ -21,20 +21,25 @@ class Executor(object):
         self.pub_gripper_vel = rospy.Publisher('/gripper_state_vel', String, queue_size=10,latch=True)
         self.pub_gripper_pose = rospy.Publisher('/gripper_state_pose', Int16MultiArray, queue_size=10,latch=True)
         self.pub_max_speed = rospy.Publisher('/joint_max_speed', Float64, queue_size=1, latch=True)
-        self.sub_touch = rospy.Subscriber('/touch', Float32, self.cb_touch)
-        self.sub_pressure = rospy.Subscriber('/pressure_calib', Float32, self.cb_pressure)
+        self.sub_touch_r = rospy.Subscriber('/touch_r', Float32, self.cb_touch, 1)
+        self.sub_pressure_r = rospy.Subscriber('/pressure_calib_r', Float32, self.cb_pressure, 1)
+        self.sub_touch_l = rospy.Subscriber('/touch_l', Float32, self.cb_touch, 0)
+        self.sub_pressure_l = rospy.Subscriber('/pressure_calib_l', Float32, self.cb_pressure, 0)
         self.curr_pose = None
-        self.last_touch = 0
-        self.max_pressure = 0
-        self.detected_pressure = 0
+        self.last_touch = [0, 0]
+        self.max_pressure = [0, 0]
+        self.detected_pressure = [0, 0]
 
-    def cb_touch(self, msg):
+    def cb_touch(self, msg, finger_index):
+        print finger_index
         print 'touch=', msg.data
-        self.last_touch = msg.data
+        self.last_touch[finger_index] = msg.data
 
-    def cb_pressure(self, msg):
+    def cb_pressure(self, msg, finger_index):
         pressure = msg.data
-        self.max_pressure = max(self.max_pressure, pressure)
+        self.max_pressure[finger_index] = max(self.max_pressure[finger_index], pressure)
+        
+    
 
     def speed(self, speed):
         self.pub_max_speed.publish(speed)
@@ -118,7 +123,7 @@ class Executor(object):
     @property
     def is_touched(self):
         self.detected_pressure = self.max_pressure
-        return self.max_pressure > THRES_TOUCH
+        return ((self.max_pressure[0] > THRES_TOUCH) or ((self.max_pressure[1] > THRES_TOUCH)))
 
     def move_until_touch_old(self, dx=0, dy=0, dz=0, max_count=20):
         from_pose = copy.deepcopy(self.curr_pose)
@@ -138,7 +143,7 @@ class Executor(object):
 
     def move_until_touch(self, dx=0, dy=0, dz=0):
         plan = self.plan_move(dx, dy, dz)
-        self.max_pressure = -1000
+        self.max_pressure = [-1000, -1000]
         self.execute_plan(plan, check_need_cancel=lambda: self.is_touched)
 
 
