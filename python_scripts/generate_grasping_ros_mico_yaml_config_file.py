@@ -29,6 +29,20 @@ def modify_basic_config(filename, ans):
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
+    
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm.yaml" :
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 0
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest8cm.yaml" :
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 1
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest7cm.yaml" :
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 2
+        
     if filename == "VrepInterfaceMultiCylinderObject.yaml" :
         ans["interface_type"] = 0
         ans["belief_object_ids"] = [0, 1, 2]
