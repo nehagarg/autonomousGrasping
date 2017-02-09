@@ -18,7 +18,10 @@ RealArmInterface::~RealArmInterface() {
 }
 
 bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
-
+    /*if (action == A_OPEN)
+    {
+        action = 0;
+    }*/
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
     if(action < A_CLOSE)
     {
@@ -64,8 +67,8 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
         //Finger Joints
         for(int i = 0; i < 4; i=i+2)
         {
-            state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i];
-            obs.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i];
+            state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
+            obs.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
         }
         AdjustRealFingerJointsToSimulatedJoints(state.finger_joint_state);
         AdjustRealFingerJointsToSimulatedJoints(obs.finger_joint_state);

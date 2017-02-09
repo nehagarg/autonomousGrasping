@@ -20,6 +20,7 @@ def joint_state_callback(data, ans):
     global finger
     pose=data.position
     ans=[pose[6],pose[8]]
+    #print ans
     finger=ans
 
 
@@ -28,6 +29,14 @@ def handle_action_request(req):
     global myMotionExecutor
     if req.action == req.ACTION_MOVE:
         myMotionExecutor.move_until_touch(req.move_x, req.move_y, req.move_z)
+    if req.action == req.ACTION_CLOSE:
+        #print "here"
+        myMotionExecutor.close_gripper()
+    if req.action == req.ACTION_OPEN:
+        myMotionExecutor.open_gripper()
+    if req.action == req.ACTION_PICK:
+        myMotionExecutor.goto('top_of_books')
+    
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myMotionExecutor.curr_pose #arm.get_current_pose()
     res.touch_sensor_reading =  myMotionExecutor.detected_pressure
@@ -37,6 +46,7 @@ def handle_action_request(req):
     while not finger :
         rospy.sleep(5)
         print "Waiting for joint state"
+    res.finger_joint_state = finger
         
     ##tactile reading
     """
@@ -68,7 +78,7 @@ def handle_action_request(req):
 
 def mico_action_feedback_server():
     
-    rospy.Service('mico_action_feedback', MicoActionFeedback, handle_action_request)
+    rospy.Service('mico_action_feedback_server', MicoActionFeedback, handle_action_request)
     rospy.spin()
     
 if __name__ == '__main__':
