@@ -10,7 +10,7 @@ def get_mean_std_for_pocman(filename):
     sum2 = 0.0
     with open(filename, 'r') as f:
         for line in f:
-          a.append(int(line)) 
+          a.append(float(line)) 
           sum2 = sum2+ a[-1]*a[-1]
     mean = np.mean(a)
     std = np.std(a)
