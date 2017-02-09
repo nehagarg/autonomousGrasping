@@ -12,6 +12,7 @@
 std::vector <int> RobotInterface::objects_to_be_loaded;
 std::vector<std::string> RobotInterface::object_id_to_filename;
 
+
 RobotInterface::RobotInterface() {
     std::ifstream infile;
     infile.open("data/sensor_mean_std_max.txt");
@@ -46,6 +47,7 @@ RobotInterface::RobotInterface() {
     }
     infile.close();
     
+    //Load simulation data for belief object
     for(int i = 0; i < objects_to_be_loaded.size(); i++)
     {
         int object_id = objects_to_be_loaded[i];

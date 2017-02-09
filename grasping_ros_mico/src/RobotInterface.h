@@ -68,14 +68,14 @@ public:
         A_PICK = 10
     };
     
-    static const int NUMBER_OF_OBJECTS = 10;
+    static const int NUMBER_OF_OBJECTS = 10; 
     
     //For data collected
     double min_x_i = 0.3379; //range for gripper movement
     double max_x_i = 0.5279;  // range for gripper movement
     double min_y_i = 0.0816; // range for gripper movement
     double max_y_i = 0.2316; // range for gripper movement 
-    double gripper_in_x_i = 0.3779;
+    double gripper_in_x_i = 0.3779; //for amazon shelf , threshold after which gripper is inside shelf
     //double gripper_out_y_diff = 0.02; //for amazon shelf
     double gripper_out_y_diff = 0.0;    //for open table
     
@@ -85,15 +85,22 @@ public:
     double max_y_o = 0.2295; // range for object location
     
    // double min_z_o = 1.6900 ;//below this means object has fallen down //for amazon shelf
-    double min_z_o = 1.1200 ; //for objects on table
-    double pick_z_diff = 0.06;
+    std::vector<double> min_z_o; //= 1.1200 ; //for objects on table
+    std::vector<double> initial_object_pose_z; // = 1.1248; //1.7066; //for amazon shelf
+    double default_min_z_o = 1.1200 ; //for objects on table
+    double default_initial_object_pose_z = 1.1248; //1.7066; //for amazon shelf
+    
+    double pick_z_diff = 0.06; 
     double pick_x_val = 0.3079;
     double pick_y_val = 0.1516;
     
+    
+    
     double initial_gripper_pose_z = 1.10835; //1.73337; // for amazon shelf
-    double initial_object_pose_z = 1.1248; //1.7066; //for amazon shelf
     double initial_object_x = 0.498689;
     double initial_object_y = 0.148582;
+    int initial_gripper_pose_index_x = 0;
+    int initial_gripper_pose_index_y = 7;
  
     
 

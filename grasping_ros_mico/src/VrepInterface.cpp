@@ -629,7 +629,7 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
     }
     else
     {
-        std::cout<< "Stopping due to invalid state" <<  " ";
+        std::cout<< "Stopping because cannot take step" <<  " ";
         return true; // Step should stop as state is not changed and no action can be taken in current state
     }
 }

@@ -77,8 +77,9 @@ bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[]
 
 void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
-    int i = 0;
-    int j = 7;
+    int i = initial_gripper_pose_index_x;
+    int j = initial_gripper_pose_index_y;
+    int object_id = initial_state.object_id;
 
     initial_state.gripper_pose.pose.position.x = min_x_i + 0.01*i;
     initial_state.gripper_pose.pose.position.y = min_y_i + 0.01*j;
@@ -89,7 +90,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     initial_state.gripper_pose.pose.orientation.w = -0.0255881;
     initial_state.object_pose.pose.position.x = 0.498689;
     initial_state.object_pose.pose.position.y = 0.148582;
-    initial_state.object_pose.pose.position.z = initial_object_pose_z;
+    initial_state.object_pose.pose.position.z = initial_object_pose_z[object_id];
     initial_state.object_pose.pose.orientation.x = -0.0327037 ;
     initial_state.object_pose.pose.orientation.y = 0.0315227;
     initial_state.object_pose.pose.orientation.z = -0.712671 ; 
@@ -267,6 +268,7 @@ bool isValidPick = true;
 
 bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const {
     bool isValid = true;
+    int object_id = grasping_state.object_id;
     //Check gripper is in its range
     if(grasping_state.gripper_pose.pose.position.x < min_x_i - 0.005 ||
        grasping_state.gripper_pose.pose.position.x > max_x_i + 0.005||
@@ -293,7 +295,7 @@ bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const 
        grasping_state.object_pose.pose.position.x > max_x_o ||
        grasping_state.object_pose.pose.position.y < min_y_o ||
        grasping_state.object_pose.pose.position.y > max_y_o ||
-       grasping_state.object_pose.pose.position.z < min_z_o) // Object has fallen
+       grasping_state.object_pose.pose.position.z < min_z_o[object_id]) // Object has fallen
     {
         return false;
     }
