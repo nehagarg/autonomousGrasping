@@ -625,7 +625,7 @@ void GraspingRealArm::PrintState(const State& state, std::ostream& out) const {
     robotInterface->PrintState(grasping_state, out);
     if(out != std::cout)
     {
-        out << "\n";
+        out << grasping_state.object_id << "\n";
     }
     
 }
