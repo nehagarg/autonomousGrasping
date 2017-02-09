@@ -38,8 +38,36 @@
 #for i in range(0,100):
 #    print "./bin/apc_despot_interface -v3 -t 5 -n 1 --number=%d -l CAP > ./results/despot_logs/VrepData_single_particle_belief_t5_n1_state_%d.log 2>&1" %(i,i)
 
-for i in range(0,1000):
-    print "./bin/apc_despot_interface -v3 -t 5 -n 10 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/TableScene_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 5 -n 5 -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/vrep_simulator/TableScene_9cm_gaussian_belief_with_state_in_belief_t5_n5_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 10 -n 5 -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/vrep_simulator/TableScene_9cm_gaussian_belief_with_state_in_belief_t10_n5_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 1 -n 10 -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/vrep_simulator/TableScene_9cm_gaussian_belief_with_state_in_belief_t1_n10_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 10 -n 10 -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/vrep_simulator/TableScene_9cm_gaussian_belief_with_state_in_belief_t10_n10_trial_%d.log 2>&1" %(i)
+
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 10 -n 10 --solver=LEARNINGPLANNING -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/learning/vrep_simulator/version1/combined_policy/switch_after_10/TableScene_9cm_gaussian_belief_with_state_in_belief_t10_n10_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 10 -n 5 --solver=LEARNINGPLANNING -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/learning/vrep_simulator/version1/combined_policy/switch_after_10/TableScene_9cm_gaussian_belief_with_state_in_belief_t10_n5_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 1 -n 10 --solver=LEARNINGPLANNING -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/learning/vrep_simulator/version1/combined_policy/switch_after_10/TableScene_9cm_gaussian_belief_with_state_in_belief_t1_n10_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 5 -n 10 --solver=LEARNINGPLANNING -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/learning/vrep_simulator/version1/combined_policy/switch_after_10/TableScene_9cm_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
+
+for i in range(0,100):
+    print "./bin/apc_despot_interface -v3 -t 5 -n 5 --solver=LEARNINGPLANNING -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/learning/vrep_simulator/version1/combined_policy/switch_after_10/TableScene_9cm_gaussian_belief_with_state_in_belief_t5_n5_trial_%d.log 2>&1" %(i)
+
+#for i in range(0,100):
+#    print "./bin/apc_despot_interface -v3 -t 1 -s 60 --number=-1 --solver=DEEPLEARNING --belief=SINGLE_PARTICLE -l CAP > ./results/learning/vrep_simulator/TableScene_9cm_trial_%d.log 2>&1" %(i)
 
 #for i in range(0,1000):
 #    print "./bin/apc_despot_interface -v3 -t 1 --solver=DEEPLEARNING --number=%d -l CAP > ./despot_logs/learning_trial_%d.log 2>&1" %(i,i)
