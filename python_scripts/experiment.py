@@ -1,5 +1,4 @@
 
-
 #for i in range(0,500):
    # print "./bin/despot --problem=graspingV3 -v 3 -t 120 --number=%d > 5_objects_obs_prob_change_particles_as_state/graspingV3_state_%d_t120_obs_prob_change_particles_as_state_5objects.log 2>&1" % (i,i)
 
@@ -38,8 +37,17 @@
 #for i in range(0,100):
 #    print "./bin/apc_despot_interface -v3 -t 5 -n 1 --number=%d -l CAP > ./results/despot_logs/VrepData_single_particle_belief_t5_n1_state_%d.log 2>&1" %(i,i)
 
+#for i in range(0,1000):
+#    print "./bin/apc_despot_interface -v3 -t 20 -n 320 -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/singleObjectType/cylinder_9cm/t20_n320/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t20_n320_trial_%d.log 2>&1" %(i)
+
 for i in range(0,1000):
-    print "./bin/apc_despot_interface -v3 -t 5 -n 10 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/TableScene_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
+    print "./bin/despot_without_display -v3 -t 1 -n 20 -s 50 --number=-1 -l CAP -m config_files/VrepDataInterface.yaml --belief=GAUSSIAN_WITH_STATE_IN > ./results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty100/t1_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n20_trial_%d.log 2>&1" %(i)
 
 #for i in range(0,1000):
-#    print "./bin/apc_despot_interface -v3 -t 1 --solver=DEEPLEARNING --number=%d -l CAP > ./despot_logs/learning_trial_%d.log 2>&1" %(i,i)
+#     print "./bin/apc_despot_interface -v3 -t 5 -n 10 -s 60 --number=-1 -l CAP --belief=GAUSSIAN_WITH_STATE_IN --solver=LEARNINGPLANNING > ./results/learning/version2/combined_policy/switch_after_10/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n10_trial_%d.log 2>&1" %(i)
+
+#for i in range(0,1000):
+#    print "./bin/apc_despot_interface -v3 -t 1 -s 60 --solver=DEEPLEARNING --number=-1 --belief=SINGLE_PARTICLE -l CAP > ./results/learning/version2/TableScene_9cm_trial_%d.log 2>&1" %(i)
+
+#for i in range(0,1000):
+#    print "./build/pocman -v3 --solver=DEEPLEARNING --number=%d > ./results/learning/full_pocman_t10_trial_%d.log 2>&1" %(i,i)
