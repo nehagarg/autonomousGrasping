@@ -507,7 +507,7 @@ def get_prob_prediction(action_probs):
             return i
         prob = prob + adjusted_probs[i]
     return -1
-def test(fileName=None):
+def test(fileName=None, model_name = None):
     # training parameters
     hidden_units = 128
     num_layers = 2
@@ -535,7 +535,8 @@ def test(fileName=None):
                 scope="model")
         end = time.time()
         model_create_time = end-start
-        model.load('vrep/version1/model.ckpt-967')
+        #model.load('vrep/version1/model.ckpt-967')
+        model.load(model_name)
         start = time.time()
         model_load_time = start-end
 
@@ -573,7 +574,7 @@ def test(fileName=None):
             #print data_generator.seqs
             #print data_generator.xseqs
             print data_generator.yseqs
-	    print 'vrep/version/model.ckpt-967'
+	    print model_name
             print 'model create time : {:.5f}'.format(model_create_time)
             print 'model load time : {:.5f}'.format(model_load_time)
             print ' time to predict: {:.5f}'.format((end-start))
@@ -632,8 +633,11 @@ def main():
     
         else:
             logfileName = sys.argv[1]
+        model_name = None
+        if len(sys.argv) > 2:
+            model_name = sys.argv[2]
 
-        test(logfileName)
+        test(logfileName, model_name)
     #test()
     #test_dataGenerator(1,logfileName)
     

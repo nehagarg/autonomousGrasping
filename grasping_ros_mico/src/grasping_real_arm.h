@@ -144,6 +144,7 @@ public:
     double step_cost = -1;
     int start_state_index = -1;
     int num_belief_particles = 1000;
+    std::string learned_model_name = "";
        
     RobotInterface* robotInterface;
     
@@ -207,7 +208,7 @@ public:
                 }
                 
             }
-            oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 ; cd - ;" ;
+            oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " << learned_model_name<< " ; cd - ;" ;
            
             return oss.str();
     }

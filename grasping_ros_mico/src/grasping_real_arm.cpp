@@ -144,6 +144,10 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         num_belief_particles = config["num_belief_particles"].as<int>();
     }
     
+    if(config["learned_model_name"])
+    {
+        learned_model_name = config["learned_model_name"].as<std::string>();
+    }
     
     
 }
