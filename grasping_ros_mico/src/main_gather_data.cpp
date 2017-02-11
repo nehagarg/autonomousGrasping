@@ -12,8 +12,11 @@ void GatherSimulationData()
 {
     //GraspingRealArm* model = new GraspingRealArm(-1);
     VrepInterface* vrepInterfacePointer = new VrepInterface();
+    vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
+    vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
+    
     std::cout<< "Gathering data" << std::endl;
-    vrepInterfacePointer->GatherData(1);
+    vrepInterfacePointer->GatherData(0);
     //vrepInterfacePointer->GatherJointData(0);
     //model->GatherJointData(0);
     //model->GatherGripperStateData(0);

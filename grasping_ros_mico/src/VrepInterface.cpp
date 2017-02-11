@@ -1033,7 +1033,8 @@ void VrepInterface::GatherData(int object_id) const {
 
     std::ofstream myfile;
     //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
-    myfile.open ("dummy.txt");
+    myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
+    //myfile.open ("dummy.txt");
     GraspingStateRealArm initial_state ;
     if(initial_state.object_id == -1)
     {
@@ -1059,12 +1060,12 @@ void VrepInterface::GatherData(int object_id) const {
     vrep_common::simRosStopSimulation stop_srv;
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
-    int i_loop_max = 10 ; //(int)((max_x_i - min_x_i)/epsilon) + 1; //20
-    int i_loop_min = 9 ; //0;  //20
-    int j_loop_max = 7 ; (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
-    int j_loop_min = 6 ;//0;//16;
+    int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    int i_loop_min = 0;  //20
+    int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    int j_loop_min = 0;//16;
     int k_loop_max = A_CLOSE+1; 
-    int k_loop_min = A_CLOSE; 
+    int k_loop_min = 0; 
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
@@ -1163,7 +1164,7 @@ void VrepInterface::GatherData(int object_id) const {
                     
                     GraspingStateRealArm initial_state_copy(*grasping_state);
                     GraspingObservation grasping_obs;
-                    if(k == A_CLOSE && object_id>0)
+                    if(k == A_CLOSE && object_id>=0)
                     {
                         // initial_state_copy = *grasping_state;
                         //Gripper pose
@@ -1220,7 +1221,7 @@ void VrepInterface::GatherData(int object_id) const {
                     myfile << reward << std::endl;
                     
                     
-                    if(k == A_CLOSE && object_id>0)
+                    if(k == A_CLOSE && object_id>=0)
                     {  
                         if(isValid && isReachable)
                         {
