@@ -22,6 +22,7 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
     {
         action = 0;
     }*/
+    GraspingStateRealArm initial_grasping_state = state;
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
     if(action < A_CLOSE)
     {
@@ -88,28 +89,55 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
             assert(false);
     }
     
-    if(action == A_CLOSE)
+    GetReward(initial_grasping_state, state, obs, action, reward);
+    UpdateNextStateValuesBasedAfterStep(state,obs,reward,action);
+    bool validState = IsValidState(state);
+    //Decide if terminal state is reached
+    if(action == A_PICK || !validState) //Wither pick called or invalid state reached
     {
         return true;
     }
     return false;
     
+    /*if(action == A_CLOSE)
+    {
+        return true;
+    }
+    return false;
+    */
 }
 
 void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
     //Get robot pose and finger joints
-    //Calling open gripper functon of step actual for that
-    double reward;
-    GraspingObservation grasping_obs;
-    StepActual(initial_state, 0.0, A_OPEN,reward, grasping_obs );
+    //Calling open gripper functon for that
+    grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
+    micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_OPEN;
+    if(micoActionFeedbackClient.call(micoActionFeedback_srv))
+    {
+       initial_state.gripper_pose = micoActionFeedback_srv.response.gripper_pose; 
+       real_gripper_offset_x = min_x_i + initial_gripper_pose_index_x*0.01 - initial_state.gripper_pose.pose.position.x;
+       real_gripper_offset_y = min_y_i + initial_gripper_pose_index_y*0.01 - initial_state.gripper_pose.pose.position.y;
+       real_gripper_offset_z = initial_gripper_pose_z - initial_state.gripper_pose.pose.position.z;
+       AdjustRealGripperPoseToSimulatedPose(initial_state.gripper_pose);
+       //Finger Joints
+        for(int i = 0; i < 4; i=i+2)
+        {
+            initial_state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
+           
+        }
+        AdjustRealFingerJointsToSimulatedJoints(initial_state.finger_joint_state);
+
+    }
     
     //Get object pose
     //Ideally should call object detector but currently it is not ready
-    //So adding a heurostic object pose based on the gripper pose
+    //So adding a default object pose . When object pose from kinect is available should compute offeset from defalut pose
     
     initial_state.object_pose = initial_state.gripper_pose;
-    initial_state.object_pose.pose.position.x = min_x_o + 0.03;
+    initial_state.object_pose.pose.position.x = initial_object_x;
+    initial_state.object_pose.pose.position.y = initial_object_y;
+    initial_state.object_pose.pose.position.z = initial_object_pose_z[initial_state.object_id];
     
     
 
@@ -317,13 +345,17 @@ void RealArmInterface::AdjustTouchSensorToSimulatedTouchSensor(double gripper_ob
 
 
 void RealArmInterface::AdjustRealGripperPoseToSimulatedPose(geometry_msgs::PoseStamped& gripper_pose) const {
-    //Get tip pose
-    gripper_pose.pose.position.x = gripper_pose.pose.position.x + tip_wrt_hand_link_x;
+     //Adjust with vrep
+    gripper_pose.pose.position.x = gripper_pose.pose.position.x + real_gripper_offset_x;
+    gripper_pose.pose.position.y = gripper_pose.pose.position.y + real_gripper_offset_y;
+    gripper_pose.pose.position.z = gripper_pose.pose.position.z + real_gripper_offset_z;
+
     
-    //Adjust with vrep
-    gripper_pose.pose.position.x = gripper_pose.pose.position.x - real_gripper_in_x_i + gripper_in_x_i;
-    gripper_pose.pose.position.y = gripper_pose.pose.position.y - real_min_y_i + min_y_i + gripper_out_y_diff;
-}
+    
+    //Get tip pose
+    //gripper_pose.pose.position.x = gripper_pose.pose.position.x + tip_wrt_hand_link_x;
+    
+   }
 
 void RealArmInterface::AdjustRealObjectPoseToSimulatedPose(geometry_msgs::PoseStamped& object_pose) const {
     object_pose.pose.position.x = object_pose.pose.position.x - real_min_x_o + min_x_o;

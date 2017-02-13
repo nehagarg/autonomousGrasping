@@ -49,6 +49,10 @@ public:
     double real_finger_joint_max = 115; //To confirm
     
     double tip_wrt_hand_link_x = 0.127;
+    
+    mutable double real_gripper_offset_x;
+    mutable double real_gripper_offset_y;
+    mutable double real_gripper_offset_z;
 
 private:
     
