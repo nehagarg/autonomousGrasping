@@ -42,6 +42,10 @@ public:
                  //  break;
                 }
                 i++;
+                if (i>=500)
+                {
+                    break; //Print only top 500 particles to reduce the file size
+                }
 	}
         //oss << i << " paricles with max_weight" << endl;
 	return oss.str();
