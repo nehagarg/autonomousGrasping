@@ -30,6 +30,8 @@ def getGripperState(state_value):
 def getPublishableBelief(belief_array):
     belief_msg = Belief()
     belief_msg.numPars = len(belief_array)
+    if belief_msg.numPars > 100:
+        belief_msg.numPars = 100
     for i in range(0,len(belief_array)):
         belief_msg.belief.append(belief_array[i]['state'].o_x);
         belief_msg.belief.append(belief_array[i]['state'].o_y);
@@ -71,6 +73,7 @@ if __name__ == '__main__':
     rate.sleep()
     
     lfp =  ParseLogFile(log_filename, 'vrep', 0, 'vrep')
+
     for i in range(0, len(lfp.stepInfo_)):
         if i==0:
             state_value = lfp.roundInfo_['state']

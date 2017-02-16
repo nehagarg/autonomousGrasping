@@ -140,7 +140,8 @@ void VrepInterface::GetNextStateAndObservation(GraspingStateRealArm& grasping_st
 }
 
 void VrepInterface::SetObjectPose(geometry_msgs::PoseStamped object_pose, int handle, int relativeHandle) const {
-        vrep_common::simRosSetObjectPose set_object_pose_srv;
+ 
+    vrep_common::simRosSetObjectPose set_object_pose_srv;
         set_object_pose_srv.request.handle = handle;
         set_object_pose_srv.request.relativeToObjectHandle = relativeHandle;
         set_object_pose_srv.request.pose = object_pose.pose;
@@ -226,7 +227,7 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
         }
 
     }
-
+    
     //SetMicoTargetPose(mico_target_pose);
     //For some wierd reason this should be set after setting joints
     //Otherwise it gets reset
@@ -1515,6 +1516,23 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
                     {
                         std::cout << "Failed to stop simualtion" << std::endl ;
                     }
+       /* //Start simulation as starting simulation after setting griiper pose leads to unstable non pure shape
+        vrep_common::simRosStartSimulation start_srv;
+        if(sim_start_client.call(start_srv) )
+        {
+            while(start_srv.response.result != 1)
+            {
+             std::cout << "Receiving response" << start_srv.response.result << "while starting" << std::endl;
+                sim_start_client.call(start_srv);
+            }
+        }
+        else
+        {
+            std::cout << "Failed to start simualtion" << std::endl;
+        }
+        */
+        
+        
         int i = 0;
         int j = 7;
         
@@ -1523,8 +1541,25 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         SetGripperPose(i,j);
         std::cout << "Gripper pose set" << std::endl;
         
-
+        
         VrepDataInterface::CreateStartState(initial_state, type);
+        
+        //Get object pose from vrep and update its x and y coordnates from initial state
+         double object_x = initial_state.object_pose.pose.position.x;
+        double object_y = initial_state.object_pose.pose.position.y;
+      
+         vrep_common::simRosGetObjectPose object_pose_srv;
+        object_pose_srv.request.relativeToObjectHandle = -1;
+        object_pose_srv.request.handle = target_object_handle;
+        if(sim_get_object_pose_client.call(object_pose_srv))
+        {
+            initial_state.object_pose  = object_pose_srv.response.pose;
+        }
+        
+        //Set only x and y values. Rest should be same as the current values otherwise object becomes unstable
+        initial_state.object_pose.pose.position.x = object_x;
+        initial_state.object_pose.pose.position.y = object_y;
+        
         SetObjectPose(initial_state.object_pose, target_object_handle, -1);
             
         

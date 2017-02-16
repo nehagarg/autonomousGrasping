@@ -36,7 +36,7 @@ public:
     virtual bool IsValidState(GraspingStateRealArm grasping_state) const = 0;
     
     void GenerateGaussianParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
-
+    void GetDefaultStartState(GraspingStateRealArm& initial_state) const;
     double abs(double x) const{
         if (x < 0) 
         {

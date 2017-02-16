@@ -29,6 +29,7 @@ def modify_basic_config(filename, ans):
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
+
     
     if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm.yaml" :
         ans["interface_type"] = 1
@@ -50,6 +51,12 @@ def modify_basic_config(filename, ans):
     if filename == "VrepInterface.yaml" :
         ans["interface_type"] = 0
         ans["test_object_id"] = 0
+    if filename == "VrepInterface_cup.yaml" :
+        ans["interface_type"] = 0
+        ans["object_initial_pose_z"][-1] = 1.0950
+        ans["object_min_z"][-1] = 1.0900
+        
+        
     if filename == "RealArmInterface.yaml" :
         ans["interface_type"] = 2
         

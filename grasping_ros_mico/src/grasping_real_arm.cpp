@@ -478,21 +478,28 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     //Gaussian belief for gaussian start state
     if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN")
     {
+        
         for(int i = 0; i < num_belief_particles; i++)
         {
             for(int j = 0; j < belief_object_ids.size(); j++)
             {
+
                 
                     GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+                    grasping_state->object_id = belief_object_ids[j];
+                    robotInterface->GetDefaultStartState(*grasping_state);
+                    
                     while(true)
                     {
                         robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
+                        
+                        
                         if (robotInterface->IsValidState(*grasping_state))
                         {
                             break;
                         }
                     }
-                    grasping_state->object_id = belief_object_ids[j];
+                    
                     particles.push_back(grasping_state);
                     num_particles = num_particles + 1;
             }
@@ -503,6 +510,18 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     {
     //Single Particle Belief  
         GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+        if(grasping_state->object_id >= RobotInterface::objects_to_be_loaded.size() )
+        {
+            grasping_state->object_id = belief_object_ids[0];
+        }
+        double object_x = grasping_state->object_pose.pose.position.x;
+        double object_y = grasping_state->object_pose.pose.position.y;
+        robotInterface->GetDefaultStartState(*grasping_state);
+        if(type!= "DEFAULT")
+        {
+            grasping_state->object_pose.pose.position.x = object_x;
+            grasping_state->object_pose.pose.position.y = object_y;
+        }
         particles.push_back(grasping_state);
         num_particles = num_particles + 1;
     }
@@ -569,7 +588,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     {
         particles[i]->weight = 1.0/num_particles;
     }
-
+    //std::cout << "Num particles : " << num_particles << std::endl;
     return particles;
 }
 

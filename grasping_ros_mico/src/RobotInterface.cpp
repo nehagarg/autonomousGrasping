@@ -462,6 +462,32 @@ void RobotInterface::GenerateGaussianParticleFromState(GraspingStateRealArm& ini
       
 }
 
+void RobotInterface::GetDefaultStartState(GraspingStateRealArm& initial_state) const {
+    int i = initial_gripper_pose_index_x;
+    int j = initial_gripper_pose_index_y;
+    int object_id = initial_state.object_id;
+
+    initial_state.gripper_pose.pose.position.x = min_x_i + 0.01*i;
+    initial_state.gripper_pose.pose.position.y = min_y_i + 0.01*j;
+    initial_state.gripper_pose.pose.position.z = initial_gripper_pose_z;
+    initial_state.gripper_pose.pose.orientation.x = -0.694327;
+    initial_state.gripper_pose.pose.orientation.y = -0.0171483;
+    initial_state.gripper_pose.pose.orientation.z = -0.719 ;
+    initial_state.gripper_pose.pose.orientation.w = -0.0255881;
+    initial_state.object_pose.pose.position.x = initial_object_x;
+    initial_state.object_pose.pose.position.y = initial_object_y;
+    initial_state.object_pose.pose.position.z = initial_object_pose_z[object_id];
+    initial_state.object_pose.pose.orientation.x = -0.0327037 ;
+    initial_state.object_pose.pose.orientation.y = 0.0315227;
+    initial_state.object_pose.pose.orientation.z = -0.712671 ; 
+    initial_state.object_pose.pose.orientation.w = 0.700027;
+    initial_state.finger_joint_state[0] = -2.95639e-05 ;
+    initial_state.finger_joint_state[1] = 0.00142145;
+    initial_state.finger_joint_state[2] = -1.19209e-06 ;
+    initial_state.finger_joint_state[3] = -0.00118446 ;
+}
+
+
 
 double RobotInterface::get_action_range(int action, int action_type) const {
 if ((action - action_type) >= (A_DECREASE_X - A_INCREASE_X)) {

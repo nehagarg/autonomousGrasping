@@ -42,7 +42,7 @@ public:
                  //  break;
                 }
                 i++;
-                if (i>=500)
+                if (i>=100)
                 {
                     break; //Print only top 500 particles to reduce the file size
                 }
