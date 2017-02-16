@@ -25,7 +25,7 @@ ValuedAction LearningPlanningSolver::Search() {
         ans =  deepLearningSolver.Search();
         std::cout << "(" << ans.action << "," << ans.value << ")" << std::endl;
         std::cout << "Belief printing from learning planning solver" << std::endl;
-        std::cout << *belief_ << std::endl;
+        //std::cout << *belief_ << std::endl;
         if (ans.value < 0.0)
         {
             ans =  despotSolver.Search();

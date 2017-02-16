@@ -88,8 +88,8 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     initial_state.gripper_pose.pose.orientation.y = -0.0171483;
     initial_state.gripper_pose.pose.orientation.z = -0.719 ;
     initial_state.gripper_pose.pose.orientation.w = -0.0255881;
-    initial_state.object_pose.pose.position.x = 0.498689;
-    initial_state.object_pose.pose.position.y = 0.148582;
+    initial_state.object_pose.pose.position.x = initial_object_x;
+    initial_state.object_pose.pose.position.y = initial_object_y;
     initial_state.object_pose.pose.position.z = initial_object_pose_z[object_id];
     initial_state.object_pose.pose.orientation.x = -0.0327037 ;
     initial_state.object_pose.pose.orientation.y = 0.0315227;
