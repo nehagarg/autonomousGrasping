@@ -107,6 +107,7 @@ public:
     double pick_reward = 20;
     double pick_penalty = -100;
     double invalid_state_penalty = -100;
+    bool separate_close_reward = true;
     double epsilon = 0.01; //Smallest step value
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table

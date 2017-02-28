@@ -1175,6 +1175,9 @@ bool validState = IsValidState(grasping_state);
             if(touchDetected)
             {
                 
+                
+                if(separate_close_reward)
+                {
                 int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
                 if(gripper_status == 0) //gripper is open
                 {
@@ -1191,6 +1194,12 @@ bool validState = IsValidState(grasping_state);
                     {
                         reward = -1;
                     }
+                }
+                 
+                }
+                else
+                {
+                    reward = -0.5;
                 }
                 /*if(gripper_status == 1) // Touching without object
                 {

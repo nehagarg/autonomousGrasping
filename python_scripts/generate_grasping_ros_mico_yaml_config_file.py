@@ -22,7 +22,8 @@ def create_basic_config():
     
     ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
-    
+    ans["separate_close_reward"] = False
+        
     return ans
 
 def modify_basic_config(filename, ans):

@@ -138,6 +138,11 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         }
     }
     
+    if(config["separate_close_reward"])
+    {
+        robotInterface->separate_close_reward = config["separate_close_reward"].as<bool>();
+    }
+    
     //Set model variBLES
     if(config["num_belief_particles"])
     {
@@ -148,6 +153,8 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     {
         learned_model_name = config["learned_model_name"].as<std::string>();
     }
+    
+    
     
     
 }
