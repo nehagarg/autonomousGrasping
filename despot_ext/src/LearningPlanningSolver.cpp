@@ -20,6 +20,14 @@ LearningPlanningSolver::~LearningPlanningSolver() {
 ValuedAction LearningPlanningSolver::Search() {
     ValuedAction ans;
     int hist_size = history_.Size();
+    //Hack for running trajectory start
+    /*
+    if (hist_size == 0) return ValuedAction(1, 1);
+    if (hist_size == 1) return ValuedAction(8, 1);
+    if (hist_size == 2) return ValuedAction(9, 1);
+    return ValuedAction(10,1);
+    */        
+    //Hack for running trajectory end
     if ((hist_size/10) % 2 == 0)
     {
         ans =  deepLearningSolver.Search();

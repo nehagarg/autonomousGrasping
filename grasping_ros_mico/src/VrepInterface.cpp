@@ -9,6 +9,7 @@
 #include "VrepInterface.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float64.h"
+#include "Display/parameters.h"
 
 VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_state_index_) {
    
@@ -1034,8 +1035,8 @@ void VrepInterface::GatherData(int object_id) const {
 
     std::ofstream myfile;
     //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
-    myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
-    //myfile.open ("dummy.txt");
+    //myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
+    myfile.open ("dummy.txt");
     GraspingStateRealArm initial_state ;
     if(initial_state.object_id == -1)
     {
@@ -1061,12 +1062,12 @@ void VrepInterface::GatherData(int object_id) const {
     vrep_common::simRosStopSimulation stop_srv;
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
-    int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
-    int i_loop_min = 0;  //20
-    int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
-    int j_loop_min = 0;//16;
-    int k_loop_max = A_CLOSE+1; 
-    int k_loop_min = 0; 
+    int i_loop_max = 7;//(int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    int i_loop_min = 6;//0;  //20
+    int j_loop_max = 6;//(int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    int j_loop_min = 5;//0;//16;
+    int k_loop_max = A_OPEN+1;//A_CLOSE+1; 
+    int k_loop_min = A_OPEN;//0; 
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
@@ -1480,6 +1481,20 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
     else if (action < A_PICK){ 
         std::cout << std::endl;
         OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
+        //TODO Test : Add decrease x action to make sure gripper is always open on open action
+        //Do not do it while gathering data or may be do it as it will lead to open action always resulting in open gripper
+        if(action == A_OPEN)
+        {
+            bool touching = true;
+            int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+            while(new_gripper_status > 0)
+            {
+                TakeStepInVrep(A_DECREASE_X, 1, touching, grasping_state, grasping_obs, reward);                 
+                OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
+                new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+                
+            }
+        }
         
     }
     else if (action == A_PICK) { //Pick

@@ -172,11 +172,22 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
         if(gripper_status > 0) // gripper is closed
         {
            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
+           int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+           while(new_gripper_status > 0)
+           {
+               std::cout << "Moving gripper back by 1 cm to let it open" << std::endl;
+               grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - 0.01;
+               GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
+               new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+           }
         }
         else
         {
-           //State remains same
-            GetObsFromData(grasping_state, grasping_obs, random_num, action, debug); 
+           //State remains same. 
+            //Cannot get observation from data for open action as observation is for open action after close action. Gripper might not open correctly and give wrong observation
+            //Using dummy action A_INCREASE_X to get observation as the gripper will be open in this action
+            GetObsFromData(grasping_state, grasping_obs, random_num, A_INCREASE_X, debug); 
+            
         }
     }
     else if (action == A_PICK) // Pick object

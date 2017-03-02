@@ -97,8 +97,8 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
        while(true){
             
           GenerateGaussianParticleFromState(initial_state, type);
-           //initial_state.object_pose.pose.position.x = 0.531724;
-           //initial_state.object_pose.pose.position.y = 0.106093;
+           //initial_state.object_pose.pose.position.x = 0.525039;
+           //initial_state.object_pose.pose.position.y = 0.171831;
            //initial_state.object_pose.pose.position.x = initial_object_x + 0.03;
            //initial_state.object_pose.pose.position.y = initial_object_y + 0.03;
            // the engine for generator samples from a distribution
