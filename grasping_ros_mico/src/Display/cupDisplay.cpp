@@ -75,8 +75,8 @@ void CUPDISPLAY::GripperPoseCallback(const grasping_ros_mico::State::ConstPtr& m
 {
 	gripper_pose.first = msg->gripper_pose.pose.position.x;
 	gripper_pose.second = msg->gripper_pose.pose.position.y;
-        //object_pose.first = msg->object_pose.pose.position.x;
-	//object_pose.second = msg->object_pose.pose.position.y;
+        object_pose.first = msg->object_pose.pose.position.x;
+	object_pose.second = msg->object_pose.pose.position.y;
     obs = msg->observation;
 }
 
