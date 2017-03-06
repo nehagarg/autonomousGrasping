@@ -175,7 +175,9 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
            int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
            while(new_gripper_status > 0)
            {
-               std::cout << "Moving gripper back by 1 cm to let it open" << std::endl;
+               if(debug) {
+                std::cout << "Moving gripper back by 1 cm to let it open" << std::endl;
+               }
                grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - 0.01;
                GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
                new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
@@ -1181,50 +1183,70 @@ bool validState = IsValidState(grasping_state);
     {
         if(validState)
         {
-            int on_bits[2];
-            bool touchDetected = CheckTouch(grasping_obs.touch_sensor_reading, on_bits);
-            if(touchDetected)
-            {
-                
-                
-                if(separate_close_reward)
-                {
-                int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
-                if(gripper_status == 0) //gripper is open
-                {
-                    reward = -0.5;
-                    //TODO no reward if touch due to touching the wall
-                }
-                else
-                {//check grasp stability if action was close gripper
-                    if (action==A_CLOSE)
-                    {
-                        GetRewardBasedOnGraspStability(grasping_state, grasping_obs, reward);
-                    }
-                    else
-                    {
-                        reward = -1;
-                    }
-                }
-                 
-                }
-                else
-                {
-                    reward = -0.5;
-                }
-                /*if(gripper_status == 1) // Touching without object
-                {
-                   reward = -1; 
-                }
-                if(gripper_status == 2)
-                {
-                    reward = 1;
-                }*/
-                
+            int initial_gripper_status = GetGripperStatus(initial_grasping_state.finger_joint_state);
+            if((initial_gripper_status == 0 && action == A_OPEN) || 
+              (initial_gripper_status !=0 && action <= A_CLOSE)  ||
+              (initial_grasping_state.gripper_pose.pose.position.x <=min_x_i && (action >= A_DECREASE_X && action < A_INCREASE_Y)) ||
+              (initial_grasping_state.gripper_pose.pose.position.x >=max_x_i && (action >= A_INCREASE_X && action < A_DECREASE_X)) ||
+              (initial_grasping_state.gripper_pose.pose.position.y <=min_y_i && (action >= A_DECREASE_Y && action < A_CLOSE) )||
+              (initial_grasping_state.gripper_pose.pose.position.y >=max_y_i && (action >= A_INCREASE_Y && action < A_DECREASE_Y) )
+                    
+              )
+            {//Disallow open action when gripper is open and move actions when gripper is close
+             //Other forbidden actions
+                reward = -1*pick_reward;
             }
             else
             {
-                reward = -1;
+            
+            
+            
+                int on_bits[2];
+                bool touchDetected = CheckTouch(grasping_obs.touch_sensor_reading, on_bits);
+                if(touchDetected)
+                {
+                
+                
+                    if(separate_close_reward)
+                    {
+                        int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+                        if(gripper_status == 0) //gripper is open
+                        {
+                            reward = -0.5;
+                            //TODO no reward if touch due to touching the wall
+                        }
+                        else
+                        {//check grasp stability if action was close gripper
+                            if (action==A_CLOSE)
+                            {
+                                GetRewardBasedOnGraspStability(grasping_state, grasping_obs, reward);
+                            }
+                            else
+                            {
+                                reward = -1;
+                            }
+                        }
+                 
+                    }
+                    else
+                    {
+                        reward = -0.5;
+                    }
+                    /*if(gripper_status == 1) // Touching without object
+                    {
+                    reward = -1; 
+                    }
+                    if(gripper_status == 2)
+                    {
+                    reward = 1;
+                    }*/
+                
+                }
+            
+                else
+                {
+                    reward = -1;
+                }
             }
         }
         else

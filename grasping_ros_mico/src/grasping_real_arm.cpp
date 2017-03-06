@@ -876,3 +876,46 @@ ScenarioLowerBound* GraspingRealArm::CreateScenarioLowerBound(std::string name, 
         return NULL;
     }
 }
+
+class SimpleScenarioUpperBound: public ParticleUpperBound 
+{
+protected:
+	const GraspingRealArm* graspingRealArm_;
+public:
+	SimpleScenarioUpperBound(const DSPOMDP* model)
+	:	ParticleUpperBound(),
+		graspingRealArm_(static_cast<const GraspingRealArm*>(model))
+	{
+
+	}
+	// ~GraspCupSmartParticleUpperBound();
+	double Value(const State& state) const
+	{       
+
+		// changed
+		const GraspingStateRealArm& cstate = static_cast<const GraspingStateRealArm&>(state);
+		double toClose_x = abs(cstate.object_pose.pose.position.x - cstate.gripper_pose.pose.position.x) - 0.245;
+                toClose_x = toClose_x > 0 ? toClose_x : 0;
+                double toClose_y = abs(cstate.object_pose.pose.position.y - cstate.gripper_pose.pose.position.y) - 0.036;
+                toClose_y = toClose_y > 0 ? toClose_y : 0;
+                return graspingRealArm_->GetMaxReward() + (-0.5) + (-1) * (toClose_x + toClose_y) / 0.01;
+	}
+};
+
+ScenarioUpperBound* GraspingRealArm::CreateScenarioUpperBound(std::string name,
+		std::string particle_bound_name) const 
+{
+	if(name == "TRIVIAL" )
+	{
+		return new TrivialParticleUpperBound(this);
+	}
+	else if(name == "DEFAULT")
+	{
+		return new SimpleScenarioUpperBound(this);
+	}
+	else
+	{
+		std::cerr << "Unsupported lower bound algorithm: " << name << std::endl;
+		exit(0);
+	}
+}

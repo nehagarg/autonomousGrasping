@@ -94,6 +94,8 @@ public:
     };
     ScenarioLowerBound* CreateScenarioLowerBound(std::string name = "DEFAULT", std::string particle_bound_name = "DEFAULT") const;
  
+    ScenarioUpperBound* CreateScenarioUpperBound(std::string name = "DEFAULT", std::string particle_bound_name = "DEFAULT") const;
+
     /* Memory management.*/
     State* Allocate(int state_id, double weight) const {
         //num_active_particles ++;
