@@ -227,7 +227,7 @@ class Seq2SeqModel(object):
             output_dir='output',
             cpp_dir='output_cpp'):
         with tf.device('/cpu:0'):
-            saver = tf.train.Saver()
+            saver = tf.train.Saver(max_to_keep = 0)
             cpp_saver = self.training_graph.cpp_saver(cpp_dir)
 
         history = []
@@ -260,7 +260,7 @@ class Seq2SeqModel(object):
                     .format(e, train_loss, val_error_rate, end - start))
 
             if best_val_error_rate > val_error_rate or (val_error_rate < 0.01 or e % 400 == 0):
-                save_path = saver.save(self.session, "{}/model.ckpt".format(output_dir), global_step=e, max_to_keep = 0)
+                save_path = saver.save(self.session, "{}/model.ckpt".format(output_dir), global_step=e)
                 cpp_saver(self.session, global_step=e)
                 print "model saved : " + repr(best_val_error_rate) + "," + repr(val_error_rate)
                 best_val_error_rate = val_error_rate
@@ -268,8 +268,8 @@ class Seq2SeqModel(object):
             if val_error_rate > prev_error_rate and self.get_learning_rate() > 0.0001:
                 self.set_learning_rate(self.get_learning_rate() * lr_decay)
                 print "Decreasing Learning Rate to {:.5f}".format(self.get_learning_rate())
-            elif val_error_rate < 0.10:
-                val_set = [data_generator.next_batch() for _ in xrange(num_val_batches)]
+            #elif val_error_rate < 0.10:
+            #    val_set = [data_generator.next_batch() for _ in xrange(num_val_batches)]
 
             history.append({
                     'epoch' : e,
