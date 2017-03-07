@@ -260,7 +260,7 @@ class Seq2SeqModel(object):
                     .format(e, train_loss, val_error_rate, end - start))
 
             if best_val_error_rate > val_error_rate or (val_error_rate < 0.01 or e % 400 == 0):
-                save_path = saver.save(self.session, "{}/model.ckpt".format(output_dir), global_step=e)
+                save_path = saver.save(self.session, "{}/model.ckpt".format(output_dir), global_step=e, max_to_keep = 0)
                 cpp_saver(self.session, global_step=e)
                 print "model saved : " + repr(best_val_error_rate) + "," + repr(val_error_rate)
                 best_val_error_rate = val_error_rate
