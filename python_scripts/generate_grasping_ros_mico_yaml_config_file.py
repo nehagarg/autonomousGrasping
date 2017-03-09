@@ -11,18 +11,20 @@ def create_basic_config():
     ans["num_belief_particles"] = 1000
     ans["interface_type"] = 1
     ans["pick_reward"] = 100
-    ans["pick_penalty"] = -100
-    ans["invalid_state_penalty"] = -100
+    ans["pick_penalty"] = -10
+    ans["invalid_state_penalty"] = -10
     ans["object_mapping"] = ["data_table_exp/SASOData_Cylinder_9cm_", "data_table_exp/SASOData_Cylinder_8cm_", "data_table_exp/SASOData_Cylinder_7cm_"]
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_9cm_")
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_8cm_")
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_7cm_")
+    ans["object_mapping"].append("data_table_exp/SASOData_Cylinder_75mm_")
+    ans["object_mapping"].append("data_table_exp/SASOData_Cylinder_85mm_")
     ans["object_min_z"] = [1.1200]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     ans["object_initial_pose_z"] = [1.1248]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     
     ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
-    ans["separate_close_reward"] = False
+    ans["separate_close_reward"] = True
         
     return ans
 
@@ -44,6 +46,14 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 2
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest75mm.yaml" :
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 6
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest85mm.yaml" :
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 7
         
     if filename == "VrepInterfaceMultiCylinderObject.yaml" :
         ans["interface_type"] = 0
