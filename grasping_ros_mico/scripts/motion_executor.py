@@ -11,8 +11,8 @@ import random
 
 SERVER_NAME = 'mico_motion_planner'
 #THRES_TOUCH_GRASPED = 1400
-THRES_TOUCH_GRASPED = 300
-THRES_TOUCH = 150
+THRES_TOUCH_GRASPED = 300.0
+THRES_TOUCH = 150.0
 
 class Executor(object):
     def __init__(self):
@@ -27,7 +27,8 @@ class Executor(object):
         self.sub_pressure_l = rospy.Subscriber('/pressure_calib_l', Float32, self.cb_pressure, 0)
         self.curr_pose = None
         self.last_touch = [0, 0]
-        self.max_pressure = [0, 0]
+        self.max_pressure = [0.0, 0.0]
+        self.initial_pressure = [None, None]
         self.detected_pressure = [0, 0]
 
     def cb_touch(self, msg, finger_index):
@@ -37,7 +38,10 @@ class Executor(object):
 
     def cb_pressure(self, msg, finger_index):
         pressure = msg.data
-        self.max_pressure[finger_index] = max(self.max_pressure[finger_index], pressure)
+        if self.initial_pressure[finger_index] is None:
+            self.initial_pressure[finger_index] = pressure
+        a = self.initial_pressure[finger_index]
+        self.max_pressure[finger_index] = max(self.max_pressure[finger_index] - a, pressure - a)
         
     
 
@@ -108,8 +112,8 @@ class Executor(object):
         self.pub_gripper_vel.publish('stop')
 
     def close_gripper(self):
-        self.last_touch = 0
-        self.max_pressure = 0
+        self.last_touch = [0,0]
+        self.max_pressure = [0,0]
         self.gripper_action('close')
 
     def open_gripper(self):
@@ -118,7 +122,7 @@ class Executor(object):
     @property
     def is_last_grasp_success(self):
         #return self.last_touch > THRES_TOUCH_GRASPED
-        return self.max_pressure > THRES_TOUCH_GRASPED
+        return ((self.max_pressure[0] > THRES_TOUCH_GRASPED) or (self.max_pressure[1] > THRES_TOUCH_GRASPED))
 
     @property
     def is_touched(self):
@@ -142,6 +146,7 @@ class Executor(object):
             rospy.logwarn('move_until_touch failed')
 
     def move_until_touch(self, dx=0, dy=0, dz=0):
+        print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (dx, dy, dz)
         plan = self.plan_move(dx, dy, dz)
         self.max_pressure = [-1000, -1000]
         self.execute_plan(plan, check_need_cancel=lambda: self.is_touched)

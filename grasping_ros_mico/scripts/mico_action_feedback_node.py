@@ -9,8 +9,8 @@ import motion_executor
 from motion_executor import Executor
 import time 
 
-motion_executor.THRES_TOUCH_GRASPED = 650
-motion_executor.THRES_TOUCH = 15
+motion_executor.THRES_TOUCH_GRASPED = 650.0
+motion_executor.THRES_TOUCH = 15.0
 
 #from stop_when_touch import lift
 #import task_planner.apc_util
@@ -40,7 +40,8 @@ def handle_action_request(req):
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myMotionExecutor.curr_pose #arm.get_current_pose()
     res.touch_sensor_reading =  myMotionExecutor.detected_pressure
-    
+    print res.touch_sensor_reading
+
     finger = None
     rospy.Subscriber("/joint_states", JointState, joint_state_callback, res.finger_joint_state)
     while not finger :
