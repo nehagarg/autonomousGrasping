@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from log_file_parser import ParseLogFile
 import os
 import csv
-
+import sys
 
 def get_mean_std_for_numbers_in_file(filename):
     import numpy as np
@@ -244,7 +244,7 @@ def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_na
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/t" + repr(t)+ "_n" + repr(n)
             success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
-            failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+            failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
             stuck_cases = reward_file_size - (success_cases + failure_cases)
             csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
         csv_file.write("\n")
@@ -254,7 +254,7 @@ def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_na
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/learning/version" + repr(l)
             success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
-            failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+            failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
             stuck_cases = reward_file_size - (success_cases + failure_cases)
             csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
 
@@ -266,7 +266,7 @@ def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_na
             for n in sampled_scenarios:
                 new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined/t" + repr(t)+ "_n" + repr(n)
                 success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
-                failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+                failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
                 stuck_cases = reward_file_size - (success_cases + failure_cases)
                 csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
 
@@ -297,11 +297,26 @@ def plot_graph_from_csv(csv_file, data_type = 'reward'):
                 stds[-1].append(stderr)
     plot_line_graph_with_std_error(means, stds, plt_title, legend, xlabels)
     
-dir_name = None    
+dir_name = None
+data_type = 'reward'
+plot_graph = 'yes'
 if(len(sys.argv) > 1):
-    dir_name = sys.argv[1]
-generate_average_reward_csv_for_vrep_multi_object_cases("multi_object_success_test.csv", None, True)
-plot_graph_from_csv("multi_object_success_test.csv", 'success_cases')
+    plot_graph = sys.argv[1]
+if(len(sys.argv) > 2):
+    data_type = sys.argv[2]
+if(len(sys.argv) > 3):
+    dir_name = sys.argv[3]
+
+
+csv_file_name = 'multi_object_' + data_type + '_test.csv'
+
+if data_type == 'reward':
+    generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
+if data_type == 'success_cases':
+    generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
+
+if plot_graph == 'yes':
+    plot_graph_from_csv(csv_file_name, data_type)
 
     
     
