@@ -1302,7 +1302,7 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
                 }     
                     
                     std::cout << "Waiting for ros message on topic " << topic_name << std::endl;
-                    msg = ros::topic::waitForMessage<std_msgs::String>(topic_name, grasping_n);
+                    msg = ros::topic::waitForMessage<std_msgs::String>(topic_name, grasping_n, ros::Duration(600));
                      std::cout << "Got ros message" << std::endl;
          
                     
