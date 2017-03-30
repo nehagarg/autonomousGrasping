@@ -41,3 +41,9 @@ double LearningModel::GetUncertaintyValue(Belief* b) const {
     return -1.0;
 }
 
+ValuedAction LearningModel::GetNextActionFromUser(History h) const {
+    int next_action;
+    std::cout << "Input next action" << std::endl;
+    std::cin >> next_action;
+    return ValuedAction(next_action, 1);
+}

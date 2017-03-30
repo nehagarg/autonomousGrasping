@@ -27,6 +27,7 @@ public:
     virtual std::string GetPythonExecutionString() const;
     virtual std::string GetPythonExecutionString(History h) const;
     virtual double GetUncertaintyValue(Belief* b) const;
+    virtual ValuedAction GetNextActionFromUser(History h) const;
 };
 
 #endif	/* LEARNINGMODEL_H */

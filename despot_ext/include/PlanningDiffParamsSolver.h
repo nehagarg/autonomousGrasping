@@ -28,7 +28,7 @@ public:
       
         double uncertainty = ((LearningModel*)model_)->GetUncertaintyValue(despotSolver.Solver::belief());
         std::cout << "Belief uncertainty: " << uncertainty << std::endl;
-        int hist_size = history_.Size();
+        //int hist_size = history_.Size();
         //if ((hist_size/20) % 2 == 0)
         if(uncertainty > 4.5)
         {

@@ -15,6 +15,7 @@
 #include "LearningPlanningSolver.h"
 #include "PlanningDiffParamsSolver.h"
 #include "LearningModel.h"
+#include "UserDefinedActionSolver.h"
 
 using namespace despot;
 
@@ -73,36 +74,7 @@ public:
  
   
    virtual DSPOMDP* InitializeModel(option::Option* options) = 0;
-    /*{
-     DSPOMDP* model;
-    /*if (options[E_DATA_FILE])
-            {
-                if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        
-                        model = new GraspingV4(options[E_DATA_FILE].arg, number);
-                }
-                else
-                {
-                    model = new GraspingV4(options[E_DATA_FILE].arg, -1);
-                }
-            }
-            else
-    
-     //{
-                if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        std::cout << "Number is " <<  number;
-                        model = new GraspingV4( number);
-                }
-                else
-                {
-                    model = new GraspingV4(-1);
-                }
-     //       }
-     
-    return model;
-  }*/
+
   
   virtual void InitializeDefaultParameters();
 
@@ -154,6 +126,9 @@ public:
 
 		
         }
+      else if (solver_type == "USERDEFINED") {
+		solver = new UserDefinedActionSolver((LearningModel*)model, NULL);
+        }
       else {
           solver = SimpleTUI::InitializeSolver(model,solver_type,options);
       }
@@ -162,37 +137,6 @@ public:
   }
  
   
-   
-    /*{
-     DSPOMDP* model;
-    /*if (options[E_DATA_FILE])
-            {
-                if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        
-                        model = new GraspingV4(options[E_DATA_FILE].arg, number);
-                }
-                else
-                {
-                    model = new GraspingV4(options[E_DATA_FILE].arg, -1);
-                }
-            }
-            else
-    
-     //{
-                if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        std::cout << "Number is " <<  number;
-                        model = new GraspingV4( number);
-                }
-                else
-                {
-                    model = new GraspingV4(-1);
-                }
-     //       }
-     
-    return model;
-  }*/
   
   void TUI::InitializeDefaultParameters() {
   }
