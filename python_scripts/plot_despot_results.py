@@ -159,7 +159,7 @@ def plot_scatter_graph(x,y,area):
     plt.show()
     
 
-def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name = None, testCases = True):
+def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern):
     
 
     if dir_name is None:
@@ -167,13 +167,20 @@ def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_n
     time_steps = [1,5]
     sampled_scenarios = [5, 10, 20, 40, 80, 160, 320, 640, 1280]
     learning_versions = [6]
-    patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
-    reward_file_name = 'reward.txt'
-    reward_file_size = 1500
-    if testCases:
+    
+    if test_pattern == 'train':
+        patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
+        reward_file_size = 1500
+    elif test_pattern == 'test':
         patterns = ['*85mm*.log', '*75mm*.log']
-        reward_file_name = 'reward_test.txt'
         reward_file_size = 1000
+    else :
+        patterns = ['*' + test_pattern + '*.log']
+        reward_file_size = 500
+        
+    
+    reward_file_name = 'reward_' + test_pattern +'.txt'
+
     #means = []
     #stds = []
     csv_file = open(csv_file_name,'w')
@@ -215,65 +222,118 @@ def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_n
                 csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             csv_file.write("\n")
 
-def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name = None, testCases = True):
+def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern):
     if dir_name is None:
         dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
     time_steps = [1,5]
     sampled_scenarios = [5, 10, 20, 40, 80, 160, 320, 640, 1280]
     learning_versions = [6]
-    patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
-    #reward_file_name = 'reward.txt'
-    reward_file_size = 1500
-    if testCases:
+    
+    
+    if test_pattern == 'train':
+        patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
+        reward_file_size = 1500
+    elif test_pattern == 'test':
         patterns = ['*85mm*.log', '*75mm*.log']
-        #reward_file_name = 'reward_test.txt'
         reward_file_size = 1000
+    else :
+        patterns = ['*' + test_pattern + '*.log']
+        reward_file_size = 500
+    
+    average_step_file_name = 'average_step_' + test_pattern
+        
     #means = []
     #stds = []
-    csv_file = open(csv_file_name,'w')
+    csv_file = open(csv_file_name[0],'w')
+    av_step_success_file = open(csv_file_name[1], 'w')
+    av_step_failure_file = open(csv_file_name[2], 'w')
     
     csv_file.write("Success failure cases")
+    av_step_success_file.write("Average Steps Success")
+    av_step_failure_file.write("Average Steps Failure")
+    
     for n in sampled_scenarios:
           csv_file.write(",n" +  repr(n))
+          av_step_success_file.write(",n" +  repr(n))
+          av_step_failure_file.write(",n" +  repr(n))
     csv_file.write("\n")
+    av_step_success_file.write("\n")
+    av_step_failure_file.write("\n")
     
     for t in time_steps:
         csv_file.write("T" + repr(t))
+        av_step_success_file.write("T" + repr(t))
+        av_step_failure_file.write("T" + repr(t))
         #means.append([])
         #stds.append([])
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/t" + repr(t)+ "_n" + repr(n)
             success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+            generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , 100)
+            (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
+            av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+            
             failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
+            generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , -10)
+            (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
+            av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+            
             stuck_cases = reward_file_size - (success_cases + failure_cases)
+            
             csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
         csv_file.write("\n")
+        av_step_success_file.write("\n")
+        av_step_failure_file.write("\n")
         
     for l in learning_versions:
         csv_file.write("L" + repr(l))
+        av_step_success_file.write("L" + repr(l))
+        av_step_failure_file.write("L" + repr(l))
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/learning/version" + repr(l)
             success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+            generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , 100)
+            (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
+            av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+            
             failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
+            generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , -10)
+            (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
+            av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+            
             stuck_cases = reward_file_size - (success_cases + failure_cases)
             csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
 
         csv_file.write("\n")
+        av_step_success_file.write("\n")
+        av_step_failure_file.write("\n")
         for t in time_steps:
             csv_file.write("L" + repr(l) + "T" + repr(t))
+            av_step_success_file.write("L" + repr(l) + "T" + repr(t))
+            av_step_failure_file.write("L" + repr(l) + "T" + repr(t))
         #means.append([])
         #stds.append([])
             for n in sampled_scenarios:
                 new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined/t" + repr(t)+ "_n" + repr(n)
                 success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+                generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , 100)
+                (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
+                av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+            
                 failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
+                generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , -10)
+                (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
+                av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+            
                 stuck_cases = reward_file_size - (success_cases + failure_cases)
                 csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
 
             csv_file.write("\n")
+            av_step_success_file.write("\n")
+            av_step_failure_file.write("\n")
    
 
-def plot_graph_from_csv(csv_file, data_type = 'reward'):
+def plot_graph_from_csv(csv_file, plt_error):
     plt_title = None
     xlabels = None
     legend = []
@@ -291,40 +351,86 @@ def plot_graph_from_csv(csv_file, data_type = 'reward'):
             for value in data[1:]:
                 mean = float(value.split(':')[0])
                 stderr = 0
-                if data_type == 'reward':
+                if plt_error:
                     stderr = float(value.split(':')[2])
                 means[-1].append(mean)
                 stds[-1].append(stderr)
     plot_line_graph_with_std_error(means, stds, plt_title, legend, xlabels)
     
-dir_name = None
-data_type = 'reward'
-plot_graph = 'yes'
-if(len(sys.argv) > 1):
-    plot_graph = sys.argv[1]
-if(len(sys.argv) > 2):
-    data_type = sys.argv[2]
-if(len(sys.argv) > 3):
-    dir_name = sys.argv[3]
 
-
-csv_file_name = 'multi_object_' + data_type + '_test.csv'
-generate_csv = True
-if os.path.exists(csv_file_name):
-    ans = raw_input("Csv file already exists. Overwrite it?y or n")
-    if ans == 'n':
-        generate_csv = False
-        
-if generate_csv:    
-    if data_type == 'reward':
-        generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
-    if data_type == 'success_cases':
-        generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
-
-if plot_graph == 'yes':
-    plot_graph_from_csv(csv_file_name, data_type)
-
+def get_params_and_generate_or_plot_csv():
     
+    data_type = 'reward'
+    input_data_type = raw_input("Data type: reward or success_cases ?")
+    data_types = ['reward', 'success_cases']
+    if input_data_type in data_types:
+        data_type = input_data_type
+    else:
+        print "Invalid data type. Setting data_type to reward"
+
+    pattern = 'test'
+    input_pattern = raw_input("Pattern type: train or test or file identifier?")
+    input_patterns = ['test', 'train', '9cm', '8cm', '7cm', '75mm', '85mm']
+    if input_pattern in input_patterns:
+        pattern = input_pattern
+    else :
+        print "Invalid pattern. Setting pattern as test"
+    
+    csv_name_prefix = 'multi_object'
+    if(len(sys.argv) > 2):
+        csv_name_prefix = sys.argv[1]
+    csv_file_names = [csv_name_prefix + '_' + data_type + '_' + pattern + '.csv']
+    if data_type == 'success_cases':
+        csv_file_names.append(csv_name_prefix + '_' + 'av_step_success' + '_' + pattern + '.csv')
+        csv_file_names.append(csv_name_prefix + '_' + 'av_step_failure' + '_' + pattern + '.csv')
+    csv_file_names_for_generation = csv_file_names[:]
+    generate_csv = True
+    for i  in range(0,len(csv_file_names)):
+        if os.path.exists(csv_file_names[i]):
+            ans = raw_input("Csv file " + csv_file_names[i] + "already exists. Overwrite it[y or n]?")
+            if ans == 'y':
+                generate_csv = True
+            else:
+                generate_csv = False
+                csv_file_names_for_generation[i] = 'dummy'+ repr(i)+'.csv'
+            
+                
+        else:
+            generate_csv = True  
+
+
+
+    #csv_file_name = 'multi_object_' + data_type + '_test.csv'
+
+
+    if generate_csv:
+        dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
+        input_dir_name = raw_input("Specify dir name")
+        if not  input_dir_name :
+            print "Setting default dir name: " + dir_name
+        else :
+            dir_name = input_dir_name
+            print "dir_name is: " + dir_name
+        if data_type == 'reward':
+            generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, True)
+        if data_type == 'success_cases':
+            generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_names_for_generation, dir_name, True)
+
+    plot_graph = 'no'
+    if(len(sys.argv) > 1):
+        plot_graph = sys.argv[1]
+    if plot_graph == 'yes':
+        plt_error = True
+        if data_type == 'reward':
+            plot_graph_from_csv(csv_file_names[0], plt_error)
+        if data_type == 'success_cases':
+            i = int(raw_input("Plot success_cases[0] or average_step_success[1] or average_step_failure[2]?"))
+            if i == 0:
+                plt_error = False
+            plot_graph_from_csv(csv_file_names[i], plt_error)
+
+
+get_params_and_generate_or_plot_csv()   
     
 """
 #Performance toy problem
