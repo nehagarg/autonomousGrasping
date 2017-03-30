@@ -3,6 +3,20 @@ Works with vrep version 3_3_2
 to run vrep in headless mode via ssh
 xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../../WORK_FOLDER/vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer1.ttt
 
+vrep scenes:
+for amazon grasp trial : 
+micoWithSensorsAmazonGraspTrialWithDespotIKVer3.ttt
+
+for multi object experiments : 
+micoWithSensorsMutliObjectTrialWithDespotIKVer1.ttt ormicoWithSensorsMutliObjectTrialWithDespotIKVer1<Size>Cylinder.ttt (Cylindrical object too heavy. Data collected does not mimic real robot behaviour)
+micoWithSensorsMutliObjectTrialWithDespotIKCuboidVer2.ttt(Cuboid object too heavy. Data collected does not mimic real robot behaviour)
+micoWithSensorsMutliObjectTrialWithDespotIKYCBObjectsVer3.ttt
+
+micoWithSensorsMutliObjectTrialWithDespotIKVer4.ttt : (Object closer to real arm and gripper behaviour close to real arm behaviour around object)
+
+
+
+
 
 For data collection:
 Run vrep 
