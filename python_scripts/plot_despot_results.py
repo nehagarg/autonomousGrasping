@@ -129,7 +129,7 @@ def plot_bar_graph_with_std_error(means, stds, colors):
 def plot_line_graph_with_std_error(means,stds,title, legend, xlabel, colors = None):
   
     if colors is None:
-        colors = ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow']
+        colors = ['blue', 'red', 'yellow', 'green', 'magenta']
     N = len(means[0])   # number of data entries
 
     ind = np.arange(N)
@@ -309,11 +309,17 @@ if(len(sys.argv) > 3):
 
 
 csv_file_name = 'multi_object_' + data_type + '_test.csv'
-
-if data_type == 'reward':
-    generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
-if data_type == 'success_cases':
-    generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
+generate_csv = True
+if os.path.exists(csv_file_name):
+    ans = raw_input("Csv file already exists. Overwrite it?y or n")
+    if ans == 'n':
+        generate_csv = False
+        
+if generate_csv:    
+    if data_type == 'reward':
+        generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
+    if data_type == 'success_cases':
+        generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, True)
 
 if plot_graph == 'yes':
     plot_graph_from_csv(csv_file_name, data_type)
