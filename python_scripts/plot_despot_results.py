@@ -412,9 +412,9 @@ def get_params_and_generate_or_plot_csv():
             dir_name = input_dir_name
             print "dir_name is: " + dir_name
         if data_type == 'reward':
-            generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, True)
+            generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, pattern)
         if data_type == 'success_cases':
-            generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_names_for_generation, dir_name, True)
+            generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_names_for_generation, dir_name, pattern)
 
     plot_graph = 'no'
     if(len(sys.argv) > 1):
