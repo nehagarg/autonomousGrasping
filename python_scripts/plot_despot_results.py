@@ -48,7 +48,8 @@ def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_n
     os.chdir(prev_path)
 
 def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_file_name, reward_value):
-    os.system("cd " + dir_name)
+    prev_path = os.getcwd()
+    os.chdir(dir_name)
     i = 0
     for pattern in pattern_list:
         out_str = '>>'
@@ -66,8 +67,10 @@ def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_
     if(a!=reward_file_size):
         print a 
         print reward_file_size
-        assert(False)
-    os.system("cd -")
+        print dir_name
+        print reward_file_name
+        #assert(False)
+    os.chdir(prev_path)
 
 def get_success_failure_cases(dir_name, pattern_list, reward_value):
     prev_path = os.getcwd()
@@ -399,14 +402,14 @@ def get_params_and_generate_or_plot_csv():
         csv_file_names.append(csv_name_prefix + '_' + 'av_step_success' + '_' + pattern + '.csv')
         csv_file_names.append(csv_name_prefix + '_' + 'av_step_failure' + '_' + pattern + '.csv')
     csv_file_names_for_generation = csv_file_names[:]
-    generate_csv = True
+    generate_csv = False
     for i  in range(0,len(csv_file_names)):
         if os.path.exists(csv_file_names[i]):
-            ans = raw_input("Csv file " + csv_file_names[i] + "already exists. Overwrite it[y or n]?")
+            ans = raw_input("Csv file " + csv_file_names[i] + " already exists. Overwrite it[y or n]?")
             if ans == 'y':
                 generate_csv = True
             else:
-                generate_csv = False
+                #generate_csv = False and generate_csv
                 csv_file_names_for_generation[i] = 'dummy'+ repr(i)+'.csv'
             
                 
