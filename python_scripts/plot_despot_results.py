@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from log_file_parser import ParseLogFile
 import os
 import csv
-import sys
+import sys, getopt
 
 def get_mean_std_for_numbers_in_file(filename):
     import numpy as np
@@ -359,6 +359,23 @@ def plot_graph_from_csv(csv_file, plt_error):
     
 
 def get_params_and_generate_or_plot_csv():
+    plot_graph = 'no'
+    csv_name_prefix = 'multi_object'
+    dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
+        
+    opts, args = getopt.getopt(sys.argv[1:],"hpd:f:",["dir=","csv_prefix="])
+    #print opts
+    for opt, arg in opts:
+      # print opt
+      if opt == '-h':
+         print 'plot_despot_results.py -p -d <directory_name> -f <csv_file_prefix>'
+         sys.exit()
+      elif opt == '-p':
+          plot_graph='yes'
+      elif opt in ("-d", "--dir"):
+         dir_name = arg
+      elif opt in ("-f", "--csv_prefix"):
+         csv_name_prefix = arg
     
     data_type = 'reward'
     input_data_type = raw_input("Data type: reward or success_cases ?")
@@ -376,9 +393,7 @@ def get_params_and_generate_or_plot_csv():
     else :
         print "Invalid pattern. Setting pattern as test"
     
-    csv_name_prefix = 'multi_object'
-    if(len(sys.argv) > 2):
-        csv_name_prefix = sys.argv[1]
+
     csv_file_names = [csv_name_prefix + '_' + data_type + '_' + pattern + '.csv']
     if data_type == 'success_cases':
         csv_file_names.append(csv_name_prefix + '_' + 'av_step_success' + '_' + pattern + '.csv')
@@ -404,21 +419,14 @@ def get_params_and_generate_or_plot_csv():
 
 
     if generate_csv:
-        dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
-        input_dir_name = raw_input("Specify dir name")
-        if not  input_dir_name :
-            print "Setting default dir name: " + dir_name
-        else :
-            dir_name = input_dir_name
-            print "dir_name is: " + dir_name
+        
+        print "dir_name is: " + dir_name
         if data_type == 'reward':
             generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, pattern)
         if data_type == 'success_cases':
             generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_names_for_generation, dir_name, pattern)
 
-    plot_graph = 'no'
-    if(len(sys.argv) > 1):
-        plot_graph = sys.argv[1]
+    
     if plot_graph == 'yes':
         plt_error = True
         if data_type == 'reward':
