@@ -16,7 +16,11 @@ def get_mean_std_for_numbers_in_file(filename):
           sum2 = sum2+ a[-1]*a[-1]
     mean = np.mean(a)
     std = np.std(a) #standard deviation)
-    std2 = math.sqrt((sum2/(len(a)*len(a))) - (mean*mean/len(a))) #standard error
+    if(len(a) == 0):
+        print filename
+        std2 = 0
+    else:
+        std2 = math.sqrt((sum2/(len(a)*len(a))) - (mean*mean/len(a))) #standard error
     #print mean
     #print std
     #print std2
