@@ -11,6 +11,7 @@
 
 std::vector <int> RobotInterface::objects_to_be_loaded;
 std::vector<std::string> RobotInterface::object_id_to_filename;
+bool RobotInterface::low_friction_table;
 
 
 RobotInterface::RobotInterface() {
@@ -47,6 +48,14 @@ RobotInterface::RobotInterface() {
     }
     infile.close();
     
+    if(low_friction_table)
+    {
+        min_x_o = min_x_o_low_friction_table;
+        default_min_z_o = default_min_z_o_low_friction_table;
+        default_initial_object_pose_z = default_initial_object_pose_z_low_friction_table;
+        initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table;
+        initial_object_x = initial_object_x_low_friction_table;
+    }
     //Load simulation data for belief object
     for(int i = 0; i < objects_to_be_loaded.size(); i++)
     {

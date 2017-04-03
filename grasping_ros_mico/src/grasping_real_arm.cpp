@@ -65,6 +65,18 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
 
     }
     
+    if(config["low_friction_table"])
+    {
+        RobotInterface::low_friction_table = config["low_friction_table"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::low_friction_table = false;
+    }
+    
+    
+ 
+    
     if(config["belief_object_ids"]) 
     {
         for(int i = 0; i < config["belief_object_ids"].size(); i++)
@@ -142,7 +154,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     {
         robotInterface->separate_close_reward = config["separate_close_reward"].as<bool>();
     }
-    
+       
     //Set model variBLES
     if(config["num_belief_particles"])
     {

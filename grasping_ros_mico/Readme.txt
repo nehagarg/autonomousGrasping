@@ -13,6 +13,9 @@ micoWithSensorsMutliObjectTrialWithDespotIKCuboidVer2.ttt(Cuboid object too heav
 micoWithSensorsMutliObjectTrialWithDespotIKYCBObjectsVer3.ttt
 
 micoWithSensorsMutliObjectTrialWithDespotIKVer4.ttt : (Object closer to real arm and gripper behaviour close to real arm behaviour around object)
+table friction material : floor material in vrep
+objecct height : 10cm
+object weight : 0.3027 kg
 
 
 

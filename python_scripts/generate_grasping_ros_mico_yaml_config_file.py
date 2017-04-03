@@ -22,6 +22,7 @@ def create_basic_config():
     ans["object_min_z"] = [1.1200]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     ans["object_initial_pose_z"] = [1.1248]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     
+    ans["low_friction_table"] = False
     ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
     ans["separate_close_reward"] = True

@@ -79,7 +79,8 @@ public:
     //double gripper_out_y_diff = 0.02; //for amazon shelf
     double gripper_out_y_diff = 0.0;    //for open table
     
-    double min_x_o = 0.4586; //range for object location
+    double min_x_o_low_friction_table = 0.4319;
+    double min_x_o = 0.4586; //for table with high friction//range for object location
     double max_x_o = 0.5517;  // range for object location
     double min_y_o = 0.0829; // range for object location
     double max_y_o = 0.2295; // range for object location
@@ -87,8 +88,10 @@ public:
    // double min_z_o = 1.6900 ;//below this means object has fallen down //for amazon shelf
     std::vector<double> min_z_o; //= 1.1200 ; //for objects on table
     std::vector<double> initial_object_pose_z; // = 1.1248; //1.7066; //for amazon shelf
-    double default_min_z_o = 1.1200 ; //for objects on table
-    double default_initial_object_pose_z = 1.1248; //1.7066; //for amazon shelf
+    double default_min_z_o_low_friction_table = 1.0950;
+    double default_initial_object_pose_z_low_friction_table = 1.0998;
+    double default_min_z_o = 1.1200 ; //for objects on high friction table
+    double default_initial_object_pose_z = 1.1248; // for objects on high friction table //1.7066; //for amazon shelf
     
     double pick_z_diff = 0.06; 
     double pick_x_val = 0.3079;
@@ -96,8 +99,10 @@ public:
     
     
     
-    double initial_gripper_pose_z = 1.10835; //1.73337; // for amazon shelf
-    double initial_object_x = 0.498689;
+    double initial_gripper_pose_z_low_friction_table = 1.10835 - 0.03;
+    double initial_gripper_pose_z = 1.10835; //for objects on high friction table  //1.73337; // for amazon shelf
+    double initial_object_x_low_friction_table = 0.4919;
+    double initial_object_x = 0.498689; //for high friction table
     double initial_object_y = 0.148582;
     int initial_gripper_pose_index_x = 0;
     int initial_gripper_pose_index_y = 7;
@@ -108,6 +113,7 @@ public:
     double pick_penalty = -100;
     double invalid_state_penalty = -100;
     bool separate_close_reward = true;
+    static bool low_friction_table;
     double epsilon = 0.01; //Smallest step value
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table

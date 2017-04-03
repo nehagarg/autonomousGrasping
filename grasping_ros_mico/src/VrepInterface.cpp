@@ -16,7 +16,12 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
         
     //Read joint angles for initial state
     //std::ifstream infile1("data/jointData_0_final.txt");
-    std::ifstream infile1("data_table_exp/jointData.txt");
+    std::string joint_file_name = "data_table_exp/jointData.txt";
+    if(RobotInterface::low_friction_table)
+    {
+         joint_file_name = "data_low_friction_table_exp/jointData.txt";
+    }
+    std::ifstream infile1(joint_file_name);
     int x_i, x_j;
     while (infile1 >> x_i >> x_j)
     {
@@ -890,7 +895,8 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
 }
 void VrepInterface::GatherJointData(int object_id) const {
     std::ofstream myfile;
-    myfile.open ("data_table_exp/jointData_0.txt");
+    //myfile.open ("data_table_exp/jointData_0.txt");
+    myfile.open ("data_low_friction_table_exp/jointData_0.txt");
 
     
     //Get Current Pose of mico target
@@ -1034,13 +1040,30 @@ void VrepInterface::GatherData(int object_id) const {
     //return;
 
     std::ofstream myfile;
+    std::string filename;
+    filename = "data_low_friction_table_exp/SASOData_Cylinder_";
+    filename = filename +std::to_string(object_id/10);
+    filename = filename + "cm_";
+    bool allActions = true;
+    if(object_id % 10 == 0)
+    {
+        filename = filename + "allActions.txt";
+    }
+    if(object_id % 10 == 1)
+    {
+        filename = filename + "openAction.txt";
+        allActions = false;
+    }
+    
+    
+    
     //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
     //myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
-    myfile.open ("dummy.txt");
+    myfile.open (filename);
     GraspingStateRealArm initial_state ;
     if(initial_state.object_id == -1)
     {
-        initial_state.object_id = object_id;
+        initial_state.object_id = 0;
         
     }
     GraspingStateRealArm* grasping_state = &initial_state;
@@ -1062,12 +1085,16 @@ void VrepInterface::GatherData(int object_id) const {
     vrep_common::simRosStopSimulation stop_srv;
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
-    int i_loop_max = 7;//(int)((max_x_i - min_x_i)/epsilon) + 1; //20
-    int i_loop_min = 6;//0;  //20
-    int j_loop_max = 6;//(int)((max_y_i - min_y_i)/epsilon) + 1;//16;
-    int j_loop_min = 5;//0;//16;
+    int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    int i_loop_min = 0;  //20
+    int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    int j_loop_min = 0;//16;
     int k_loop_max = A_OPEN+1;//A_CLOSE+1; 
     int k_loop_min = A_OPEN;//0; 
+    if(allActions){
+        k_loop_min = 0;
+        k_loop_max = A_CLOSE + 1;
+    }
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
