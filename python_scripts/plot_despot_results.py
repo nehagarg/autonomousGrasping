@@ -14,12 +14,14 @@ def get_mean_std_for_numbers_in_file(filename):
         for line in f:
           a.append(float(line)) 
           sum2 = sum2+ a[-1]*a[-1]
-    mean = np.mean(a)
-    std = np.std(a) #standard deviation)
     if(len(a) == 0):
         print filename
         std2 = 0
+        mean = 0
+        std = 0
     else:
+        mean = np.mean(a)
+        std = np.std(a) #standard deviation)
         std2 = math.sqrt((sum2/(len(a)*len(a))) - (mean*mean/len(a))) #standard error
     #print mean
     #print std
@@ -155,11 +157,11 @@ def plot_line_graph_with_std_error(means,stds,title, legend, xlabel, colors = No
     plt.show()
 
 
-def plot_scatter_graph(x,y,area):
+def plot_scatter_graph(x,y, colors):
     area = np.pi * (15 * 1)**2  # 0 to 15 point radiuses
 
     #plt.scatter(x, y, s=area, c=colors, alpha=0.5)
-    plt.scatter(x, y, s=area)
+    plt.scatter(x, y, s=area, c = colors)
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title('Time step 20 sec')
@@ -365,24 +367,8 @@ def plot_graph_from_csv(csv_file, plt_error):
     plot_line_graph_with_std_error(means, stds, plt_title, legend, xlabels)
     
 
-def get_params_and_generate_or_plot_csv():
-    plot_graph = 'no'
-    csv_name_prefix = 'multi_object'
-    dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
-        
-    opts, args = getopt.getopt(sys.argv[1:],"hpd:f:",["dir=","csv_prefix="])
-    #print opts
-    for opt, arg in opts:
-      # print opt
-      if opt == '-h':
-         print 'plot_despot_results.py -p -d <directory_name> -f <csv_file_prefix>'
-         sys.exit()
-      elif opt == '-p':
-          plot_graph='yes'
-      elif opt in ("-d", "--dir"):
-         dir_name = arg
-      elif opt in ("-f", "--csv_prefix"):
-         csv_name_prefix = arg
+def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern):
+    
     
     data_type = 'reward'
     input_data_type = raw_input("Data type: reward or success_cases ?")
@@ -392,14 +378,7 @@ def get_params_and_generate_or_plot_csv():
     else:
         print "Invalid data type. Setting data_type to reward"
 
-    pattern = 'test'
-    input_pattern = raw_input("Pattern type: train or test or file identifier?")
-    input_patterns = ['test', 'train', '9cm', '8cm', '7cm', '75mm', '85mm']
-    if input_pattern in input_patterns:
-        pattern = input_pattern
-    else :
-        print "Invalid pattern. Setting pattern as test"
-    
+   
 
     csv_file_names = [csv_name_prefix + '_' + data_type + '_' + pattern + '.csv']
     if data_type == 'success_cases':
@@ -445,7 +424,69 @@ def get_params_and_generate_or_plot_csv():
             plot_graph_from_csv(csv_file_names[i], plt_error)
 
 
-get_params_and_generate_or_plot_csv()   
+
+
+def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
+    
+    min_x_o = 0.4586  #range for object location
+    max_x_o = 0.5517; #range for object location
+    min_y_o = 0.0829; #range for object location
+    max_y_o = 0.2295; #range for object location
+    max_reward = 100
+    min_reward = -10
+    x = []
+    y = []
+    colors = []
+    time_step = raw_input('Time step?')
+    
+    scenarios = raw_input('Sccenarios?')
+    time_scenario_string = 't'+ time_step + '_n' + scenarios
+    for i in range(0,500):
+        log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+        #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_with_state_in_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+        
+        fullData =  ParseLogFile(log_filename, 'vrep', 0, 'vrep').getFullDataWithoutBelief()
+        x.append(fullData['roundInfo']['state'].o_x)
+        y.append(fullData['roundInfo']['state'].o_y)
+        if fullData['stepInfo'][-1]['reward'] == max_reward:
+            colors.append('green')
+        elif fullData['stepInfo'][-1]['reward'] == min_reward:
+            colors.append('red')
+        else:
+            colors.append('yellow')
+            
+    plot_scatter_graph(x, y, colors)
+    
+if __name__ == '__main__':
+    plot_graph = 'no'
+    csv_name_prefix = 'multi_object'
+    dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
+        
+    opts, args = getopt.getopt(sys.argv[1:],"hpd:f:",["dir=","csv_prefix="])
+    #print opts
+    for opt, arg in opts:
+      # print opt
+      if opt == '-h':
+         print 'plot_despot_results.py -p -d <directory_name> -f <csv_file_prefix>'
+         sys.exit()
+      elif opt == '-p':
+          plot_graph='yes'
+      elif opt in ("-d", "--dir"):
+         dir_name = arg
+      elif opt in ("-f", "--csv_prefix"):
+         csv_name_prefix = arg
+         
+    pattern = 'test'
+    input_pattern = raw_input("Pattern type: train or test or file identifier?")
+    input_patterns = ['test', 'train', '9cm', '8cm', '7cm', '75mm', '85mm']
+    if input_pattern in input_patterns:
+        pattern = input_pattern
+    else :
+        print "Invalid pattern. Setting pattern as test"
+    
+    get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
+    #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
+    
     
 """
 #Performance toy problem
@@ -535,13 +576,7 @@ plt.show()                              # render the plot
 Simple demo of a scatter plot.
 """
 """
-min_x_o = 0.4586  #range for object location
-max_x_o = 0.5517; #range for object location
-min_y_o = 0.0829; #range for object location
-max_y_o = 0.2295; #range for object location
-x = []
-y = []
-colors = []
+
 #Draw belief
 log_filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/vrep_simulator/TableScene_9cm_gaussian_belief_with_state_in_belief_t10_n5_trial_2.log'
 lfp =  ParseLogFile(log_filename, 'vrep', 0, 'vrep')
