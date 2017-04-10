@@ -511,7 +511,9 @@ def train(model_name, output_dir, model_input= None):
                         correct_prediction_outputs.append(outputs[i][0])
                     else:
                         wrong_prediction_outputs.append(outputs[i][0])
-            
+        
+        print 'num correct prediction traces', len(correct_prediction_outputs)
+        print 'num wrong prediction traces', len(wrong_prediction_outputs)
         correct_prediction_svm = compute_svm(correct_prediction_outputs, output_dir, 'correct_prediction')
         #y_correct_predict = correct_prediction_svm.predict(correct_prediction_outputs)
         wrong_prediction_svm = compute_svm(wrong_prediction_outputs, output_dir, 'wrong_prediction')    
