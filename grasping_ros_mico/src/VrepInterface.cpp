@@ -1045,6 +1045,8 @@ void VrepInterface::GatherData(int object_id) const {
     filename = filename +std::to_string(object_id/10);
     filename = filename + "cm_";
     bool allActions = true;
+    int k_loop_min_value = 0;
+    int k_look_max_value = A_CLOSE+1;
     if(object_id % 10 == 0)
     {
         filename = filename + "allActions.txt";
@@ -1052,7 +1054,14 @@ void VrepInterface::GatherData(int object_id) const {
     if(object_id % 10 == 1)
     {
         filename = filename + "openAction.txt";
-        allActions = false;
+        k_loop_min_value = A_OPEN;
+        k_look_max_value = A_OPEN + 1;
+    }
+    if(object_id % 10 == 2)
+    {
+        filename = filename + "closeAndPushAction.txt";
+        k_loop_min_value = A_CLOSE;
+        k_look_max_value = A_CLOSE + 1;
     }
     
     
@@ -1089,12 +1098,10 @@ void VrepInterface::GatherData(int object_id) const {
     int i_loop_min = 0;  //20
     int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
     int j_loop_min = 0;//16;
-    int k_loop_max = A_OPEN+1;//A_CLOSE+1; 
-    int k_loop_min = A_OPEN;//0; 
-    if(allActions){
-        k_loop_min = 0;
-        k_loop_max = A_CLOSE + 1;
-    }
+    int k_loop_max = k_look_max_value;
+    int k_loop_min = k_loop_min_value ;
+
+    
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
