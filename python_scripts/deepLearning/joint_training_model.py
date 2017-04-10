@@ -480,6 +480,9 @@ def train(model_name, output_dir, model_input= None):
     
     data_generator = DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
+    print len(data_generator.xseqs)
+    print data_generator.seq_length
+    print 'data number of batches', data_generator.num_batches
     #num_val_batches = 1
     seq_length = data_generator.seq_length
     #generate training data for two svms
