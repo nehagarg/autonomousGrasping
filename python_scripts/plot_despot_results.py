@@ -148,7 +148,7 @@ def plot_line_graph_with_std_error(means,stds,title, legend, xlabel, colors = No
     #plt.plot(ind,np.array(means[0]))
     for i in range(0,len(means)):
         print i
-        plt.errorbar(ind,means[i], stds[i], color = colors[i % len(colors)])
+        plt.errorbar(ind,means[i], stds[i], marker = 'o', color = colors[i % len(colors)], linewidth=2.0)
         #plt.errorbar(ind,means[i], stds[i])
         #plt.plot(ind,np.array(means[i]))
     plt.title(title)
