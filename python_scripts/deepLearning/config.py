@@ -8,6 +8,14 @@ import time
 #CPP_MODEL_PATH='/media/data/mcdlp/cpp'
 #BASE='/media/psl-ctg/DATA2/mcdlp/'
 
+def get_problem_config(problem_name):
+    ans = {}
+    if problem_name == 'vrep' :
+        ans['max_sequence_length'] = 50
+        ans['input_length'] = 8
+        ans['output_length'] = 11
+    return ans
+
 def global_var_setting():
     BASE='/media/data/mcdlp/'
     DATA_PATH=BASE+'trace'
