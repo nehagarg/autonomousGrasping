@@ -1,0 +1,89 @@
+
+import os
+import getopt
+import yaml
+
+def generate_commands(yaml_config):
+    all_commands = []
+    
+    solver = yaml_config['solver']
+    config_file = yaml_config['config_file']
+    output_dir = yaml_config['output_dir'] 
+    file_name = yaml_config['file_name']
+    planning_time = yaml_config['planning_time'] 
+    number_scenarios = yaml_config['number_scenarios'] 
+    horizon = yaml_config['horizon'] 
+    belief_type = yaml_config['belief_type'] 
+    additional_params = yaml_config['additional_params']
+    begin_index = yaml_config['begin_index'] 
+    end_index = yaml_config['end_index']
+    
+    for i in range(begin_index, end_index):
+        command = "./bin/despot_without_display -v3 -t " + repr(planning_time) + " -n "
+        command = command + repr(number_scenarios)+ ' -s ' + repr(horizon) + ' --solver=' + solver
+        command = commad + ' ' + additional_params + ' -m ' + config_file + ' --belief=' + belief_type + ' > '
+        command = command + output_dir
+        command = command + "/" + file_name + '_trial_' + repr(i) + '.log 2>&1' 
+        all_comands.append(command)
+    return all_commands
+
+def get_default_params(yaml_file = None):
+    ans = {}
+    if yaml_file is not None:
+        with open(yaml_file,'r') as stream:
+            ans = yaml.load(stream)
+    else:
+        ans['solver'] = 'DESPOT'
+        ans['config_file'] = 'config_files/VrepDataInterface.yaml'
+        ans['planning_time'] = 1
+        ans['number_scenarios'] = 5
+        ans['horizon'] = 50
+        ans['belief_type'] = 'GAUSSIAN_WITH_STATE_IN'
+        ans['additional_params'] = '--number=-1 -l CAP'
+        ans['begin_index'] = 0
+        ans['end_index'] = 1000
+        ans['file_name_prefix'] = ''
+    
+
+    return ans
+
+if __name__ == '__main__':
+    
+    opts, args = getopt.getopt(sys.argv[1:],"hed:y:",["dir=","yaml_file="])
+    output_dir = None
+    yaml_file = None
+    execute_command = False
+    for opt, arg in opts:
+      # print opt
+      if opt == '-h':
+         print 'experiment_v2.py -d <directory_name> -f <file_prefix>'
+         sys.exit()
+      elif opt == '-e':
+         execute_command = True
+      elif opt in ("-d", "--dir"):
+         output_dir = arg
+      elif opt in ("-y", "--yaml"):
+         yaml_file = arg
+
+
+    ans = get_default_params(yaml_file)
+    if output_dir is not None:
+        ans['output_dir'] = output_dir
+        
+    if ans['solver'] == 'DEEPLEARNING':
+        ans['file_name'] = ans['file_name_prefix']
+    else:
+        ans['planning_time'] = raw_input('Planning time for despot?')
+        ans['number_scenarios'] = raw_input('Number of sampled scenarios for despot?')
+        ans['output_dir'] = ans['output_dir'] + '/t' + repr(ans['planning_time']) + '_n' + repr(ans['number_scenarios'])
+        ans['file_name'] = ans['file_name_prefix'] + '_belief_' + ans['belief_type'].lower() + '_t' + repr(ans['planning_time']) + '_n' + repr(ans['number_scenarios'])
+   
+    all_commands = generate_commands(ans)
+    for command in all_commands:
+        print command
+        if execute_command:
+            print "Executing...."
+            os.system(command)
+        
+      
+    
