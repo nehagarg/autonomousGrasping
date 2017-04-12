@@ -28,6 +28,8 @@ public:
     virtual std::string GetPythonExecutionString(History h) const;
     virtual double GetUncertaintyValue(Belief* b) const;
     virtual ValuedAction GetNextActionFromUser(History h) const;
+    virtual bool ShallISwitchFromLearningToPlanning(History h) const;
+    virtual bool ShallISwitchFromPlanningToLearning(History h) const;
 };
 
 #endif	/* LEARNINGMODEL_H */

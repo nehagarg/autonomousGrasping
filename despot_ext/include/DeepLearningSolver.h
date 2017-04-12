@@ -39,7 +39,7 @@ private:
     return result;
     }
     
-    int deepLearningIdsToModelIds[10] = {6, 4, 7, 3, 1, 9, 2, 8, 5, 0};
+    int deepLearningIdsToModelIds[10] = {6, 4, 7, 3, 1, 9, 2, 8, 5, 0}; //This was used for adaboost solver
 };
 
 

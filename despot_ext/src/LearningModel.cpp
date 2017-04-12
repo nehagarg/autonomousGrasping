@@ -47,3 +47,14 @@ ValuedAction LearningModel::GetNextActionFromUser(History h) const {
     std::cin >> next_action;
     return ValuedAction(next_action, 1);
 }
+
+bool LearningModel::ShallISwitchFromLearningToPlanning(History h) const {
+    int hist_size = h.Size();
+    return ((hist_size/10) % 2 != 0);
+}
+
+bool LearningModel::ShallISwitchFromPlanningToLearning(History h) const {
+    int hist_size = h.Size();
+    return ((hist_size/10) % 2 == 0);
+}
+

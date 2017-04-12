@@ -10,7 +10,7 @@
 #include "LearningSolverBase.h"
 
 LearningPlanningSolver::LearningPlanningSolver(const LearningModel* model, ScenarioLowerBound* lb, ScenarioUpperBound* ub, Belief* belief)
-        : LearningSolverBase(model, belief), despotSolver(model, lb, ub, belief), deepLearningSolver(model) {
+        : LearningSolverBase(model, belief), despotSolver(model, lb, ub, belief), deepLearningSolver(model),currentSolverLearning(true) {
 
 }
 
@@ -19,7 +19,7 @@ LearningPlanningSolver::~LearningPlanningSolver() {
 
 ValuedAction LearningPlanningSolver::Search() {
     ValuedAction ans;
-    int hist_size = history_.Size();
+    
     //Hack for running trajectory start
     /*
     if (hist_size == 0) return ValuedAction(1, 1);
@@ -28,7 +28,21 @@ ValuedAction LearningPlanningSolver::Search() {
     return ValuedAction(10,1);
     */        
     //Hack for running trajectory end
-    if ((hist_size/10) % 2 == 0)
+    if (currentSolverLearning)
+    {
+        if(((LearningModel*)model_)->ShallISwitchFromLearningToPlanning(history_))
+        {
+            currentSolverLearning = false;
+        }
+    }
+    else
+    {
+        if(((LearningModel*)model_)->ShallISwitchFromPlanningToLearning(history_))
+        {
+            currentSolverLearning = true;
+        }
+    }
+    if (currentSolverLearning)
     {
         ans =  deepLearningSolver.Search();
         std::cout << "(" << ans.action << "," << ans.value << ")" << std::endl;

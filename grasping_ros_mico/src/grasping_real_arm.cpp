@@ -166,6 +166,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         learned_model_name = config["learned_model_name"].as<std::string>();
     }
     
+    if(config["switching_method"])
+    {
+        automatic_switching_method = config["switching_method"].as<int>();
+    }
+    
+    if(config["svm_model_dir"])
+    {
+        svm_model_dir = config["svm_model_dir"].as<std::string>();
+    }
     
     
     

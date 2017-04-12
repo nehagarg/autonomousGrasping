@@ -147,6 +147,8 @@ public:
     int start_state_index = -1;
     int num_belief_particles = 1000;
     std::string learned_model_name = "";
+    int automatic_switching_method = 0;
+    std::string svm_model_dir = "";
        
     RobotInterface* robotInterface;
     
@@ -185,14 +187,12 @@ public:
         return start_state_index;
     }
     
-
-    std::string GetPythonExecutionString(History h) const
+    
+    void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
     {
-        std::ostringstream oss;
         double x_ref = robotInterface->min_x_i;
         double y_ref = robotInterface->min_y_i + (0.01*7);
-            oss << "cd python_scripts/deepLearning ; python model.py ";
-            for(int i = 0; i < h.Size(); i++)
+        for(int i = 0; i < h.Size(); i++)
             {
                 oss << h.Action(i) << ",";
                 GraspingObservation o = obsHashMap.at(h.Observation(i));
@@ -210,10 +210,71 @@ public:
                 }
                 
             }
-            oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " << learned_model_name<< " ; cd - ;" ;
+        oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " ;
+    }
+
+    std::string GetPythonExecutionString(History h) const
+    {
+        std::ostringstream oss;
+        
+            oss << "cd python_scripts/deepLearning ; python model.py ";
+            GetInputSequenceForLearnedmodel(h, oss);
+            oss << learned_model_name<< " ; cd - ;" ;
            
             return oss.str();
     }
+    
+    bool ShallISwitchFromLearningToPlanning(History h) const
+    {
+        if (automatic_switching_method == 0)
+        {
+            return LearningModel::ShallISwitchFromLearningToPlanning(h);
+        }
+        std::ostringstream oss;
+        oss << "cd python_scripts/deepLearning ; python joint_learning_model.py -a test -i  ";
+        GetInputSequenceForLearnedmodel(h, oss);
+        oss << "-o " << svm_model_dir << " ; cd - ;" ;
+        std::string result = python_exec(oss.str().c_str());
+        int seen_scenario;
+        std::istringstream iss(result);
+        iss >> seen_scenario;
+        if (seen_scenario == 1){
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    
+
+    bool ShallISwitchFromPlanningToLearning(History h) const
+    {
+        if(ShallISwitchFromLearningToPlanning(h) == true)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    
+    private:
+        std::string python_exec(const char* cmd) const {
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return "ERROR";
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+    	if(fgets(buffer, 128, pipe) != NULL)
+    		result += buffer;
+    }
+    pclose(pipe);
+    return result;
+    }
+
+
 
         
 };
