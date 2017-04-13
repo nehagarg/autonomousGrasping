@@ -83,11 +83,13 @@ def generate_params_file(file_name):
     
 if __name__ == '__main__':
     
-    opts, args = getopt.getopt(sys.argv[1:],"hegd:y:",["dir=","yaml_file="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:y:",["dir=","yaml_file="])
     output_dir = None
     yaml_file = None
     execute_command = False
     genarate_yaml = False
+    planning_time = None
+    number_scenarios = None
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -97,6 +99,10 @@ if __name__ == '__main__':
          execute_command = True
       elif opt == '-g':
          genarate_yaml = True
+      elif opt == '-t':
+         planning_time = int(arg)
+      elif opt == '-n':
+         number_scenarios = int(arg)
       elif opt in ("-d", "--dir"):
          output_dir = arg
       elif opt in ("-y", "--yaml"):
@@ -114,8 +120,9 @@ if __name__ == '__main__':
     if ans['solver'] == 'DEEPLEARNING':
         ans['file_name'] = ans['file_name_prefix']
     else:
-        ans['planning_time'] = int(raw_input('Planning time for despot?'))
-        ans['number_scenarios'] = int(raw_input('Number of sampled scenarios for despot?'))
+        
+        ans['planning_time'] = planning_time
+        ans['number_scenarios'] = number_scenarios
         ans['output_dir'] = ans['output_dir'] + '/t' + repr(ans['planning_time']) + '_n' + repr(ans['number_scenarios'])
         ans['file_name'] = ans['file_name_prefix'] + '_belief_' + ans['belief_type'].lower() + '_t' + repr(ans['planning_time']) + '_n' + repr(ans['number_scenarios'])
    
