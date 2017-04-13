@@ -233,7 +233,8 @@ public:
         std::ostringstream oss;
         oss << "cd python_scripts/deepLearning ; python joint_learning_model.py -a test -i  ";
         GetInputSequenceForLearnedmodel(h, oss);
-        oss << "-o " << svm_model_dir << " ; cd - ;" ;
+        oss << "-m " << learned_model_name ;
+        oss << " -o " << svm_model_dir << " ; cd - ;" ;
         std::string result = python_exec(oss.str().c_str());
         int seen_scenario;
         std::istringstream iss(result);

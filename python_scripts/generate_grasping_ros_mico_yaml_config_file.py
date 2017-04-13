@@ -26,6 +26,9 @@ def create_basic_config():
     ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
     ans["separate_close_reward"] = True
+    config["automatic_switching_method"] = 0 #0 for threshold based switching 1 for automatic one class svm based switching
+    config["svm_model_dir"] = ""
+    config["learned_model_name"] = ""
         
     return ans
 
@@ -33,7 +36,14 @@ def modify_basic_config(filename, ans):
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
-
+        
+    if filename == "VrepDataInterface_low_friction.yaml" :
+        ans["interface_type"] = 1
+        ans["test_object_id"] = 0
+        ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_9cm_"]
+        ans["object_min_z"] = [1.0950]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+        ans["object_initial_pose_z"] = [1.0998]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+        ans["low_friction_table"] = True
     
     if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm.yaml" :
         ans["interface_type"] = 1
