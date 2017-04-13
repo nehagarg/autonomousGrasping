@@ -566,6 +566,9 @@ def test(model_name, output_dir, model_input):
                 print 0
             print y_correct_predict
             print y_wrong_predict
+            #print data_generator.xseqs
+            print data_generator.yseqs
+            print prediction[0]
             
 
     

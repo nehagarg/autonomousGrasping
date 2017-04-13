@@ -226,16 +226,19 @@ public:
     
     bool ShallISwitchFromLearningToPlanning(History h) const
     {
+        std::cout<< "Asking for switch using method" << automatic_switching_method << std::endl;
         if (automatic_switching_method == 0)
         {
             return LearningModel::ShallISwitchFromLearningToPlanning(h);
         }
+        
         std::ostringstream oss;
-        oss << "cd python_scripts/deepLearning ; python joint_learning_model.py -a test -i  ";
+        oss << "cd python_scripts/deepLearning ; python joint_training_model.py -a test -i  ";
         GetInputSequenceForLearnedmodel(h, oss);
         oss << "-m " << learned_model_name ;
         oss << " -o " << svm_model_dir << " ; cd - ;" ;
         std::string result = python_exec(oss.str().c_str());
+        std::cout << result << std::endl;
         int seen_scenario;
         std::istringstream iss(result);
         iss >> seen_scenario;
