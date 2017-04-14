@@ -319,14 +319,19 @@ class Seq2SeqModel(object):
         probs = np.transpose(probs, (1,0,2))
         return probs
     
-    def predict_and_return_state(self, input_values):
+    def predict_and_return_state(self, input_values, summary = False):
         input_feed = {}
         for i, inp in enumerate(self.testing_graph.inputs):
             #print inp.name
             #print input_values[:,i,:]
             input_feed[inp.name] = input_values[:, i, :]
         #probs, states, output_summary = self.session.run([self.testing_graph.probs, self.testing_graph._outputs, self.testing_graph.merged], input_feed)
-        output_summary, probs, states = self.session.run([self.testing_graph.merged, self.testing_graph.probs, self.testing_graph._outputs], feed_dict=input_feed)
+        output_summary = None
+        if summary:
+            output_summary, probs, states = self.session.run([self.testing_graph.merged, self.testing_graph.probs, self.testing_graph._outputs], feed_dict=input_feed)
+        else:
+            probs, states = self.session.run([ self.testing_graph.probs, self.testing_graph._outputs], feed_dict=input_feed)
+        
         probs = np.array(probs)
         probs = np.transpose(probs, (1,0,2))
         #output_summary=None
@@ -488,7 +493,7 @@ def train(model_name, output_dir, model_input= None):
     #generate training data for two svms
     with tf.Session(config=config.get_tf_config()) as sess:
         h_to_a_model = load_model(model_name, sess)
-        summary_writer = tf.summary.FileWriter('output', sess.graph, seq_length)
+        #summary_writer = tf.summary.FileWriter('output', sess.graph, seq_length)
         
         
         correct_prediction_outputs = []
@@ -496,8 +501,8 @@ def train(model_name, output_dir, model_input= None):
         for _ in xrange(num_val_batches):
             x, y = data_generator.next_batch() # x/y = batch size*seq length*input_length/output length
             target = np.argmax(y, axis=2) #target  = batch size*seq length *1
-            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x) #output = seqlength*batch size* hiddenunits
-            summary_writer.add_summary(image_summary)
+            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
+            #summary_writer.add_summary(image_summary)
             prediction = np.argmax(probs, axis=2) # prediction = batch size*seq length * 1
             #print data_generator.xseqs
             #print y
@@ -506,7 +511,7 @@ def train(model_name, output_dir, model_input= None):
             #print outputs[0:2]
             correct_prediction = target==prediction #batch size *seq length * 1
             for i in xrange(len(outputs)):
-                if x[0][i][-1] == 0 and x[0][i][-1] == 0 :
+                if x[0][i][-1] == 0 and x[0][i][-2] == 0 : #not stump nd pad
                     if correct_prediction[0][i]:
                         correct_prediction_outputs.append(outputs[i][0])
                     else:
@@ -531,16 +536,16 @@ def test(model_name, output_dir, model_input):
     seq_length = data_generator.seq_length
     with tf.Session(config=config.get_tf_config()) as sess:
         h_to_a_model = load_model(model_name, sess, seq_length)
-        summary_writer = tf.summary.FileWriter('output', sess.graph)
+        #summary_writer = tf.summary.FileWriter('output', sess.graph)
         
         
         prediction_outputs = []
         
         for _ in xrange(num_val_batches):
             x, y = data_generator.next_batch() # x/y = batch size*seq length*input_length/output length
-            target = np.argmax(y, axis=2) #target  = batch size*seq length *1
-            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x) #output = seqlength*batch size* hiddenunits
-            summary_writer.add_summary(image_summary)
+            #target = np.argmax(y, axis=2) #target  = batch size*seq length *1
+            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
+            #summary_writer.add_summary(image_summary)
             prediction = np.argmax(probs, axis=2) # prediction = batch size*seq length * 1
             #print data_generator.xseqs
             #print y
@@ -549,7 +554,7 @@ def test(model_name, output_dir, model_input):
             #print outputs[0:2]
             
             for i in xrange(len(outputs)):
-                if x[0][i][-1] == 0 and x[0][i][-1] == 0 :
+                if x[0][i][-1] == 0 and x[0][i][-2] == 0 : #not stump nd pad
                     prediction_outputs.append(outputs[i][0])
         
         if len(prediction_outputs) == 0: #Initial stump
@@ -567,8 +572,9 @@ def test(model_name, output_dir, model_input):
             print y_correct_predict
             print y_wrong_predict
             #print data_generator.xseqs
-            print data_generator.yseqs
-            print prediction[0]
+        print data_generator.yseqs
+        print prediction[0]
+        #print x
             
 
     
