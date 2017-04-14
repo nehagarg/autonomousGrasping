@@ -559,16 +559,19 @@ def test(model_name, output_dir, model_input):
         
         if len(prediction_outputs) == 0: #Initial stump
             print 1
+            print -1
         else:
             correct_prediction_svm = joblib.load(output_dir+ '/correct_prediction_svm.pkl') 
             wrong_prediction_svm = joblib.load(output_dir + '/wrong_prediction_svm.pkl') 
             y_correct_predict = correct_prediction_svm.predict([prediction_outputs[-1]])   
             y_wrong_predict = wrong_prediction_svm.predict([prediction_outputs[-1]])
         
-            if(y_correct_predict[-1] == 1) and (y_wrong_predict[-1] == -1):
-                print 1
-            else:
-                print 0
+            print y_correct_predict[-1]
+            print y_wrong_predict[-1]
+            #if(y_correct_predict[-1] == 1) and (y_wrong_predict[-1] == -1):
+            #    print 1
+            #else:
+            #    print 0
             print y_correct_predict
             print y_wrong_predict
             #print data_generator.xseqs

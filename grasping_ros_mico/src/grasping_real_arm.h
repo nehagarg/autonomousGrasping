@@ -147,7 +147,7 @@ public:
     int start_state_index = -1;
     int num_belief_particles = 1000;
     std::string learned_model_name = "";
-    int automatic_switching_method = 0;
+    int automatic_switching_method = 0; // 0  for threshold switching 1 for switching wirh both correct and wrong prediction 2 for switching with only correct prediction
     std::string svm_model_dir = "";
        
     RobotInterface* robotInterface;
@@ -239,9 +239,30 @@ public:
         oss << " -o " << svm_model_dir << " ; cd - ;" ;
         std::string result = python_exec(oss.str().c_str());
         std::cout << result << std::endl;
+        int seen_scenario_correct;
+        int seen_scenario_wrong;
         int seen_scenario;
         std::istringstream iss(result);
-        iss >> seen_scenario;
+        iss >> seen_scenario_correct;
+        iss >> seen_scenario_wrong;
+        
+        if (automatic_switching_method == 1)
+        {
+            if((seen_scenario_correct == 1) && (seen_scenario_wrong == -1))
+            {
+                seen_scenario = 1;
+            }
+            else
+            {
+                seen_scenario = -1;
+            }
+        }
+        
+        if (automatic_switching_method == 2)
+        {
+            seen_scenario = seen_scenario_correct ; //for automatic switching method 2
+        }
+       
         if (seen_scenario == 1){
             return false;
         }
