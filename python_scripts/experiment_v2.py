@@ -83,7 +83,7 @@ def generate_params_file(file_name):
     
 if __name__ == '__main__':
     
-    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:y:",["dir=","yaml_file="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:",["dir="])
     output_dir = None
     yaml_file = None
     execute_command = False
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'experiment_v2.py -d <directory_name> -f <file_prefix>'
+         print 'experiment_v2.py -d <directory_name> -f <file_prefix> yaml_file'
          sys.exit()
       elif opt == '-e':
          execute_command = True
@@ -105,10 +105,10 @@ if __name__ == '__main__':
          number_scenarios = int(arg)
       elif opt in ("-d", "--dir"):
          output_dir = arg
-      elif opt in ("-y", "--yaml"):
-         yaml_file = arg
 
-    
+    if len(args) > 0:
+        yaml_file = args[0]
+        
     if genarate_yaml:
         generate_params_file(yaml_file)
         sys.exit()
