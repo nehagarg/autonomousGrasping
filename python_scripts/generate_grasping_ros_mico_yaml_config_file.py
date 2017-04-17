@@ -3,7 +3,17 @@ from yaml import dump
 try:
     from yaml import CDumper as Dumper
 except ImportError:
-    from yaml import Dumper
+    from yaml import Dump
+    
+def get_low_friction_table_config(ans):
+    ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_9cm_"]
+    ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_8cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_7cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_75mm_")
+    ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_85mm_")
+    ans["object_min_z"] = [1.0950]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+    ans["object_initial_pose_z"] = [1.0998]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+    ans["low_friction_table"] = True
     
 def create_basic_config():
     ans = {}
@@ -38,13 +48,45 @@ def modify_basic_config(filename, ans):
         ans["test_object_id"] = 0
         
     if filename == "VrepDataInterface_low_friction.yaml" :
+        get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
-        ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_9cm_"]
-        ans["object_min_z"] = [1.0950]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
-        ans["object_initial_pose_z"] = [1.0998]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
-        ans["low_friction_table"] = True
+        
     
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm_low_friction_table.yaml" :
+        get_low_friction_table_config(ans)
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 0
+        
+        
+        
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest8cm_low_friction_table.yaml" :
+        get_low_friction_table_config(ans)
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 1
+        
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest7cm_low_friction_table.yaml" :
+        get_low_friction_table_config(ans)
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 2
+     
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest75mm_low_friction_table.yaml" :
+        get_low_friction_table_config(ans)
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 3
+        
+    if filename == "VrepDataInterfaceMultiCylinderObjectTest85mm_low_friction_table.yaml" :
+        get_low_friction_table_config(ans)
+        ans["interface_type"] = 1
+        ans["belief_object_ids"] = [0, 1, 2]
+        ans["test_object_id"] = 4
+        
+        
+        
     if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm.yaml" :
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
@@ -73,6 +115,7 @@ def modify_basic_config(filename, ans):
     if filename == "VrepInterface.yaml" :
         ans["interface_type"] = 0
         ans["test_object_id"] = 0
+        
     if filename == "VrepInterface_cup.yaml" :
         ans["interface_type"] = 0
         ans["object_initial_pose_z"][-1] = 1.0950
