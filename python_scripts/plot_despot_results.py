@@ -217,17 +217,18 @@ def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_n
             (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
             csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
         csv_file.write("\n")
-        for t in time_steps:
-            csv_file.write("L" + repr(l) + "T" + repr(t))
-        #means.append([])
-        #stds.append([])
-            for n in sampled_scenarios:
-                new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined/t" + repr(t)+ "_n" + repr(n)
-                generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name)
-                (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
-            
-                csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-            csv_file.write("\n")
+        for c in combined_policy_versions:
+            for t in time_steps:
+                csv_file.write("L" + repr(l) + "T" + repr(t)+ "S" + repr(c))
+            #means.append([])
+            #stds.append([])
+                for n in sampled_scenarios:
+                        new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined_" +repr(c) + "/t" + repr(t)+ "_n" + repr(n)
+                    generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name)
+                    (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
+
+                    csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+                csv_file.write("\n")
 
 def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern, time_steps,sampled_scenarios, learning_versions, combined_policy_versions):
     if dir_name is None:
