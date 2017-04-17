@@ -2,6 +2,8 @@ Works with vrep version 3_3_2
 
 to run vrep in headless mode via ssh
 xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../../WORK_FOLDER/vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer1.ttt
+Remove the port in remoteapiconnections.txt for running multiple vrep instances 
+if not using remote api no need to specify new port while runnig vrep, otherwise specify a different remote api port while started a new vrep instance
 
 vrep scenes:
 for amazon grasp trial : 

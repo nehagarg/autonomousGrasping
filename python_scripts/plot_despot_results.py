@@ -168,14 +168,12 @@ def plot_scatter_graph(x,y, colors):
     plt.show()
     
 
-def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern):
+def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern, time_steps, sampled_scenarios, learning_versions, combined_policy_versions):
     
 
     if dir_name is None:
         dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
-    time_steps = [1,5]
-    sampled_scenarios = [5, 10, 20, 40, 80, 160, 320, 640, 1280]
-    learning_versions = [6]
+    
     
     if test_pattern == 'train':
         patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
@@ -231,12 +229,10 @@ def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_n
                 csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             csv_file.write("\n")
 
-def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern):
+def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_name, test_pattern, time_steps,sampled_scenarios, learning_versions, combined_policy_versions):
     if dir_name is None:
         dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
-    time_steps = [1,5]
-    sampled_scenarios = [5, 10, 20, 40, 80, 160, 320, 640, 1280]
-    learning_versions = [6]
+    
     
     
     if test_pattern == 'train':
@@ -316,30 +312,31 @@ def generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_name, dir_na
         csv_file.write("\n")
         av_step_success_file.write("\n")
         av_step_failure_file.write("\n")
-        for t in time_steps:
-            csv_file.write("L" + repr(l) + "T" + repr(t))
-            av_step_success_file.write("L" + repr(l) + "T" + repr(t))
-            av_step_failure_file.write("L" + repr(l) + "T" + repr(t))
-        #means.append([])
-        #stds.append([])
-            for n in sampled_scenarios:
-                new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined/t" + repr(t)+ "_n" + repr(n)
-                success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
-                generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , 100)
-                (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
-                av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+        for c in combined_policy_versions:
+            for t in time_steps:
+                csv_file.write("L" + repr(l) + "T" + repr(t) + "S" + repr(c))
+                av_step_success_file.write("L" + repr(l) +"T" + repr(t)+ "S" + repr(c))
+                av_step_failure_file.write("L" + repr(l) +"T" + repr(t)+ "S" + repr(c))
+                #means.append([])
+                #stds.append([])
+                for n in sampled_scenarios:
+                    new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined_" + repr(c)+"/t" + repr(t)+ "_n" + repr(n)
+                    success_cases = sum(get_success_failure_cases(new_dir_name,patterns, 100))
+                    generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , 100)
+                    (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
+                    av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             
-                failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
-                generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , -10)
-                (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
-                av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+                    failure_cases = sum(get_success_failure_cases(new_dir_name,patterns, -10))
+                    generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , -10)
+                    (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
+                    av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             
-                stuck_cases = reward_file_size - (success_cases + failure_cases)
-                csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
+                    stuck_cases = reward_file_size - (success_cases + failure_cases)
+                    csv_file.write("," + repr(success_cases) + ":" + repr(failure_cases)+":" + repr(stuck_cases))
 
-            csv_file.write("\n")
-            av_step_success_file.write("\n")
-            av_step_failure_file.write("\n")
+                csv_file.write("\n")
+                av_step_success_file.write("\n")
+                av_step_failure_file.write("\n")
    
 
 def plot_graph_from_csv(csv_file, plt_error):
@@ -367,7 +364,7 @@ def plot_graph_from_csv(csv_file, plt_error):
     plot_line_graph_with_std_error(means, stds, plt_title, legend, xlabels)
     
 
-def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern):
+def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, time_steps, sampled_scenarios, learning_versions, combined_policy_versions):
     
     
     data_type = 'reward'
@@ -408,9 +405,9 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
         
         print "dir_name is: " + dir_name
         if data_type == 'reward':
-            generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, pattern)
+            generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, pattern, time_steps, sampled_scenarios, learning_versions, combined_policy_versions)
         if data_type == 'success_cases':
-            generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_names_for_generation, dir_name, pattern)
+            generate_success_cases_csv_for_vrep_multi_object_cases(csv_file_names_for_generation, dir_name, pattern, time_steps, sampled_scenarios, learning_versions, combined_policy_versions)
 
     
     if plot_graph == 'yes':
@@ -457,6 +454,18 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
             
     plot_scatter_graph(x, y, colors)
     
+def get_list_input(sampled_scenarios, command):
+    while true:
+        input = raw_input(command + " are " + " ".join(map(str, sampled_scenarios)) + " To add type a <no>. To remove type r <no>. To stop type s.")
+        if 's' in input:
+            break
+        if 'a' in input:
+            sampled_scenarios.append(int(input.split(' ')[1]))
+            sampled_scenarios = sorted(set(sampled_scenarios))
+        if 'r' in input:
+            sampled_scenarios.remove(int(input.split(' ')[1]))
+    return sampled_scenarios        
+
 if __name__ == '__main__':
     plot_graph = 'no'
     csv_name_prefix = 'multi_object'
@@ -484,7 +493,21 @@ if __name__ == '__main__':
     else :
         print "Invalid pattern. Setting pattern as test"
     
-    get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
+    time_steps = [1,5]
+    time_steps = get_list_input(time_steps, "Planning times")
+    
+    sampled_scenarios = [5, 10, 20, 40, 80, 160, 320, 640, 1280]
+    sampled_scenarios = get_list_input(sampled_scenarios, "Sampled scenarios")
+    
+        
+    learning_versions = [6]
+    learning_versions =  get_list_input(learning_versions, "Learning versions")
+    
+    
+    combined_policy_versions = [0, 1, 2]
+    combined_policy_versions = get_list_input(combined_policy_versions, "Combined policy versions")
+    
+    get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, time_steps, sampled_scenarios, learning_versions, combined_policy_versions)
     #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
     
     
