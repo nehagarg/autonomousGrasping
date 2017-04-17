@@ -223,7 +223,7 @@ def generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_name, dir_n
             #means.append([])
             #stds.append([])
                 for n in sampled_scenarios:
-                        new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined_" +repr(c) + "/t" + repr(t)+ "_n" + repr(n)
+                    new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined_" +repr(c) + "/t" + repr(t)+ "_n" + repr(n)
                     generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name)
                     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
 
