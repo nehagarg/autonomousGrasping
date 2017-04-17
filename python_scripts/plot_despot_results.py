@@ -455,7 +455,7 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     plot_scatter_graph(x, y, colors)
     
 def get_list_input(sampled_scenarios, command):
-    while true:
+    while True:
         input = raw_input(command + " are " + " ".join(map(str, sampled_scenarios)) + " To add type a <no>. To remove type r <no>. To stop type s.")
         if 's' in input:
             break
