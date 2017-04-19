@@ -94,17 +94,52 @@ def parse_file(file_name, belief_type = '', isTraining = True, round_no = 0, sta
 def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName is None:
-        for i in range(0,1000):
+        for i in range(0,500):
             #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
-            logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n10/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
+            ################################################### v6 begins#################################################
+	    logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
-            logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n20_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_8cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
-            logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n20_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_7cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n320/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n320_trial_' + repr(i) +'.log'
+            #print i
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n320/TableScene_cylinder_8cm_gaussian_belief_with_state_in_belief_t5_n320_trial_' + repr(i) +'.log'
+            #print i
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n320/TableScene_cylinder_7cm_gaussian_belief_with_state_in_belief_t5_n320_trial_' + repr(i) +'.log'
+            #print i
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n640/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n640_trial_' + repr(i) +'.log'
+            #print i
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n640/TableScene_cylinder_8cm_gaussian_belief_with_state_in_belief_t5_n640_trial_' + repr(i) +'.log'
+            #print i
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n640/TableScene_cylinder_7cm_gaussian_belief_with_state_in_belief_t5_n640_trial_' + repr(i) +'.log'
+            #print i
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+	    ##############################################################v6 ends##########################################################################
+
+            #####################v4 begins####################################################################
+            #logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n80_trial_' + repr(i) +'.log'
+            #print i
+            #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            #logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n40/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n40_trial_' + repr(i) +'.log'
+            #print i
+            #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            #logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n20_trial_' + repr(i) +'.log'
+            #print i
+            #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            #logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n20_trial_' + repr(i) +'.log'
+            #print i
+            #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            ####################v4 ends#################################################################
         #for i in range(0,400):
         #    for round_no in range(0,4):
         #        logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_multi_runs_t10_n10_obs_prob_change_particles_as_state_4objects.log'
