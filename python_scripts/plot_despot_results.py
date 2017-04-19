@@ -243,8 +243,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
     av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
-    stuck_cases_per_index_step = [(max_success_cases - x) for x in success_cases_per_index_step ]
-    stuck_cases_per_index_step = [(max_success_cases - x) for x in failure_cases_per_index_step ]
+    stuck_cases_per_index_step = [(max_success_cases - x - y) for x,y in zip(success_cases_per_index_step, failure_cases_per_index_step) ]
     (mean, stddev, stderr) = get_mean_std_for_array(stuck_cases_per_index_step)        
     stuck_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     

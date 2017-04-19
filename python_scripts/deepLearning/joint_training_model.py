@@ -492,7 +492,7 @@ def train(model_name, output_dir, model_input= None):
     seq_length = data_generator.seq_length
     #generate training data for two svms
     with tf.Session(config=config.get_tf_config()) as sess:
-        h_to_a_model = load_model(model_name, sess)
+        h_to_a_model = load_model(model_name, sess, seq_length)
         #summary_writer = tf.summary.FileWriter('output', sess.graph, seq_length)
         
         
