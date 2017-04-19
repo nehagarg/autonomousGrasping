@@ -95,10 +95,10 @@ def get_regex_from_number_range(start_number, end_number):
     num_digits_start_number = len(str(start_number_string))
     
     pattern = '_'
-    for i in range(0,num_digits_start_number-num_digits_end_number):
+    for i in range(0,num_digits_end_number-num_digits_start_number):
         pattern = pattern + '[0-'+end_number_string[i]+']?'
-    for i in range(num_digits_start_number-num_digits_end_number, num_digits_end_number):
-        pattern = pattern + '[' + start_number_string[i] + '-' + end_number_string[i] + ']'
+    for i in range(num_digits_end_number-num_digits_start_number, num_digits_end_number):
+        pattern = pattern + '[' + start_number_string[i-(num_digits_end_number-num_digits_start_number)] + '-' + end_number_string[i] + ']'
     return pattern
     
 def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, end_index ):
