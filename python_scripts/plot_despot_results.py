@@ -2,10 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from log_file_parser import ParseLogFile
 import os
-import csv
-import sys, getopt
+import math
+import sys
+import getopt
 
 def get_mean_std_for_array(a, sum2 = None):
+    
     if sum2 is None:
         sum2 = sum([x*x for x in a ])
     if(len(a) == 0):
@@ -20,8 +22,7 @@ def get_mean_std_for_array(a, sum2 = None):
     return (mean, std, std2)
     
 def get_mean_std_for_numbers_in_file(filename):
-    import numpy as np
-    import math
+    
     a = []
     sum2 = 0.0
     with open(filename, 'r') as f:
