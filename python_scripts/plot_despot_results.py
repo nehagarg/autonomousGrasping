@@ -5,6 +5,7 @@ import os
 import math
 import sys
 import getopt
+import subprocess
 
 def get_mean_std_for_array(a, sum2 = None):
     
@@ -117,7 +118,7 @@ def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, 
             system_command = "grep -B 5 'Simulation terminated in' "
             system_command = system_command + new_pattern + " | grep 'Reward = "
             system_command = system_command + repr(reward_value) + "' | wc -l"
-            success_cases = os.popen(system_command).read()
+            success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
             cases.append(float(success_cases))
         all_cases.append(cases)
     os.chdir(prev_path)
