@@ -272,11 +272,11 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     csv_files.append(stuck_csv_file)
     
     reward_csv_file.write("Average undiscounted reward")
-    csv_file.write("Success cases")
+    success_csv_file.write("Success cases")
     av_step_success_file.write("Average Steps Success")
     av_step_failure_file.write("Average Steps Failure")
-    csv_file.write("Failure cases")
-    csv_file.write("Stuck cases")
+    failure_csv_file.write("Failure cases")
+    stuck_csv_file.write("Stuck cases")
     
     for n in sampled_scenarios:
         for csv_file in csv_files:
