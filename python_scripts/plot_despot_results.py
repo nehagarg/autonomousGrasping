@@ -293,7 +293,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
         #stds.append([])
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/t" + repr(t)+ "_n" + repr(n)
-            write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files)
+            write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
         for csv_file in csv_files:
             csv_file.write("\n")
         
@@ -304,7 +304,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
         
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/learning/version" + repr(l)
-            write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files)
+            write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
         for csv_file in csv_files:    
             csv_file.write("\n")
         
@@ -317,7 +317,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
                 #stds.append([])
                 for n in sampled_scenarios:
                     new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined_" + repr(c)+"/t" + repr(t)+ "_n" + repr(n)
-                    write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files)                
+                    write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)                
                 
                 for csv_file in csv_files: 
                     csv_file.write("\n")
