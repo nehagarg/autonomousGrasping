@@ -418,13 +418,13 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
         begin_index = 0
         end_index = 1000
         end_index_input = raw_input("End index (default 1000):")
-        if end_index_input is not empty:
-            end_index = end_index_input
+        if end_index_input:
+            end_index = int(end_index_input)
         
         index_step = 1000
         index_step_input = raw_input("Index step(default 1000):")
-        if index_step_input is not empty:
-            index_step = index_step_input
+        if index_step_input:
+            index_step = int(index_step_input)
         
         
         print "dir_name is: " + dir_name
