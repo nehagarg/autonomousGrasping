@@ -149,6 +149,8 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
                 print y_wrong_predict
                 #print data_generator.xseqs
             if action == 'testBatch':
+                y_correct_predict = correct_prediction_svm.predict(prediction_outputs)   
+                y_wrong_predict = wrong_prediction_svm.predict(prediction_outputs)
                 num_seen_predictions_correct_svm = num_seen_predictions_correct_svm + sum(xx for xx in y_correct_predict if xx == 1)
                 num_unseen_prediction_correct_svm = num_unseen_prediction_correct_svm + sum(xx for xx in y_correct_predict if xx == -1)
                 num_seen_predictions_wrong_svm = num_seen_predictions_wrong_svm + sum(xx for xx in y_wrong_predict if xx == 1)
