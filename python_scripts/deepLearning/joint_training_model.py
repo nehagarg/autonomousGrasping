@@ -223,7 +223,7 @@ def main():
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'model.py -a <train|test|testBatch> -m <rnn_model_name> -i <logfilename|seq|training data version> -o <svm output dir for train|svm model file prefix for test>'
+         print 'joint_training_model.py -a <train|test|testBatch> -m <rnn_model_name> -i <logfilename|seq|training data version> -o <svm output dir for train|svm model file prefix for test>'
          sys.exit()
       elif opt in ("-a","--action" ):
           action = arg

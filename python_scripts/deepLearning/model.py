@@ -377,7 +377,7 @@ class Seq2SeqModel(object):
         saver.restore(self.session, os.path.join(output_dir, checkpoint_file))
 
 def parse_data(fileName):
-    if(fileName is None) or (fileName.endswith('log')):
+    if(fileName is None) or (fileName.endswith('log')) or (',' not in fileName):
         seqs = traces.parse(fileName)
     else:
         seqs = [[]]
@@ -633,7 +633,7 @@ def main():
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'model.py -a <train|test> -m <model_name> -i <logfilename|seq|traiing data version> -o <output dir>'
+         print 'model.py -a <train|test> -m <model_name> -i <logfilename|seq|traiing data version> -o <output dir for train>'
          sys.exit()
       elif opt in ("-a","--action" ):
           action = arg
