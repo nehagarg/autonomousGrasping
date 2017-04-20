@@ -115,7 +115,7 @@ def parse(fileName, belief_type = '', isTraining = False):
             for t in ['5']:
                 for scenario in ['40', '80', '160']:
                     for object in ['7cm', '8cm', '9cm']:
-                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/cylinder_9cm_reward100_penalty10/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + sccenario + '_trial_' + repr(i) +'.log'
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/cylinder_9cm_reward100_penalty10/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
                         #print i
                         seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
            
