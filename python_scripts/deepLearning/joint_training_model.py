@@ -100,7 +100,11 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
     #generate training data for two svms
     data_generator = DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
-    num_val_batches = 1
+    if action == 'testBatch':
+        print len(data_generator.xseqs)
+        print data_generator.seq_length
+        print 'data number of batches', data_generator.num_batches
+    #num_val_batches = 1
     seq_length = data_generator.seq_length
     with tf.Session(config=config.get_tf_config()) as sess:
         h_to_a_model = load_model(model_name, sess, seq_length)
