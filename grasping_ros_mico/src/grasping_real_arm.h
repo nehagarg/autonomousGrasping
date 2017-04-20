@@ -148,7 +148,7 @@ public:
     int num_belief_particles = 1000;
     std::string learned_model_name = "";
     int automatic_switching_method = 0; // 0  for threshold switching 1 for switching wirh both correct and wrong prediction 2 for switching with only correct prediction
-    std::string svm_model_dir = "";
+    std::string svm_model_prefix = "";
        
     RobotInterface* robotInterface;
     
@@ -217,9 +217,9 @@ public:
     {
         std::ostringstream oss;
         
-            oss << "cd python_scripts/deepLearning ; python model.py ";
+            oss << "cd python_scripts/deepLearning ; python model.py -a test -i ";
             GetInputSequenceForLearnedmodel(h, oss);
-            oss << learned_model_name<< " ; cd - ;" ;
+            oss << "-m " << learned_model_name<< " ; cd - ;" ;
            
             return oss.str();
     }
@@ -236,7 +236,7 @@ public:
         oss << "cd python_scripts/deepLearning ; python joint_training_model.py -a test -i  ";
         GetInputSequenceForLearnedmodel(h, oss);
         oss << "-m " << learned_model_name ;
-        oss << " -o " << svm_model_dir << " ; cd - ;" ;
+        oss << " -o " << svm_model_prefix << " ; cd - ;" ;
         std::string result = python_exec(oss.str().c_str());
         std::cout << result << std::endl;
         int seen_scenario_correct;

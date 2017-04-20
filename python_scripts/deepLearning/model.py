@@ -1,4 +1,5 @@
 import sys
+import getopt
 sys.path.append('../')
 import tensorflow as tf
 import json
@@ -15,6 +16,12 @@ import config
 import numpy as np
 STUMP = '$'
 PAD = '*'
+def is_stump(trans_x):
+        return trans_x[-2] == 1
+    
+def is_pad(trans_x):
+        return trans_x[-1] == 1
+    
 class Encoder(object):
     def __init__(self, num_actions=14, log_num_observations=13):
         self.num_actions = num_actions
@@ -55,6 +62,9 @@ class Encoder(object):
         else:
             trans_y[int(y)] = 1
         return trans_y
+    
+    
+        
 
 class Seq2SeqGraph(object):
     def __init__(self,
@@ -108,8 +118,15 @@ class Seq2SeqGraph(object):
 
         state = self.cells.zero_state(batch_size=batch_size, dtype=tf.float32)
         inputs = [tf.cast(inp, tf.float32) for inp in self.inputs]
-        _outputs, _ = rnn.rnn(self.cells, inputs, state)
-        self.output_logits = [tf.matmul(_output, self.softmax_w) + self.softmax_b for _output in _outputs]
+        #_outputs, _ = rnn.rnn(self.cells, inputs, state)
+        self._outputs, self.rnn_states = rnn.rnn(self.cells, inputs, state)
+        image_summaries = []
+        for i in xrange(seq_length):
+            image_summaries.append(tf.summary.image('rnn_output_' + repr(i), tf.reshape(self._outputs[i], [-1,16, 8,1])))
+
+        
+        self.merged = tf.summary.merge(image_summaries)
+        self.output_logits = [tf.matmul(_output, self.softmax_w) + self.softmax_b for _output in self._outputs]
         self.probs = [tf.nn.softmax(logit, name='prob_{}'.format(i)) for i, logit in enumerate(self.output_logits)]
         #self.tops = [tf.argmax(prob, 1, name='top_{}'.format(i)) for i, prob in enumerate(self.probs)]
         #self.samples = [self.batch_sample_with_temperature(prob, i) for i, prob in enumerate(self.probs)]
@@ -228,7 +245,7 @@ class Seq2SeqModel(object):
             cpp_dir='output_cpp'):
         with tf.device('/cpu:0'):
             saver = tf.train.Saver(max_to_keep = 0)
-            cpp_saver = self.training_graph.cpp_saver(cpp_dir)
+            #cpp_saver = self.training_graph.cpp_saver(cpp_dir)
 
         history = []
         prev_error_rate = np.inf
@@ -261,7 +278,7 @@ class Seq2SeqModel(object):
 
             if best_val_error_rate > val_error_rate or (val_error_rate < 0.01 or e % 400 == 0):
                 save_path = saver.save(self.session, "{}/model.ckpt".format(output_dir), global_step=e)
-                cpp_saver(self.session, global_step=e)
+                #cpp_saver(self.session, global_step=e)
                 print "model saved : " + repr(best_val_error_rate) + "," + repr(val_error_rate)
                 best_val_error_rate = val_error_rate
 
@@ -400,6 +417,8 @@ class DataGenerator(object):
         self.seqs, self.xseqs, self.yseqs, self.encoder, self.seq_length = parse_data(fileName)
         #print len(self.xseqs)
         #print self.seq_length
+        if batch_size == -1:
+            batch_size = len(self.xseqs)
         self.num_batches = len(self.xseqs)/self.batch_size
         #print 'data number of batches', self.num_batches
         self.batch_id = -1
@@ -444,7 +463,7 @@ def test_dataGenerator(batch_size, fileName = None):
     print data.xseqs
     print data.yseqs
 
-def train():
+def train(training_data_version, output_dir):
     # training parameters
     hidden_units = 128
     num_layers = 2
@@ -456,7 +475,7 @@ def train():
     #model='lstm'
     model='rnn'
     # data_genrator
-    data_generator = DataGenerator(training_batch_size)
+    data_generator = DataGenerator(training_batch_size, training_data_version)
     print len(data_generator.xseqs)
     print data_generator.seq_length
     print 'data number of batches', data_generator.num_batches
@@ -485,7 +504,7 @@ def train():
         model.fit(data_generator,
                 num_epochs=num_epochs,
                 batches_per_epoch=batches_per_epoch,
-                num_val_batches=num_val_batches)
+                num_val_batches=num_val_batches, output_dir = "output/"+ output_dir)
         #model.debug(data_generator)
         print "finished training"
       
@@ -602,6 +621,38 @@ def test(fileName=None, model_name = None):
 
 
 def main():
+    
+    
+    
+    action = None
+    model_name = None
+    model_input = None
+    output_dir = None
+    
+    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:",["action=","model=","input=", "outdir="])
+    for opt, arg in opts:
+      # print opt
+      if opt == '-h':
+         print 'model.py -a <train|test> -m <model_name> -i <logfilename|seq|traiing data version> -o <output dir>'
+         sys.exit()
+      elif opt in ("-a","--action" ):
+          action = arg
+          if action not in ("train", "test"):
+              action = raw_input("Please specify correction action[train|test]:")
+      elif opt in ("-m", "--model"):
+         model_name = arg
+      elif opt in ("-i", "--input"):
+         model_input = arg
+      elif opt in ("-o", "--outdir"):
+          output_dir = arg
+          
+    if action == 'train':
+        train(output_dir, model_input)
+    else:
+        test(model_input, model_name)
+    
+    
+    '''
     # running parameters
     #batch_size = 1
     #test_dataGenerator(batch_size)
@@ -639,7 +690,8 @@ def main():
 
         test(logfileName, model_name)
     #test()
-    #test_dataGenerator(1,logfileName)
+    #test_dataGenerator(1,logfileName)'''
+    
     
 
 if __name__ == '__main__':

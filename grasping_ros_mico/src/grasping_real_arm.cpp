@@ -171,9 +171,9 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
         automatic_switching_method = config["switching_method"].as<int>();
     }
     
-    if(config["svm_model_dir"])
+    if(config["svm_model_prefix"])
     {
-        svm_model_dir = config["svm_model_dir"].as<std::string>();
+        svm_model_prefix = config["svm_model_prefix"].as<std::string>();
     }
     
     

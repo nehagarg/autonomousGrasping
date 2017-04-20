@@ -37,7 +37,7 @@ def create_basic_config():
     ans["belief_object_ids"] = [0]
     ans["separate_close_reward"] = True
     ans["switching_method"] = 0 #0 for threshold based switching 1 for automatic one class svm based switching
-    ans["svm_model_dir"] = ""
+    ans["svm_model_prefix"] = ""
     ans["learned_model_name"] = ""
         
     return ans
