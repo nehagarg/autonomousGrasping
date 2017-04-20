@@ -111,16 +111,16 @@ def parse(fileName, belief_type = '', isTraining = False):
             #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
     elif fileName == 'vrep/version7':
         for i in range(0,1000):
-            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n40/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_belief_t5_n40_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n40/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n40_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
-            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_belief_t5_n80_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
-            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n160/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n160/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n160_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
-            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n320/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_belief_t5_n320_trial_' + repr(i) +'.log'
+            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n320/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n320_trial_' + repr(i) +'.log'
             #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
     elif fileName == 'vrep/version6':
