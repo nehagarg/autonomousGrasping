@@ -208,7 +208,7 @@ class Seq2SeqModel(object):
                                             batch_size=batch_size)
 
     def init_variables(self):
-        tf.initialize_all_variables().run()
+        tf.global_variables_initializer().run()
 
     def _fit_batch(self, input_values, targets):
         assert targets.shape[0] == input_values.shape[0] == self.batch_size

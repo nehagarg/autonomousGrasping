@@ -98,7 +98,8 @@ def parse(fileName, belief_type = '', isTraining = False):
         for i in range(0,20):
             #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/separate_close_reward/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n320_withoutLCAP/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n320_trial_' + repr(i) +'.log'
-            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
+            #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
+            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n20/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n20_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
 
             #print i
@@ -109,6 +110,16 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n20_trial_' + repr(i) +'.log'
             #print i
             #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+    elif fileName == 'vrep/version8':
+        for i in range(0,500):
+            for t in ['5']:
+                for scenario in ['40', '80', '160']:
+                    for object in ['7cm', '8cm', '9cm']:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/cylinder_9cm_reward100_penalty10/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + sccenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+           
+    
     elif fileName == 'vrep/version7':
         for i in range(0,1000):
             logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n40/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n40_trial_' + repr(i) +'.log'
