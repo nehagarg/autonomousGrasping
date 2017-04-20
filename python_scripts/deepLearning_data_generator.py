@@ -109,7 +109,7 @@ def parse(fileName, belief_type = '', isTraining = False):
                 #logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n20_trial_' + repr(i) +'.log'
                 #print i
                 #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
-    elif filename == 'vrep/version6':
+    elif fileName == 'vrep/version6':
             for i in range(0,500):
                 #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
                 ################################################### v6 begins#################################################
@@ -141,7 +141,7 @@ def parse(fileName, belief_type = '', isTraining = False):
                 #print i
                 seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
                 ##############################################################v6 ends##########################################################################
-    elif filename in ['vrep/verion4', 'vrep/version5']:
+    elif fileName in ['vrep/verion4', 'vrep/version5']:
             for i in range(0,1000):
                 #####################v4 begins####################################################################
                 logfileName = '../../grasping_ros_mico/results/despot_logs/high_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n80_trial_' + repr(i) +'.log'
