@@ -239,16 +239,20 @@ public:
         oss << " -o " << svm_model_prefix << " ; cd - ;" ;
         std::string result = python_exec(oss.str().c_str());
         std::cout << result << std::endl;
-        int seen_scenario_correct;
-        int seen_scenario_wrong;
+        double seen_scenario_correct;
+        double seen_scenario_wrong;
         int seen_scenario;
         std::istringstream iss(result);
         iss >> seen_scenario_correct;
         iss >> seen_scenario_wrong;
+        //std::cout << seen_scenario_correct;
+        //std::cout << seen_scenario_wrong;
+        int seen_scenario_correct_int = (int)seen_scenario_correct;
+        int seen_scenario_wrong_int = (int)seen_scenario_wrong;
         
         if (automatic_switching_method == 1)
         {
-            if((seen_scenario_correct == 1) && (seen_scenario_wrong == -1))
+            if((seen_scenario_correct_int == 1) && (seen_scenario_wrong_int == -1))
             {
                 seen_scenario = 1;
             }
@@ -260,7 +264,7 @@ public:
         
         if (automatic_switching_method == 2)
         {
-            seen_scenario = seen_scenario_correct ; //for automatic switching method 2
+            seen_scenario = seen_scenario_correct_int ; //for automatic switching method 2
         }
        
         if (seen_scenario == 1){
