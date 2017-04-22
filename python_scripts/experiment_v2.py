@@ -65,13 +65,17 @@ def generate_params_file(file_name):
     ans['end_index'] = 1000
     ans['file_name_prefix'] = ''
     
-    if file_name == 'data_model_9cm_combined_automatic.yaml':
+    if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
+    if 'learning' in file_name:
+        ans['solver'] = 'DEEPLEARNING'
+        
+    if file_name == 'data_model_9cm_combined_automatic.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_v4_automatic.yaml'
         ans['file_name_prefix'] = 'Table_scene_9cm_cylinder_v4_automatic'
         ans['output_dir'] = './results/despot_logs/high_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/learning/version4/combined_1'
 
-    if file_name == 'data_model_9cm_despot_low_friction.yaml':
+    if file_name == 'data_model_9cm_low_friction.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_low_friction.yaml'
         ans['file_name_prefix'] = 'Table_scene_9cm_cylinder'
         ans['output_dir'] = './results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10'
@@ -83,13 +87,15 @@ def generate_params_file(file_name):
     
 if __name__ == '__main__':
     
-    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:",["dir="])
     output_dir = None
     yaml_file = None
     execute_command = False
     genarate_yaml = False
     planning_time = None
     number_scenarios = None
+    start_index = None
+    end_index = None
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -103,6 +109,10 @@ if __name__ == '__main__':
          planning_time = int(arg)
       elif opt == '-n':
          number_scenarios = int(arg)
+      elif opt == '-s':
+         start_index = int(arg)
+      elif opt == '-c':
+         end_index = int(arg)
       elif opt in ("-d", "--dir"):
          output_dir = arg
 
@@ -116,6 +126,10 @@ if __name__ == '__main__':
     ans = get_default_params(yaml_file)
     if output_dir is not None:
         ans['output_dir'] = output_dir
+    if start_index is not None:
+        ans['begin_index'] = start_index
+    if end_index is not None:
+        ans['end_index'] = end_index
         
     if ans['solver'] == 'DEEPLEARNING':
         ans['file_name'] = ans['file_name_prefix']
