@@ -149,13 +149,13 @@ def modify_basic_config(filename, ans):
     if filename == "RealArmInterface.yaml" :
         ans["interface_type"] = 2
         
-        
+    return ans        
 def main():
     filename = "VrepInterface.yaml"
     if sys.argv[1]:
         filename = sys.argv[1]
     ans = create_basic_config()
-    modify_basic_config(filename, ans)
+    ans = modify_basic_config(filename, ans)
     output = dump(ans, Dumper=Dumper)
     f = open(filename, 'w')
     f.write(output)
