@@ -52,6 +52,14 @@ def get_default_params(yaml_file = None):
 
     return ans
 
+def get_config_file_name_from_experiment_file(file_name):
+    config_file_name = 'config_files/'
+    if 'data-model' in file_name:
+        config_file_name = config_file_name + 'VrepDataInterface_'
+    elif 'vrep-model' in file_name:
+        config_file_name = config_file_name + 'VrepInterface_'
+    
+    
 def generate_params_file(file_name):
     ans = {}
     ans['solver'] = 'DESPOT'
@@ -65,10 +73,30 @@ def generate_params_file(file_name):
     ans['end_index'] = 1000
     ans['file_name_prefix'] = ''
     
+    
+    for filetype in ['combined_1', 'combined_2']:
+        for interface_type in ["vrep_model", "data_model"]:
+            file_prefix = interface_type + "_9cm_low_friction_"
+            if filename == file_prefix + "_"+ filetype + ".yaml" :
+                ans = get_default_params(file_prefix + "learning.yaml")
+                ans['output_dir'] = ans['output_dir'] + "/" + filetype
+                ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
+        
+            for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
+                file_prefix =  interface_type + "_multi_object_" + object_type + "_low_friction_"
+                if filename == file_prefix + '_' + filetype + '.yaml':
+                    ans = get_default_params(yaml_file)(file_prefix + '_learning.yaml')
+                    ans['output_dir'] = ans['output_dir'] + "/" + filetype
+                    ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
+        
+    
+    
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
+        
+    
         
     if file_name == 'data_model_9cm_combined_automatic.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_v4_automatic.yaml'
@@ -99,7 +127,7 @@ if __name__ == '__main__':
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'experiment_v2.py -d <directory_name> -f <file_prefix> yaml_file'
+         print 'experiment_v2.py -d <directory_name> yaml_file'
          sys.exit()
       elif opt == '-e':
          execute_command = True
@@ -145,6 +173,7 @@ if __name__ == '__main__':
         print command
         if execute_command:
             print "Executing...."
+            #TODO add automatic directory creation
             os.system(command)
         
       

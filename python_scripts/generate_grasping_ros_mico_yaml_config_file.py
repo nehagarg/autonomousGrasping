@@ -4,7 +4,14 @@ try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dump
+
     
+def load_config_from_file(yaml_file):
+    ans = None
+    with open(yaml_file,'r') as stream:
+            ans = yaml.load(stream)
+    return ans
+            
 def get_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_9cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_8cm_")
@@ -47,6 +54,22 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
         
+    for filetype in ['combined_1', 'combined_2']:
+        for interface_type in ["", "Data"]:
+            file_prefix = "Vrep" + interface_type + "Interface_low_friction"
+            if filename == file_prefix + "_"+ filetype + ".yaml" :
+                ans = load_config_from_file(file_prefix + ".yaml")
+                ans['svm_model_prefix'] = 'output/vrep/version7/nu_0_1_kernel_rbf_gamma_0_1_'
+                ans['switching_method'] = int(filetype.split('_')[1])
+            for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
+                file_prefix = "Vrep" + interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
+                if filename == file_prefix + '_' + filetype + '.yaml':
+                    ans = load_config_from_file(file_prefix + '.yaml')
+                    ans['svm_model_prefix'] = 'output/vrep/version8/nu_0_1_kernel_rbf_gamma_0_1_'
+                    ans['switching_method'] = int(filetype.split('_')[1])
+    
+        
+    
     if filename == "VrepDataInterface_low_friction.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
