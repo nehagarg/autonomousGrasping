@@ -85,7 +85,7 @@ def generate_params_file(file_name):
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
                 file_prefix =  interface_type + "_multi_object_" + object_type + "_low_friction_"
                 if file_name == file_prefix  + filetype + '.yaml':
-                    ans = get_default_params(yaml_file)(file_prefix + '_learning.yaml')
+                    ans = get_default_params(file_prefix + '_learning.yaml')
                     ans['output_dir'] = ans['output_dir'] + "/" + filetype
                     ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
         
