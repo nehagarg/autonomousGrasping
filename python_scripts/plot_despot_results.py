@@ -124,6 +124,25 @@ def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, 
     os.chdir(prev_path)
     return all_cases
 
+def get_number_of_learning_calls(dir_name, grep_pattern, pattern_list, index_step, end_index):
+    prev_path = os.getcwd()
+    os.chdir(dir_name)
+    all_cases = []
+    num_iterations = end_index/index_step
+    for i in range(0, num_iterations):
+        start_number = i*index_step + 0
+        end_number = (i+1)*index_step -1
+        number_pattern = get_regex_from_number_range(start_number, end_number)
+        cases=[]
+        for pattern in pattern_list:
+            new_pattern = pattern.replace('.log', number_pattern + '.log')
+            system_command = "grep '" + grep_pattern + "' "
+            system_command = system_command + new_pattern + " | wc -l"
+            success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
+            cases.append(float(success_cases))
+        all_cases.append(cases)
+    os.chdir(prev_path)
+
 
 def autolabel(rects):
     for rect in rects:
@@ -168,7 +187,7 @@ def plot_bar_graph_with_std_error(means, stds, colors):
     plt.show()                              # render the plot
 
 
-def plot_line_graph_with_std_error(means,stds,title, legend, xlabel, colors = None):
+def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, colors = None):
   
     if colors is None:
         colors = ['blue', 'red', 'yellow', 'teal', 'magenta', 'cyan', 'hotpink', 'lightblue', 'pink']
@@ -187,6 +206,7 @@ def plot_line_graph_with_std_error(means,stds,title, legend, xlabel, colors = No
     plt.title(title)
     ax.set_xticklabels(xlabel)
     plt.legend(legend)
+    #fig.savefig(fig_name)
     plt.show()
 
 
@@ -222,6 +242,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     av_step_failure_file = csv_files[3]
     failure_csv_file = csv_files[4]
     stuck_csv_file = csv_files[5]
+    fraction_learning_calls_file = csv_files[6]
     
     success_cases_array = get_success_failure_cases(new_dir_name,patterns, 100, index_step, end_index)
     success_cases_per_index_step = [sum(x) for x in success_cases_array]
@@ -250,8 +271,15 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name)
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
     reward_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-
-
+    
+    learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec', patterns, index_step, end_index)
+    learning_calls_per_index_step = [sum(x) for x in learning_calls_array]
+    total_calls_array = get_number_of_learning_calls(new_dir_name, 'Step ', patterns, index_step, end_index)
+    total_calls_per_index_step = [sum(x) for x in total_calls_array]
+    fraction_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(learning_calls_per_index_step, total_calls_per_index_step)]
+    (mean, stddev, stderr) = get_mean_std_for_array(fraction_learning_calls_per_index_step)        
+    fraction_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+    
 def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_scenarios, learning_versions, combined_policy_versions, begin_index, end_index, index_step):
     if dir_name is None:
         dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"    
@@ -271,6 +299,8 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     csv_files.append(failure_csv_file)
     stuck_csv_file = open(csv_file_name[5],'w')
     csv_files.append(stuck_csv_file)
+    av_learning_calls_file = open(csv_file_name[6], 'w')
+    csv_files.append(av_learning_calls_file)
     
     reward_csv_file.write("Average undiscounted reward")
     success_csv_file.write("Success cases")
@@ -278,6 +308,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     av_step_failure_file.write("Average Steps Failure")
     failure_csv_file.write("Failure cases")
     stuck_csv_file.write("Stuck cases")
+    av_learning_calls_file.write("Leaning calls fraction")
     
     for n in sampled_scenarios:
         for csv_file in csv_files:
@@ -331,6 +362,7 @@ def plot_graph_from_csv(csv_file, plt_error):
     legend = []
     means = []
     stds = []
+    fig_name = csv_file.split('.')[0] + '.png'
     with open(csv_file) as f:
         line = f.readline().rstrip('\n').split(",")
         plt_title = line[0]
@@ -349,7 +381,7 @@ def plot_graph_from_csv(csv_file, plt_error):
                     stderr = float(value.split(':')[1])
                 means[-1].append(mean)
                 stds[-1].append(stderr)
-    plot_line_graph_with_std_error(means, stds, plt_title, legend, xlabels)
+    plot_line_graph_with_std_error(fig_name, means, stds, plt_title, legend, xlabels)
     
 
 def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern):
@@ -357,7 +389,7 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     
     #data_type = 'reward'
     #input_data_type = raw_input("Data type: reward or success_cases ?")
-    data_types = ['reward', 'success_cases', 'av_step_success', 'av_step_failure', 'failure_cases', 'stuck_cases']
+    data_types = ['reward', 'success_cases', 'av_step_success', 'av_step_failure', 'failure_cases', 'stuck_cases', 'percent_learning_calls']
     #if input_data_type in data_types:
     #    data_type = input_data_type
     #else:
@@ -374,8 +406,12 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     
     file_name_begin_range = 0
     file_name_end_range = len(csv_file_names)
-    if plot_graph == 'yes':         
-        plot_type = int(raw_input("Plot reward [0] success_cases[1] or average_step_success[2] or average_step_failure[3] or failure_cases[4] or stuck_cases[5]?"))
+    if plot_graph == 'yes': 
+        raw_input_message = "Plot "
+        for i in range(0,len(data_types)):
+            raw_input_message = raw_input_message + data_types[i] + '[' + repr(i) + '] '
+        raw_input_message = raw_input_message + '?'
+        plot_type = int(raw_input(raw_input_message))
         file_name_begin_range = plot_type
         file_name_end_range = plot_type + 1
        
