@@ -6,7 +6,7 @@ import json
 import os
 #import math
 import time
-import deepLearning_data_generator as traces
+
 #from tensorflow.python.framework import dtypes
 #from tensorflow.python.ops import variable_scope
 from tensorflow.python.ops import rnn, rnn_cell
@@ -16,12 +16,14 @@ import config
 import numpy as np
 STUMP = '$'
 PAD = '*'
+PROBLEM_NAME = 'vrep'
+
 def is_stump(trans_x):
         return trans_x[-2] == 1
     
 def is_pad(trans_x):
         return trans_x[-1] == 1
-    
+        
 class Encoder(object):
     def __init__(self, num_actions=14, log_num_observations=13):
         self.num_actions = num_actions
@@ -33,13 +35,13 @@ class Encoder(object):
 
     def size_y(self):
         return self.num_actions + 2
-
+        
     def transform_x(self, x):
         #print x
         #for toy problem
         #trans_x = np.zeros(self.size_x(), dtype=np.int8)
         #for vrep problem
-        trans_x = np.zeros(self.size_x(), dtype=np.float32)
+        trans_x = np.zeros(self.size_x(), dtype=config.get_problem_config(PROBLEM_NAME)['input_data_type_np'])
         
         if x == STUMP:
             trans_x[-2] = 1
@@ -47,8 +49,14 @@ class Encoder(object):
             trans_x[-1] = 1
         else:
             act = x[0]
-            obs = x[1]
-            trans_x[0:self.len_obs] = obs
+            if PROBLEM_NAME in ['vrep', 'toy']:
+                obs = x[1]
+                trans_x[0:self.len_obs] = obs
+            if PROBLEM_NAME in ['pocman']:
+                obs = int(x[1][0])
+                index_obs = [i for i, c in enumerate(reversed('{0:b}'.format(obs))) if c=='1']
+                trans_x[index_obs] = 1
+        
             trans_x[self.len_obs + int(act)] = 1
         #print trans_x
         return trans_x
@@ -90,7 +98,7 @@ class Seq2SeqGraph(object):
             #for toy problem
             #self.inputs.append(tf.placeholder(tf.int8, shape=(None, input_length), name="input_{0}".format(i)))
             #for vrep problem
-            self.inputs.append(tf.placeholder(tf.float32, shape=(None, input_length), name="input_{0}".format(i)))
+            self.inputs.append(tf.placeholder(config.get_problem_config(PROBLEM_NAME)['input_data_type'], shape=(None, input_length), name="input_{0}".format(i)))
             self.outputs.append(tf.placeholder(tf.bool, shape=(None, output_length), name="output_{0}".format(i)))
         ### for c++ calling
         # valid action mask for action filtering in sampling
@@ -378,6 +386,10 @@ class Seq2SeqModel(object):
 
 def parse_data(fileName):
     if(fileName is None) or (fileName.endswith('log')) or (',' not in fileName):
+        if PROBLEM_NAME in ['pocman']:
+            import pocman_data_generator as traces
+        else:
+            import deepLearning_data_generator as traces
         seqs = traces.parse(fileName)
     else:
         seqs = [[]]
@@ -408,7 +420,7 @@ def parse_data(fileName):
     #for old vrep problem
     #encoder = Encoder(19, 8)
     #for vrep problem
-    encoder = Encoder(11, 8)
+    encoder = Encoder(config.get_problem_config(PROBLEM_NAME)['output_length'], config.get_problem_config(PROBLEM_NAME)['input_length'])
     return (seqs, xseqs, yseqs, encoder, maxlen)
 
 class DataGenerator(object):
@@ -628,8 +640,9 @@ def main():
     model_name = None
     model_input = None
     output_dir = None
+    global PROBLEM_NAME
     
-    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:",["action=","model=","input=", "outdir="])
+    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:",["action=","model=","input=", "outdir=", "problem="])
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -645,9 +658,11 @@ def main():
          model_input = arg
       elif opt in ("-o", "--outdir"):
           output_dir = arg
+      elif opt in ("-p", "--problem"):
+          PROBLEM_NAME = arg
           
     if action == 'train':
-        train(output_dir, model_input)
+        train(model_input, output_dir)
     else:
         test(model_input, model_name)
     

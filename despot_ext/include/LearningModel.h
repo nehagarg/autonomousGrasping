@@ -16,6 +16,7 @@
 class LearningModel : public DSPOMDP {
 public:
     LearningModel();
+    LearningModel(std::string modelParamFileName, std::string problem_name_);
     virtual ~LearningModel();
     virtual std::vector<HistoryWithReward*> LearningData() const = 0;
     virtual uint64_t GetInitialObs() const = 0;
@@ -26,10 +27,32 @@ public:
     virtual bool StepActual(State& state, double random_num, int action, double& reward, uint64_t& obs) const;
     virtual std::string GetPythonExecutionString() const;
     virtual std::string GetPythonExecutionString(History h) const;
+    virtual std::string GetPythonExecutionStringForJointTraining(History h) const;
     virtual double GetUncertaintyValue(Belief* b) const;
     virtual ValuedAction GetNextActionFromUser(History h) const;
     virtual bool ShallISwitchFromLearningToPlanning(History h) const;
     virtual bool ShallISwitchFromPlanningToLearning(History h) const;
+    virtual void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const;
+    
+    std::string learned_model_name = "";
+    int automatic_switching_method = 0; // 0  for threshold switching 1 for switching wirh both correct and wrong prediction 2 for switching with only correct prediction
+    std::string svm_model_prefix = "";
+    int switch_threshold = 10;
+    std::string problem_name = "vrep";
+    
+    private:
+        std::string python_exec(const char* cmd) const {
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return "ERROR";
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+    	if(fgets(buffer, 128, pipe) != NULL)
+    		result += buffer;
+    }
+    pclose(pipe);
+    return result;
+    }
 };
 
 #endif	/* LEARNINGMODEL_H */

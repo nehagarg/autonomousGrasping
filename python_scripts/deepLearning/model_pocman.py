@@ -1,3 +1,8 @@
+'''
+This code is deprecated as it has been unified with model.py
+'''
+
+
 import sys
 sys.path.append('../')
 import tensorflow as tf

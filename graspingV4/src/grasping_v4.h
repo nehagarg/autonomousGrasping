@@ -41,8 +41,9 @@ class GraspingV4 : public LearningModel {
 public:
 
     GraspingV4(const GraspingV4& orig);
-    GraspingV4(int start_state_index_);
+    //GraspingV4(int start_state_index_);
     GraspingV4(std::string dataFileName, int start_state_index_);
+    GraspingV4(int start_state_index_, std::string modelParamFilename = "");
     
     virtual ~GraspingV4();
 
@@ -147,6 +148,9 @@ public:
     
     int  num_sampled_objects = 4;
     std::string learning_data_file_name;
+    int test_object_id;
+    std::vector<int> belief_object_ids;
+    int num_belief_particles = 1000;
 
     mutable MemoryPool<GraspingStateV4> memory_pool_;
     double reward_max = 20;

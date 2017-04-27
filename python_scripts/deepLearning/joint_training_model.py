@@ -14,7 +14,7 @@ import random
 import config
 from sklearn import svm
 from sklearn.externals import joblib
-from model import Encoder, Seq2SeqModel, DataGenerator, is_stump, is_pad
+from model import Encoder, Seq2SeqModel, DataGenerator, is_stump, is_pad, PROBLEM_NAME
 
 import numpy as np
 
@@ -183,7 +183,7 @@ def load_model(model_name, sess, seq_length = None):
     hidden_units = model_params['hidden_units']
     num_layers = model_params['num_layers']
     ### TODO: Get this information from a separate config
-    prob_config = config.get_problem_config('vrep')
+    prob_config = config.get_problem_config(PROBLEM_NAME)
     if seq_length is None:
         seq_length = prob_config['max_sequence_length']
     observation_length = prob_config['input_length']
@@ -224,7 +224,9 @@ def main():
     model_name = None
     model_input = None
     output_dir = None
-    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:",["action=","model=","input=", "outdir="])
+    global PROBLEM_NAME
+    
+    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:",["action=","model=","input=", "outdir=", "problem="])
     #print opts
     for opt, arg in opts:
       # print opt
@@ -241,6 +243,8 @@ def main():
          model_input = arg
       elif opt in ("-o", "--outdir"):
           output_dir = arg
+      elif opt in ("-p", "--problem"):
+          PROBLEM_NAME = arg
         
     if action == 'train':
         train(model_name, output_dir, model_input)

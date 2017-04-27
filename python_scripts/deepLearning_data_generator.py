@@ -49,6 +49,9 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
     action_string_hash = createActionHash(state_type)
     max_steps = 49
     max_reward = 100
+    if state_type == 'toy':
+        max_reward = 20
+        max_steps = 89
     #print action_string_hash
     #print fullData
     num_steps = len(fullData['stepInfo'])

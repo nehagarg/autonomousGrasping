@@ -1,0 +1,3 @@
+{additional_params: --number=, begin_index: 0, belief_type: DEFAULT, config_file: config_files/toy_train.yaml,
+  end_index: 400, file_name_prefix: Toy_train, horizon: 50, number_scenarios: 5, output_dir: ./results/despot_logs/,
+  planning_time: 1, solver: DESPOT}

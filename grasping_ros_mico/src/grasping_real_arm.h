@@ -146,9 +146,9 @@ public:
     double step_cost = -1;
     int start_state_index = -1;
     int num_belief_particles = 1000;
-    std::string learned_model_name = "";
-    int automatic_switching_method = 0; // 0  for threshold switching 1 for switching wirh both correct and wrong prediction 2 for switching with only correct prediction
-    std::string svm_model_prefix = "";
+    //std::string learned_model_name = "";
+    //int automatic_switching_method = 0; // 0  for threshold switching 1 for switching wirh both correct and wrong prediction 2 for switching with only correct prediction
+    //std::string svm_model_prefix = "";
        
     RobotInterface* robotInterface;
     
@@ -212,99 +212,6 @@ public:
             }
         oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " ;
     }
-
-    std::string GetPythonExecutionString(History h) const
-    {
-        std::ostringstream oss;
-        
-            oss << "cd python_scripts/deepLearning ; python model.py -a test -i ";
-            GetInputSequenceForLearnedmodel(h, oss);
-            oss << "-m " << learned_model_name<< " ; cd - ;" ;
-           
-            return oss.str();
-    }
-    
-    bool ShallISwitchFromLearningToPlanning(History h) const
-    {
-        std::cout<< "Asking for switch using method" << automatic_switching_method << std::endl;
-        if (automatic_switching_method == 0)
-        {
-            return LearningModel::ShallISwitchFromLearningToPlanning(h);
-        }
-        
-        std::ostringstream oss;
-        oss << "cd python_scripts/deepLearning ; python joint_training_model.py -a test -i  ";
-        GetInputSequenceForLearnedmodel(h, oss);
-        oss << "-m " << learned_model_name ;
-        oss << " -o " << svm_model_prefix << " ; cd - ;" ;
-        std::string result = python_exec(oss.str().c_str());
-        std::cout << result << std::endl;
-        double seen_scenario_correct;
-        double seen_scenario_wrong;
-        int seen_scenario;
-        std::istringstream iss(result);
-        iss >> seen_scenario_correct;
-        iss >> seen_scenario_wrong;
-        //std::cout << seen_scenario_correct;
-        //std::cout << seen_scenario_wrong;
-        int seen_scenario_correct_int = (int)seen_scenario_correct;
-        int seen_scenario_wrong_int = (int)seen_scenario_wrong;
-        
-        if (automatic_switching_method == 1)
-        {
-            if((seen_scenario_correct_int == 1) && (seen_scenario_wrong_int == -1))
-            {
-                seen_scenario = 1;
-            }
-            else
-            {
-                seen_scenario = -1;
-            }
-        }
-        
-        if (automatic_switching_method == 2)
-        {
-            seen_scenario = seen_scenario_correct_int ; //for automatic switching method 2
-        }
-       
-        if (seen_scenario == 1){
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-    
-
-    bool ShallISwitchFromPlanningToLearning(History h) const
-    {
-        if(ShallISwitchFromLearningToPlanning(h) == true)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-    
-    private:
-        std::string python_exec(const char* cmd) const {
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return "ERROR";
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-    	if(fgets(buffer, 128, pipe) != NULL)
-    		result += buffer;
-    }
-    pclose(pipe);
-    return result;
-    }
-
-
-
         
 };
 

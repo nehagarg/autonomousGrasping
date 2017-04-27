@@ -1,7 +1,8 @@
 import os
 import sys
 import time
-
+import tensorflow as tf
+import numpy as np
 # set paths for storing models and results locally
 #DATA_PATH='/media/data/mcdlp/trace'
 #MODEL_PATH='/media/data/mcdlp/model'
@@ -14,6 +15,20 @@ def get_problem_config(problem_name):
         ans['max_sequence_length'] = 50
         ans['input_length'] = 8
         ans['output_length'] = 11
+        ans['input_data_type'] = tf.float32
+        ans['input_data_type_np'] = np.float32
+    if problem_name == 'toy' :
+        ans['max_sequence_length'] = 90
+        ans['input_length'] = 26
+        ans['output_length'] = 10
+        ans['input_data_type'] = tf.int8
+        ans['input_data_type_np'] = np.int8
+    if problem_name == 'pocman' :
+        ans['max_sequence_length'] = 90
+        ans['input_length'] = 10
+        ans['output_length'] = 4
+        ans['input_data_type'] = tf.bool
+        ans['input_data_type_np'] = np.bool
     return ans
 
 def global_var_setting():

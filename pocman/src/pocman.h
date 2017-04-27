@@ -96,7 +96,7 @@ public:
 	bool LocalMove(State& state, const History& history, int obs) const;
 
 public:
-	Pocman(int xsize, int ysize, int start_state_index = -1);
+	Pocman(int xsize, int ysize, int start_state_index = -1, std::string modelParamName = "");
 
 	enum {
 		E_PASSABLE, E_SEED, E_POWER
@@ -120,12 +120,25 @@ public:
         return ans;}
         void PrintObs(uint64_t obs, std::ostream& out) const;
         int GetStartStateIndex() const {return start_state_index_;};
+        
+
+
+        void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
+        {
+            for(int i = 0; i < h.Size(); i++)
+            {
+                oss << h.Action(i) << ",";
+                oss << h.Observation(i) << "*";
+            }
+            oss << "5,-1 ; cd - ;" ;
+        }
+
+       /* 
         std::string GetPythonExecutionString() const {
                 std::string cmd_string = "cd python_scripts/deepLearning ; python model_pocman.py " + to_string((int)(GetStartStateIndex())) + "; cd - ;";
                 return cmd_string;
         }
         
-
         std::string GetPythonExecutionString(History h) const {
             std::ostringstream oss;
             oss << "cd python_scripts/deepLearning ; python model_pocman.py ";
@@ -138,7 +151,7 @@ public:
            
             return oss.str();
                 
-        }
+        }*/
         
 
         double GetUncertaintyValue(Belief* b) const {
@@ -211,17 +224,17 @@ private:
 
 class MicroPocman: public Pocman {
 public:
-	MicroPocman(int start_state_index = -1 );
+	MicroPocman(int start_state_index = -1 , std::string modelParamName = "");
 };
 
 class MiniPocman: public Pocman {
 public:
-	MiniPocman(int start_state_index = -1);
+	MiniPocman(int start_state_index = -1, std::string modelParamName = "");
 };
 
 class FullPocman: public Pocman {
 public:
-	FullPocman(int start_state_index = -1);
+	FullPocman(int start_state_index = -1, std::string modelParamName = "");
 };
 
 } // namespace despot

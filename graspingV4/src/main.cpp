@@ -9,33 +9,37 @@ public:
   }
 
     DSPOMDP* InitializeModel(option::Option* options) {
-     DSPOMDP* model;
-    /*if (options[E_DATA_FILE])
-            {
-                if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        
-                        model = new GraspingV4(options[E_DATA_FILE].arg, number);
+        DSPOMDP* model;
+        /*if (options[E_DATA_FILE])
+                {
+                    if (options[E_NUMBER]) {
+                            int number = atoi(options[E_NUMBER].arg);
+
+                            model = new GraspingV4(options[E_DATA_FILE].arg, number);
+                    }
+                    else
+                    {
+                        model = new GraspingV4(options[E_DATA_FILE].arg, -1);
+                    }
                 }
                 else
-                {
-                    model = new GraspingV4(options[E_DATA_FILE].arg, -1);
-                }
-            }
-            else
-    */
-     //{
-                if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        std::cout << "Number is " <<  number;
-                        model = new GraspingV4( number);
-                }
-                else
-                {
-                    model = new GraspingV4(-1);
-                }
-     //       }
-     
+        */
+         //{
+        int number = -1;
+        if (options[E_NUMBER]) {
+            number = atoi(options[E_NUMBER].arg);
+            std::cout << "Number is " << number;
+        }
+
+        if (options[E_PARAMS_FILE]) {
+
+            std::cout << "Config file is " << options[E_PARAMS_FILE].arg << std::endl;
+            model = new GraspingV4(number, options[E_PARAMS_FILE].arg);
+        } else {
+            model = new GraspingV4(number);
+        }
+         //       }
+
     return model;
   }
 };

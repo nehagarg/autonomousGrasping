@@ -278,7 +278,8 @@ public:
  * Pocman class
  * ==============================================================================*/
 
-Pocman::Pocman(int xsize, int ysize, int start_state_index) :
+Pocman::Pocman(int xsize, int ysize, int start_state_index, std::string modelParamName) :
+        LearningModel(modelParamName, "pocman"),
 	maze_(xsize, ysize),
 	passage_y_(-1),
 	smell_range_(1),
@@ -307,8 +308,8 @@ Pocman::Pocman(int xsize, int ysize, int start_state_index) :
 	// Hear ghost
 }
 
-MicroPocman::MicroPocman(int start_state_index) :
-	Pocman(7, 7, start_state_index) {
+MicroPocman::MicroPocman(int start_state_index, std::string modelParamName) :
+	Pocman(7, 7, start_state_index, modelParamName) {
 	int maze[7][7] = { { 3, 3, 3, 3, 3, 3, 3 },
 		{ 3, 3, 0, 3, 0, 3, 3 },
 		{ 3, 0, 3, 3, 3, 0, 3 },
@@ -325,8 +326,8 @@ MicroPocman::MicroPocman(int start_state_index) :
 	ghost_home_ = Coord(3, 4);
 }
 
-MiniPocman::MiniPocman(int start_state_index) :
-	Pocman(10, 10, start_state_index) {
+MiniPocman::MiniPocman(int start_state_index, std::string modelParamName) :
+	Pocman(10, 10, start_state_index, modelParamName) {
 	int maze[10][10] = { { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 },
 		{ 3, 0, 0, 3, 0, 0, 3, 0, 0, 3 },
 		{ 3, 0, 3, 3, 3, 3, 3, 3, 0, 3 },
@@ -348,8 +349,8 @@ MiniPocman::MiniPocman(int start_state_index) :
 	passage_y_ = 5;
 }
 
-FullPocman::FullPocman(int start_state_index) :
-	Pocman(17, 19, start_state_index) {
+FullPocman::FullPocman(int start_state_index, std::string modelParamName) :
+	Pocman(17, 19, start_state_index, modelParamName) {
 	// Transposed maze
 	int maze[19][17] = { 
 		{ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, },

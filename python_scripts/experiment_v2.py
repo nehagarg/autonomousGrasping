@@ -22,11 +22,14 @@ def generate_commands(yaml_config):
     additional_params = yaml_config['additional_params']
     begin_index = yaml_config['begin_index'] 
     end_index = yaml_config['end_index']
-    
+    problem_type = yaml_config['problem_type']
+    modified_additional_params = additional_params
     for i in range(begin_index, end_index):
-        command = "./bin/despot_without_display -v3 -t " + repr(planning_time) + " -n "
+        if problem_type == 'graspingV4':
+            modified_additional_params = additional_params + repr(i)
+        command = "./bin/" + problem_type + " -v3 -t " + repr(planning_time) + " -n "
         command = command + repr(number_scenarios)+ ' -s ' + repr(horizon) + ' --solver=' + solver
-        command = command + ' ' + additional_params + ' -m ' + config_file + ' --belief=' + belief_type + ' > '
+        command = command + ' ' + modified_additional_params + ' -m ' + config_file + ' --belief=' + belief_type + ' > '
         command = command + output_dir
         command = command + "/" + file_name + '_trial_' + repr(i) + '.log 2>&1' 
         all_commands.append(command)
@@ -60,18 +63,39 @@ def get_config_file_name_from_experiment_file(file_name):
         config_file_name = config_file_name + 'VrepInterface_'
     
     
-def generate_params_file(file_name):
+def generate_params_file(file_name, problem_type):
     ans = {}
     ans['solver'] = 'DESPOT'
-    ans['config_file'] = 'config_files/VrepDataInterface.yaml'
     ans['planning_time'] = 1
     ans['number_scenarios'] = 5
     ans['horizon'] = 50
-    ans['belief_type'] = 'GAUSSIAN_WITH_STATE_IN'
-    ans['additional_params'] = '--number=-1 -l CAP'
     ans['begin_index'] = 0
     ans['end_index'] = 1000
     ans['file_name_prefix'] = ''
+    
+    if problem_type == 'despot_without_display':
+        ans['config_file'] = 'config_files/VrepDataInterface.yaml'
+        ans['belief_type'] = 'GAUSSIAN_WITH_STATE_IN'
+        ans['additional_params'] = '--number=-1 -l CAP'
+    if problem_type == 'graspingV4':
+        
+        ans['belief_type'] = 'DEFAULT'
+        ans['additional_params'] = '--number='
+        ans['output_dir'] = './results/despot_logs/'
+        ans['end_index'] = 400
+        ans['horizon'] = 90
+        for filetype in ['train', 'test']:
+            if filetype in file_name:
+                ans['config_file'] = 'config_files/toy_' + filetype +'.yaml'
+                ans['file_name_prefix'] = 'Toy_' + filetype
+        
+
+    if problem_type == 'pocman':
+        ans['config_file'] = 'config_files/dummy.yaml'
+        ans['belief_type'] = 'DEFAULT'
+        ans['additional_params'] = ''
+    
+    
     
     
     for filetype in ['combined_1', 'combined_2']:
@@ -115,7 +139,7 @@ def generate_params_file(file_name):
     
 if __name__ == '__main__':
     
-    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:",["dir="])
     output_dir = None
     yaml_file = None
     execute_command = False
@@ -124,6 +148,7 @@ if __name__ == '__main__':
     number_scenarios = None
     start_index = None
     end_index = None
+    problem_type = None
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -143,21 +168,27 @@ if __name__ == '__main__':
          end_index = int(arg)
       elif opt in ("-d", "--dir"):
          output_dir = arg
+      elif opt == '-p':
+          problem_type = arg
 
     if len(args) > 0:
         yaml_file = args[0]
         
     if genarate_yaml:
-        generate_params_file(yaml_file)
+        generate_params_file(yaml_file, problem_type)
         sys.exit()
         
     ans = get_default_params(yaml_file)
+    ans['problem_type'] = 'despot_without_display'
+    if problem_type is not None:
+        ans['problem_type'] = problem_type
     if output_dir is not None:
         ans['output_dir'] = output_dir
     if start_index is not None:
         ans['begin_index'] = start_index
     if end_index is not None:
         ans['end_index'] = end_index
+    
         
     if ans['solver'] == 'DEEPLEARNING':
         ans['file_name'] = ans['file_name_prefix']
@@ -173,6 +204,9 @@ if __name__ == '__main__':
         print command
         if execute_command:
             print "Executing...."
+            if not os.path.exists(ans['output_dir']):
+                print "Creating path " + ans['output_dir']
+                os.mkdir(ans['output_dir'])
             #TODO add automatic directory creation
             os.system(command)
         

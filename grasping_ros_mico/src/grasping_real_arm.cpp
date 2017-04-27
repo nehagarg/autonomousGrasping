@@ -38,7 +38,7 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, VrepInterface* robotInt
     
 }
 
-GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
+GraspingRealArm::GraspingRealArm(std::string modelParamFileName) : LearningModel(modelParamFileName, "vrep"){
     YAML::Node config = YAML::LoadFile(modelParamFileName);
      int interface_type = 0;
     if(config["interface_type"])
@@ -159,21 +159,6 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) {
     if(config["num_belief_particles"])
     {
         num_belief_particles = config["num_belief_particles"].as<int>();
-    }
-    
-    if(config["learned_model_name"])
-    {
-        learned_model_name = config["learned_model_name"].as<std::string>();
-    }
-    
-    if(config["switching_method"])
-    {
-        automatic_switching_method = config["switching_method"].as<int>();
-    }
-    
-    if(config["svm_model_prefix"])
-    {
-        svm_model_prefix = config["svm_model_prefix"].as<std::string>();
     }
     
     

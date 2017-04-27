@@ -47,10 +47,41 @@ def create_basic_config():
     ans["switching_method"] = 0 #0 for threshold based switching 1 for automatic one class svm based switching
     ans["svm_model_prefix"] = ""
     ans["learned_model_name"] = ""
+    ans["switching_threshold"] = 10
         
     return ans
 
+def get_toy_config(filename):
+    ans = {}
+    ans["test_object_id"] = 0
+    if 'test' in filename:
+        ans["test_object_id"] = 1
+    filename_filetype = None
+    i = 0;
+    for filetype in ['combined_0','combined_1', 'combined_2', 'learning']:
+        if filetype in filename:
+            filename_filetype = filetype
+            ans["switching_method"] = i
+        i =i+1
+            
+    if filename_filetype is not None:
+        ans["learned_model_name"] = "toy/version1"
+        ans["svm_model_prefix"] = "output/toy/version1/nu_0_1_kernel_rbf_gamma_0_1_"
+        ans["switching_threshold"] = 20
+    
+    return ans
+        
+            
+        
+    
 def modify_basic_config(filename, ans):
+    
+    if 'toy' in filename:
+        return get_toy_config(filename)
+    
+    
+    
+    
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
         ans["test_object_id"] = 0

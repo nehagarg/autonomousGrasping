@@ -1,6 +1,8 @@
 
 import re
 import sys
+import os
+from plot_despot_results import generate_reward_file, get_mean_std_for_numbers_in_file
 
 
 def get_mean_std_for_pocman(filename):
@@ -81,7 +83,7 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
                 if re.search('- Observation', line):
                     values = rx.findall(line)
                     obs = int(values[0])
-                    seqs[-1].append((act,obs)) 
+                    seqs[-1].append((act,[obs])) 
                     parse_act_obs = False
             else: #Original despot trace
             
@@ -90,18 +92,42 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
                 if(act_obs_found):
                     act = int(act_obs_found.group(1))
                     obs = int(act_obs_found.group(2))
-                    seqs[-1].append((act,obs))
+                    seqs[-1].append((act,[obs]))
                     parse_act_obs = False
 
     return seqs    
-    
 
+def get_high_reward_filenames(filenames):
+    #Assuming each file contains one run
+    reward_file_name = repr(os.getpid()) + '.txt'
+    reward_dict = {}
+    for filename in filenames:
+        generate_reward_file('./', [filename], 1, reward_file_name)
+        (reward,_,_) = get_mean_std_for_numbers_in_file
+        reward_dict[filename] = reward
+    sorted_x = sorted(reward_dict.items(), key=operator.itemgetter(1), reverse = True)
+    return sorted_x.keys()[0:len(sorted_x)/2]
+        
 
 def parse(filename=None, round = -1):
     if filename is None:
         filename = '../pocman_t10_100runs_access9.log'
 	
     	return parse_pocman_trace(filename)
+    elif filename == 'pocman/version1':
+        seqs = []
+        filenames = []
+        for i in range(0,1000):
+            for t in ['1','5','10']:
+                for n in ['100', '500', '1000']:
+                    logfilename = '../../pocman/results/t' + t + '_n' + n + '/full_pocman_t' + t + '_n' + n + '_trial_' + repr(i) + '.log'
+                    filenames.append(logfilename)
+        high_reward_filenames = get_high_reward_filenames(filenames)
+        for logfilename in high_reward_filenames:
+            seqs = seqs + parse_pocman_trace(filename, round, True)
+        return seqs
+            
+            
     else:
 	return parse_pocman_trace(filename, -1, False)
 

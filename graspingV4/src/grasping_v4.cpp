@@ -9,11 +9,12 @@
 #include "grasping_v4_particle_belief.h"
 #include <despot/util/floor.h>
 #include <math.h>
-//#include "yaml-cpp/yaml.h"
+#include "yaml-cpp/yaml.h"
 //#include "grasping.h"
 #include <string>
 
-GraspingV4::GraspingV4(int start_state_index_) {
+GraspingV4::GraspingV4(int start_state_index_, std::string modelParamFileName): LearningModel(modelParamFileName, "toy"){
+    
     std::cout << "Initializing grasping state v4" << std::endl;
     start_state_index = start_state_index_;
     std::cout << "Start state index is " << start_state_index << std::endl;
@@ -22,14 +23,27 @@ GraspingV4::GraspingV4(int start_state_index_) {
     for (int i = 1; i < 6; ++i) shuffle_vector.push_back(i);
     //random_shuffle(shuffle_std::vector.begin(), shuffle_vector.end());
     
-    //State particles
     for (int i = 0; i < num_sampled_objects; i++) {
-        object_id_to_radius.push_back(i+1);
-    }
+          object_id_to_radius.push_back(i+1 );
+        }
     
     //Belief particles
     for (int i = num_sampled_objects; i <  2*num_sampled_objects; i++) {
         object_id_to_radius.push_back(i+1 - num_sampled_objects);
+    }
+    
+    if (modelParamFileName.empty()) return;
+    
+    YAML::Node config = YAML::LoadFile(modelParamFileName);
+    test_object_id = 0; //0 for training objects 1 for test objects
+    if(config["test_object_id"]) 
+    {
+        test_object_id = config["test_object_id"].as<int>();
+        //State particles
+        double object_radius_reduction = test_object_id * 0.5;
+        for (int i = 0; i < num_sampled_objects; i++) {
+            object_id_to_radius[i] = object_id_to_radius[i]-object_radius_reduction;
+        }
     }
 }
 
@@ -228,6 +242,7 @@ void GraspingV4::GenerateAdaboostTestFile(uint64_t obs, History h) const {
      std::cout << "\n";
 }
 
+//For nearest neighbour search
 std::vector<HistoryWithReward*> GraspingV4::LearningData() const {
     
     std::vector<HistoryWithReward*> ans;
@@ -358,6 +373,7 @@ int GraspingV4::GetActionIdFromString(std::string dataline) const {
     
 }
 
+//For nearest neighbour search
 double GraspingV4::GetDistance(int action1, uint64_t obs1, int action2, uint64_t obs2) const {
     //std::cout << "Calculating distance between (" << action1 <<  "," << obs1 << ") and (" << action2 <<  "," << obs2 << ")" << std::endl;
     //Distance between actions
