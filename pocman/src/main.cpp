@@ -10,14 +10,21 @@ public:
   
     DSPOMDP* InitializeModel(option::Option* options) {
     DSPOMDP* model;
+    int number = -1;
         if (options[E_NUMBER]) {
-                        int number = atoi(options[E_NUMBER].arg);
-                        std::cout << "Number is " <<  number;
-                        model = new FullPocman( number);
+            number = atoi(options[E_NUMBER].arg);
+            std::cout << "Number is " << number;
+        }
+
+        if (options[E_PARAMS_FILE]) {
+
+            std::cout << "Config file is " << options[E_PARAMS_FILE].arg << std::endl;
+
+                        model = new FullPocman( number, options[E_PARAMS_FILE].arg);
                 }
         else
         {
-            model = new FullPocman();
+            model = new FullPocman(number);
         }
     return model;
   }
