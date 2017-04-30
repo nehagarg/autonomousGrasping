@@ -7,6 +7,7 @@ import sys
 import getopt
 import subprocess
 
+PROBLEM_NAME = "vrep"
 def get_mean_std_for_array(a, sum2 = None):
     
     if sum2 is None:
@@ -142,6 +143,7 @@ def get_number_of_learning_calls(dir_name, grep_pattern, pattern_list, index_ste
             cases.append(float(success_cases))
         all_cases.append(cases)
     os.chdir(prev_path)
+    return all_cases
 
 
 def autolabel(rects):
@@ -224,6 +226,11 @@ def plot_scatter_graph(x,y, colors):
 
 def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index):
     
+    max_reward = 100
+    min_reward = -10
+    if PROBLEM_NAME == 'toy':
+        max_reward = 20
+        min_reward = -1
     if test_pattern == 'train':
         patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
     elif test_pattern == 'test':
@@ -244,7 +251,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     stuck_csv_file = csv_files[5]
     fraction_learning_calls_file = csv_files[6]
     
-    success_cases_array = get_success_failure_cases(new_dir_name,patterns, 100, index_step, end_index)
+    success_cases_array = get_success_failure_cases(new_dir_name,patterns, max_reward, index_step, end_index)
     success_cases_per_index_step = [sum(x) for x in success_cases_array]
     (mean, stddev, stderr) = get_mean_std_for_array(success_cases_per_index_step)        
     success_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
@@ -254,7 +261,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
     av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             
-    failure_cases_array = get_success_failure_cases(new_dir_name,patterns, -10, index_step, end_index)
+    failure_cases_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index)
     failure_cases_per_index_step =  [sum(x) for x in failure_cases_array]
     (mean, stddev, stderr) = get_mean_std_for_array(failure_cases_per_index_step)        
     failure_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
@@ -523,12 +530,12 @@ def get_list_input(sampled_scenarios, command):
             sampled_scenarios.remove(int(input.split(' ')[1]))
     return sampled_scenarios        
 
-if __name__ == '__main__':
+def main():
     plot_graph = 'no'
     csv_name_prefix = 'multi_object'
     dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
-        
-    opts, args = getopt.getopt(sys.argv[1:],"hpd:f:",["dir=","csv_prefix="])
+    global PROBLEM_NAME    
+    opts, args = getopt.getopt(sys.argv[1:],"hpt:d:f:",["dir=","csv_prefix="])
     #print opts
     for opt, arg in opts:
       # print opt
@@ -541,6 +548,8 @@ if __name__ == '__main__':
          dir_name = arg
       elif opt in ("-f", "--csv_prefix"):
          csv_name_prefix = arg
+      elif opt=='-t':
+          PROBLEM_NAME = arg
          
     pattern = 'test'
     input_pattern = raw_input("Pattern type: train or test or file identifier?")
@@ -554,7 +563,8 @@ if __name__ == '__main__':
     get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
     #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
     
-    
+if __name__ == '__main__':
+    main()    
 """
 #Performance toy problem
 L2PT10Train = [0,0,0,0,0]
