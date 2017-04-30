@@ -257,7 +257,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     success_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
     success_cases = sum(success_cases_per_index_step)
-    generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , 100)
+    generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , max_reward)
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
     av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             
@@ -267,7 +267,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     failure_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
     failure_cases = sum(failure_cases_per_index_step)
-    generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , -10)
+    generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , min_reward)
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
     av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
