@@ -545,10 +545,10 @@ if __name__ == '__main__':
     pattern = 'test'
     input_pattern = raw_input("Pattern type: train or test or file identifier?")
     input_patterns = ['test', 'train', '9cm', '8cm', '7cm', '75mm', '85mm']
-    if input_pattern in input_patterns:
-        pattern = input_pattern
-    else :
-        print "Invalid pattern. Setting pattern as test"
+    #if input_pattern in input_patterns:
+    pattern = input_pattern
+    #else :
+    #    print "Invalid pattern. Setting pattern as test"
     
         
     get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
