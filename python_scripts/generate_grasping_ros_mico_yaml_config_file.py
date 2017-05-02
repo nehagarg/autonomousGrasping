@@ -100,7 +100,7 @@ def get_learning_config(filename, problem_type):
         
     
 def get_pocman_config(filename):
-    return get_learning_config(filename)
+    return get_learning_config(filename, 'pocman')
         
     
 def modify_basic_config(filename, ans):
