@@ -8,8 +8,8 @@ except ImportError:
 import re
 import getopt
 
-global LEARNED_MODEL_NAME
-global SVM_MODEL_NAME
+LEARNED_MODEL_NAME = None
+SVM_MODEL_NAME = None
 
 def load_config_from_file(yaml_file):
     ans = None
@@ -65,7 +65,7 @@ def get_toy_config(filename):
 
 def get_learning_version_from_filename(filename):
     ans1 = '1'
-    m = re.match('_v([0-9]+)_', filename)
+    m = re.search('_v([0-9]+)', filename)
     if m:
         ans1 = m.groups(0)[0]
     ans2 = LEARNED_MODEL_NAME

@@ -7,6 +7,8 @@ try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dumper
+from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, LEARNED_MODEL_NAME
+import re
     
 def generate_commands(yaml_config):
     all_commands = []
@@ -101,7 +103,7 @@ def generate_params_file(file_name, problem_type):
         ans['file_name_prefix'] = 'Pocman_'
     
     
-    
+    learning_version, model_name = get_learning_version_from_filename(file_name)
     
     for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_3', 'combined_4']:
         for interface_type in ["vrep_model", "data_model"]:
@@ -122,8 +124,11 @@ def generate_params_file(file_name, problem_type):
     
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
+        m = re.search('combined_[0-9]+', file_name)
+        ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group()
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
+        ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
         
     
         
@@ -142,9 +147,9 @@ def generate_params_file(file_name, problem_type):
     f.write(output)
     
     
-if __name__ == '__main__':
-    
-    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:",["dir="])
+def main():
+    global LEARNED_MODEL_NAME
+    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:m:",["dir="])
     output_dir = None
     yaml_file = None
     execute_command = False
@@ -175,7 +180,8 @@ if __name__ == '__main__':
          output_dir = arg
       elif opt == '-p':
           problem_type = arg
-
+      elif opt == '-m':
+            LEARNED_MODEL_NAME = arg
     if len(args) > 0:
         yaml_file = args[0]
         
@@ -215,5 +221,6 @@ if __name__ == '__main__':
             #TODO add automatic directory creation
             os.system(command)
         
-      
+if __name__ == '__main__':
+    main()
     
