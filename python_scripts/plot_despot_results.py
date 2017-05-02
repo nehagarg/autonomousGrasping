@@ -319,19 +319,19 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     
     for n in sampled_scenarios:
         for csv_file in csv_files:
-          csv_file.write(",n" +  repr(n))
+          csv_file.write(",n" +  n)
     
     for csv_file in csv_files:
         csv_file.write("\n")
     
     for t in time_steps:
         for csv_file in csv_files:
-            csv_file.write("T" + repr(t))
+            csv_file.write("T" + t)
         
         #means.append([])
         #stds.append([])
         for n in sampled_scenarios:
-            new_dir_name = dir_name + "/t" + repr(t)+ "_n" + repr(n)
+            new_dir_name = dir_name + "/t" + t+ "_n" + n
             write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
         for csv_file in csv_files:
             csv_file.write("\n")
@@ -339,10 +339,10 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
         
     for l in learning_versions:
         for csv_file in csv_files:
-            csv_file.write("L" + repr(l))
+            csv_file.write("L" + l)
         
         for n in sampled_scenarios:
-            new_dir_name = dir_name + "/learning/version" + repr(l)
+            new_dir_name = dir_name + "/learning/version" + l
             write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
         for csv_file in csv_files:    
             csv_file.write("\n")
@@ -350,12 +350,12 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
         for c in combined_policy_versions:
             for t in time_steps:
                 for csv_file in csv_files:    
-                    csv_file.write("L" + repr(l) + "T" + repr(t) + "S" + repr(c))
+                    csv_file.write("L" + l + "T" + t + "S" + c)
                 
                 #means.append([])
                 #stds.append([])
                 for n in sampled_scenarios:
-                    new_dir_name = dir_name + "/learning/version" + repr(l) + "/combined_" + repr(c)+"/t" + repr(t)+ "_n" + repr(n)
+                    new_dir_name = dir_name + "/learning/version" + l + "/combined_" + c+"/t" + t+ "_n" + n
                     write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)                
                 
                 for csv_file in csv_files: 
@@ -445,18 +445,18 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
 
 
     if generate_csv:
-        time_steps = [1,5]
+        time_steps = ['1','5']
         time_steps = get_list_input(time_steps, "Planning times")
     
-        sampled_scenarios = [5, 10, 20, 40, 80, 160, 320, 640, 1280]
+        sampled_scenarios = ['5', '10', '20', '40', '80', '160', '320', '640', '1280']
         sampled_scenarios = get_list_input(sampled_scenarios, "Sampled scenarios")
     
         
-        learning_versions = [6]
+        learning_versions = ['6']
         learning_versions =  get_list_input(learning_versions, "Learning versions")
     
     
-        combined_policy_versions = [0, 1, 2]
+        combined_policy_versions = ['0', '1', '2']
         combined_policy_versions = get_list_input(combined_policy_versions, "Combined policy versions")
         
         begin_index = 0
@@ -524,10 +524,10 @@ def get_list_input(sampled_scenarios, command):
         if 's' in input:
             break
         if 'a' in input:
-            sampled_scenarios.append(int(input.split(' ')[1]))
+            sampled_scenarios.append(input.split(' ')[1])
             sampled_scenarios = sorted(set(sampled_scenarios))
         if 'r' in input:
-            sampled_scenarios.remove(int(input.split(' ')[1]))
+            sampled_scenarios.remove(input.split(' ')[1])
     return sampled_scenarios        
 
 def main():

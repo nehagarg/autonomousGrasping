@@ -80,13 +80,18 @@ def get_svm_model_name(filename):
         ans =  "nu_0_1_kernel_rbf_gamma_0_1_"
     #TODO use pattern matchind to get svm veriosn from config filename
     return ans
+def get_switching_threshold(filename):
+    ans = 10
+    m = re.search('_combined_[0-9]+-([0-9]+)', filename)
+    if m:
+       ans = m.groups(0)[0] 
+    return int(ans)
 
 def get_learning_config(filename, problem_type):
     ans= {}
-    switching_threshold = [10,-1,-1,15,20]
     filename_filetype = None
     i = 0;
-    for filetype in ['combined_0','combined_1', 'combined_2','combined_3', 'combined_4']:
+    for filetype in ['combined_0','combined_1', 'combined_2']:
         if filetype in filename:
             filename_filetype = filetype
             ans["switching_method"] = i
@@ -94,8 +99,8 @@ def get_learning_config(filename, problem_type):
     if filename_filetype is not None:
         (learning_version, model_name) = get_learning_version_from_filename(filename)
         ans["learned_model_name"] = problem_type + "/version" + learning_version + "/" + model_name
-        ans["switching_threshold"] = switching_threshold[ans['switching_method']]
-        if ans["switching_threshold"] == -1:
+        ans["switching_threshold"] = get_switching_threshold(filename)
+        if ans["switching_method"] > 0:
             svm_model_name = get_svm_model_name(filename)
             ans["svm_model_prefix"] = "output/"+ problem_type +"/version" + learning_version + "/" + svm_model_name
     return ans    
@@ -119,7 +124,7 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
         
-    for filetype in ['combined_1', 'combined_2']:
+    for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
         for interface_type in ["", "Data"]:
             file_prefix = "Vrep" + interface_type + "Interface_low_friction"
             if filename == file_prefix + "_"+ filetype + ".yaml" :
@@ -133,7 +138,7 @@ def modify_basic_config(filename, ans):
                     ans['svm_model_prefix'] = 'output/vrep/version8/nu_0_1_kernel_rbf_gamma_0_1_'
                     ans['switching_method'] = int(filetype.split('_')[1])
     
-        
+    ans["switching_threshold"] = get_switching_threshold(filename)    
     
     if filename == "VrepDataInterface_low_friction.yaml" :
         get_low_friction_table_config(ans)

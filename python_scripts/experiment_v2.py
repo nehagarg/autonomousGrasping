@@ -7,7 +7,7 @@ try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dumper
-from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, LEARNED_MODEL_NAME
+from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, get_switching_threshold, LEARNED_MODEL_NAME
 import re
     
 def generate_commands(yaml_config):
@@ -74,7 +74,7 @@ def generate_params_file(file_name, problem_type):
     ans['begin_index'] = 0
     ans['end_index'] = 1000
     ans['file_name_prefix'] = ''
-    ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0')
+    ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0').replace('despot', 'combined_0')
     
     if problem_type == 'despot_without_display':
         #ans['config_file'] = 'config_files/VrepDataInterface.yaml'
@@ -105,7 +105,7 @@ def generate_params_file(file_name, problem_type):
     
     learning_version, model_name = get_learning_version_from_filename(file_name)
     
-    for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_3', 'combined_4']:
+    for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
         for interface_type in ["vrep_model", "data_model"]:
             file_prefix = interface_type + "_9cm_low_friction_"
             if file_name == file_prefix + filetype + ".yaml" :
@@ -125,7 +125,11 @@ def generate_params_file(file_name, problem_type):
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
         m = re.search('combined_[0-9]+', file_name)
-        ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group()
+        switching_threshold = get_switching_threshold(file_name)
+        switching_threshold_string = ""
+        if switching_threshold != 10:
+            switching_threshold_string = "-" + repr(switching_threshold)
+        ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group() + switching_threshold_string
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
         ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
