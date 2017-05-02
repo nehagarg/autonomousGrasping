@@ -5,8 +5,12 @@ try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dump
+import re
+import getopt
 
-    
+global LEARNED_MODEL_NAME
+global SVM_MODEL_NAME
+
 def load_config_from_file(yaml_file):
     ans = None
     with open(yaml_file,'r') as stream:
@@ -52,32 +56,60 @@ def create_basic_config():
     return ans
 
 def get_toy_config(filename):
-    ans = {}
+    ans = get_learning_config(filename, 'toy')
     ans["test_object_id"] = 0
     if 'test' in filename:
         ans["test_object_id"] = 1
+    return ans
+
+
+def get_learning_version_from_filename(filename):
+    ans1 = '1'
+    m = re.match('_v([0-9]+)_', filename)
+    if m:
+        ans1 = m.groups(0)[0]
+    ans2 = LEARNED_MODEL_NAME
+    if ans2 is None:
+        ans2 = 'model.ckpt-823'
+    #TODO use pattern matching to get learned model ckpt no
+    return (ans1, ans2)
+    
+def get_svm_model_name(filename):
+    ans = SVM_MODEL_NAME
+    if ans is None:
+        ans =  "nu_0_1_kernel_rbf_gamma_0_1_"
+    #TODO use pattern matchind to get svm veriosn from config filename
+    return ans
+
+def get_learning_config(filename, problem_type):
+    switching_threshold = [10,-1,-1,15,20]
     filename_filetype = None
     i = 0;
-    for filetype in ['combined_0','combined_1', 'combined_2', 'learning']:
+    for filetype in ['combined_0','combined_1', 'combined_2','combined_3', 'combined_4']:
         if filetype in filename:
             filename_filetype = filetype
             ans["switching_method"] = i
         i =i+1
-            
     if filename_filetype is not None:
-        ans["learned_model_name"] = "toy/version1"
-        ans["svm_model_prefix"] = "output/toy/version1/nu_0_1_kernel_rbf_gamma_0_1_"
-        ans["switching_threshold"] = 20
-    
-    return ans
+        (learning_version, model_name) = get_learning_version_from_filename(filename)
+        ans["learned_model_name"] = problem_type + "/version" + learning_version + "/" + model_name
+        ans["switching_threshold"] = switching_threshold[ans['switching_method']]
+        if ans[switching_threshold] == -1:
+            svm_model_name = get_svm_model_name(filename)
+            ans["svm_model_prefix"] = "output/"+ problem_type +"/version" + learning_version + "/" + svm_model_name
         
-            
+    
+def get_pocman_config(filename):
+    return get_learning_config(filename)
         
     
 def modify_basic_config(filename, ans):
     
     if 'toy' in filename:
         return get_toy_config(filename)
+    
+    if 'pocman' in filename:
+        return get_pocman_config(filename)
     
     
     
@@ -182,9 +214,20 @@ def modify_basic_config(filename, ans):
         
     return ans        
 def main():
+    opts, args = getopt.getopt(sys.argv[1:],"hm:s:")
+    global LEARNED_MODEL_NAME
+    global SVM_MODEL_NAME
+    for opt,arg in opts:
+        if opt == '-m':
+            LEARNED_MODEL_NAME = arg
+        elif opt == '-s':
+            SVM_MODEL_NAME = arg
+        elif opt == '-h':
+            print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
+    
     filename = "VrepInterface.yaml"
-    if sys.argv[1]:
-        filename = sys.argv[1]
+    if len(args) > 0:
+        filename = args[0]
     ans = create_basic_config()
     ans = modify_basic_config(filename, ans)
     output = dump(ans, Dumper=Dumper)

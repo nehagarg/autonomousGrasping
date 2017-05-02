@@ -72,33 +72,38 @@ def generate_params_file(file_name, problem_type):
     ans['begin_index'] = 0
     ans['end_index'] = 1000
     ans['file_name_prefix'] = ''
+    ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0')
     
     if problem_type == 'despot_without_display':
-        ans['config_file'] = 'config_files/VrepDataInterface.yaml'
+        #ans['config_file'] = 'config_files/VrepDataInterface.yaml'
         ans['belief_type'] = 'GAUSSIAN_WITH_STATE_IN'
         ans['additional_params'] = '--number=-1 -l CAP'
     if problem_type == 'graspingV4':
         
         ans['belief_type'] = 'DEFAULT'
         ans['additional_params'] = '--number='
-        ans['output_dir'] = './results/despot_logs/'
+        ans['output_dir'] = './results/despot_logs'
         ans['end_index'] = 400
         ans['horizon'] = 90
+        
+        
         for filetype in ['train', 'test']:
             if filetype in file_name:
-                ans['config_file'] = 'config_files/toy_' + filetype +'.yaml'
                 ans['file_name_prefix'] = 'Toy_' + filetype
         
 
     if problem_type == 'pocman':
-        ans['config_file'] = 'config_files/dummy.yaml'
+        #ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0')
         ans['belief_type'] = 'DEFAULT'
         ans['additional_params'] = ''
+        ans['output_dir'] = './results/despot_logs'
+        ans['horizon'] = 90
+        ans['file_name_prefix'] = 'Pocman_'
     
     
     
     
-    for filetype in ['combined_1', 'combined_2']:
+    for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_3', 'combined_4']:
         for interface_type in ["vrep_model", "data_model"]:
             file_prefix = interface_type + "_9cm_low_friction_"
             if file_name == file_prefix + filetype + ".yaml" :
