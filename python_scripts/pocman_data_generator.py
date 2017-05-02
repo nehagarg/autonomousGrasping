@@ -3,7 +3,7 @@ import re
 import sys
 import os
 from plot_despot_results import generate_reward_file, get_mean_std_for_numbers_in_file
-
+import operator
 
 def get_mean_std_for_pocman(filename):
     import numpy as np
@@ -103,10 +103,16 @@ def get_high_reward_filenames(filenames):
     reward_dict = {}
     for filename in filenames:
         generate_reward_file('./', [filename], 1, reward_file_name)
-        (reward,_,_) = get_mean_std_for_numbers_in_file
+        (reward,_,_) = get_mean_std_for_numbers_in_file(reward_file_name)
         reward_dict[filename] = reward
     sorted_x = sorted(reward_dict.items(), key=operator.itemgetter(1), reverse = True)
-    return sorted_x.keys()[0:len(sorted_x)/2]
+    print len(sorted_x)
+    
+    print sorted_x[0:5]
+    high_reward_filenames = []
+    for filename,reward in sorted_x[0:len(sorted_x)/2]:
+	high_reward_filenames.append(filename)
+    return high_reward_filenames
         
 
 def parse(filename=None, round = -1):
@@ -124,7 +130,7 @@ def parse(filename=None, round = -1):
                     filenames.append(logfilename)
         high_reward_filenames = get_high_reward_filenames(filenames)
         for logfilename in high_reward_filenames:
-            seqs = seqs + parse_pocman_trace(filename, round, True)
+            seqs = seqs + parse_pocman_trace(logfilename, round, True)
         return seqs
             
             
