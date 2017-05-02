@@ -82,6 +82,7 @@ def get_svm_model_name(filename):
     return ans
 
 def get_learning_config(filename, problem_type):
+    ans= {}
     switching_threshold = [10,-1,-1,15,20]
     filename_filetype = None
     i = 0;
@@ -94,10 +95,10 @@ def get_learning_config(filename, problem_type):
         (learning_version, model_name) = get_learning_version_from_filename(filename)
         ans["learned_model_name"] = problem_type + "/version" + learning_version + "/" + model_name
         ans["switching_threshold"] = switching_threshold[ans['switching_method']]
-        if ans[switching_threshold] == -1:
+        if ans["switching_threshold"] == -1:
             svm_model_name = get_svm_model_name(filename)
             ans["svm_model_prefix"] = "output/"+ problem_type +"/version" + learning_version + "/" + svm_model_name
-        
+    return ans    
     
 def get_pocman_config(filename):
     return get_learning_config(filename, 'pocman')
