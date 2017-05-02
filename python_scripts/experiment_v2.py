@@ -98,9 +98,9 @@ def generate_params_file(file_name, problem_type):
         #ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0')
         ans['belief_type'] = 'DEFAULT'
         ans['additional_params'] = ''
-        ans['output_dir'] = './results/despot_logs'
+        ans['output_dir'] = './results'
         ans['horizon'] = 90
-        ans['file_name_prefix'] = 'Pocman_'
+        ans['file_name_prefix'] = 'full_pocman_'
     
     
     learning_version, model_name = get_learning_version_from_filename(file_name)
