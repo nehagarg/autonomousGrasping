@@ -130,13 +130,13 @@ def modify_basic_config(filename, ans):
             if filename == file_prefix + "_"+ filetype + ".yaml" :
                 ans = load_config_from_file(file_prefix + ".yaml")
                 ans['svm_model_prefix'] = 'output/vrep/version7/nu_0_1_kernel_rbf_gamma_0_1_'
-                ans['switching_method'] = int(filetype.split('_')[1])
+                ans['switching_method'] = int(filetype.split('_')[1].split('-')[0])
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
                 file_prefix = "Vrep" + interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 if filename == file_prefix + '_' + filetype + '.yaml':
                     ans = load_config_from_file(file_prefix + '.yaml')
                     ans['svm_model_prefix'] = 'output/vrep/version8/nu_0_1_kernel_rbf_gamma_0_1_'
-                    ans['switching_method'] = int(filetype.split('_')[1])
+                    ans['switching_method'] = int(filetype.split('_')[1].split('-')[0])
     
     ans["switching_threshold"] = get_switching_threshold(filename)    
     
