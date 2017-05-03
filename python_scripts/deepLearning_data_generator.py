@@ -114,7 +114,7 @@ def parse(fileName, belief_type = '', isTraining = False):
             #print i
             #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
     elif fileName == 'toy/version1':
-       for i in range(0,500):
+       for i in range(0,2000):
            for t in ['5']:
                for scenario in ['10','20']:
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
