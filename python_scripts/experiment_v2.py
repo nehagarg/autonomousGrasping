@@ -107,17 +107,18 @@ def generate_params_file(file_name, problem_type):
     
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
-        m = re.search('combined_[0-9]+', file_name)
-        switching_threshold = get_switching_threshold(file_name)
-        switching_threshold_string = ""
-        if switching_threshold != 10:
-            switching_threshold_string = "-" + repr(switching_threshold)
-        ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group() + switching_threshold_string
+        if 'output_dir' in ans:
+            m = re.search('combined_[0-9]+', file_name)
+            switching_threshold = get_switching_threshold(file_name)
+            switching_threshold_string = ""
+            if switching_threshold != 10:
+                switching_threshold_string = "-" + repr(switching_threshold)
+            ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group() + switching_threshold_string
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
-        ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
-    
-    
+        if 'output_dir' in ans:
+            ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
+        
     for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
         for interface_type in ["vrep_model", "data_model"]:
             file_prefix = interface_type + "_9cm_low_friction_"
@@ -125,20 +126,18 @@ def generate_params_file(file_name, problem_type):
                 ans = get_default_params(file_prefix + "learning.yaml")
                 ans['output_dir'] = ans['output_dir'] + "/" + filetype
                 ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
-                ans['solver'] = 'LEARNINGPLANNING'
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
                 file_prefix =  interface_type + "_multi_object_" + object_type + "_low_friction_"
                 if file_name == file_prefix  + filetype + '.yaml':
                     ans = get_default_params(file_prefix + 'learning.yaml')
                     ans['output_dir'] = ans['output_dir'] + "/" + filetype
                     ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
-                    ans['solver'] = 'LEARNINGPLANNING'
     
     
     
-        
+
     
-        
+                
     if file_name == 'data_model_9cm_combined_automatic.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_v4_automatic.yaml'
         ans['file_name_prefix'] = 'Table_scene_9cm_cylinder_v4_automatic'
