@@ -1,16 +1,22 @@
 
 from log_file_parser import ParseLogFile
-from adaboost_data_generator import get_label_string
+#from adaboost_data_generator import get_label_string
 
 
 
 def createActionHash(state_type = 'toy'):
     action_string_hash = {}
     if state_type == 'toy':
-        action_string = get_label_string()
-        action_string_array = action_string[:-2].split(", ")        
-        for i in range(0,len(action_string_array)):
-            action_string_hash[action_string_array[i]] = i
+        action_string_hash['-Action=ActionisINCREASEXby1'] = 0
+        action_string_hash['-Action=ActionisINCREASEXby16'] = 1
+        action_string_hash['-Action=ActionisDECREASEXby1'] = 2
+        action_string_hash['-Action=ActionisDECREASEXby16'] = 3
+        action_string_hash['-Action=ActionisINCREASEYby1'] = 4
+        action_string_hash['-Action=ActionisINCREASEYby16'] = 5
+        action_string_hash['-Action=ActionisDECREASEYby1'] = 6
+        action_string_hash['-Action=ActionisDECREASEYby16'] = 7
+        action_string_hash['-Action=ActionisCLOSEGRIPPER'] = 8
+        action_string_hash['-Action=ActionisOPENGRIPPER'] = 9
     if state_type == 'vrep_old':
         action_string_hash['-Action=ActionisINCREASEXby0.01'] = 0
         action_string_hash['-Action=ActionisINCREASEXby0.02'] = 1
