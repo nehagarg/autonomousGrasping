@@ -90,6 +90,10 @@ def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_
         #assert(False)
     os.chdir(prev_path)
 
+def get_highest_number(start_number, i):
+    m = int(math.pow(10,i))
+    return ((int(start_number/m) + 1)*m) -1
+    
 def get_regex_from_number_range(start_number, end_number):
     #Assuming end_number - start_number + 1 is a multiple of 10
     end_number_string = str(end_number)
@@ -97,11 +101,52 @@ def get_regex_from_number_range(start_number, end_number):
     num_digits_end_number = len(str(end_number_string))
     num_digits_start_number = len(str(start_number_string))
     
-    pattern = '_'
-    for i in range(0,num_digits_end_number-num_digits_start_number):
-        pattern = pattern + '?([0-'+end_number_string[i]+'])'
-    for i in range(num_digits_end_number-num_digits_start_number, num_digits_end_number):
-        pattern = pattern + '[' + start_number_string[i-(num_digits_end_number-num_digits_start_number)] + '-' + end_number_string[i] + ']'
+    pattern = '_@'
+    i = 0
+    intermediate_start_number = get_highest_number(start_number, i+1) 
+    while intermediate_start_number <=end_number:
+        #print intermediate_start_number
+        #print start_number_string
+        if i==0:
+            pattern = pattern + '('
+        else:
+            pattern = pattern + '|'
+      
+        for j in range(0 , num_digits_start_number -(i + 1)):
+            pattern = pattern+ start_number_string[j]
+        pattern = pattern + "[" + start_number_string[num_digits_start_number -(i + 1)] + "-9]"
+        for j in range(num_digits_start_number - i,num_digits_start_number):
+            pattern = pattern + "[0-9]"
+        i = i + 1
+        start_number_string = str(intermediate_start_number + 1)
+        intermediate_start_number = get_highest_number(intermediate_start_number + 1, i+1)
+        num_digits_start_number = len(str(start_number_string))
+    
+    #Number of digit in intermediate start number same as number of digits in end number
+    intermediate_start_number = int(start_number_string)
+    i = 0
+    while intermediate_start_number < end_number:
+        #print intermediate_start_number
+        #print start_number_string
+        if(int(end_number_string[i]) > int(start_number_string[i])):
+            pattern = pattern + "|"
+            for j in range(0,i):
+                pattern = pattern + end_number_string[j]
+            pattern = pattern + "[" + start_number_string[i] + "-" + str(int(end_number_string[i])-1) + "]"
+            for j in range(i+1, num_digits_end_number):
+                pattern = pattern + "[0-9]"
+            intermediate_start_number = intermediate_start_number + (int(end_number_string[i]) - int(start_number_string[i]))*int(math.pow(10,num_digits_end_number - (i+1)))
+            start_number_string = str(intermediate_start_number)
+        i = i +1 
+    if intermediate_start_number == end_number:
+        pattern = pattern + "|" + end_number_string
+    
+    pattern = pattern + ')'
+        
+    #for i in range(0,num_digits_end_number-num_digits_start_number):
+    #    pattern = pattern + '?([0-'+end_number_string[i]+'])'
+    #for i in range(num_digits_end_number-num_digits_start_number, num_digits_end_number):
+    #    pattern = pattern + '[' + start_number_string[i-(num_digits_end_number-num_digits_start_number)] + '-' + end_number_string[i] + ']'
     return pattern
     
 def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, end_index ):
@@ -562,7 +607,7 @@ def main():
         
     get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
     #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
-    
+
 if __name__ == '__main__':
     main()    
 """
