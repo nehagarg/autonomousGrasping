@@ -203,6 +203,29 @@ public:
     double calculate_proprioception_probability(int obs, double value) const ;
     uint64_t GetObsValue(uint64_t sensor_obs, int obs_left_gripper, int obs_right_gripper, int obs_x_i, int obs_y_i, double obs_x_i_change, double obs_y_i_change) const;
     uint64_t GetObsFromState(State& state, double random_num, int action) const; //state is the state reached after performing action
+    
+    void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
+    {
+        for(int i = 0; i < h.Size(); i++)
+            {
+                oss << h.Action(i) << ",";
+                std::vector<int> obs_binary = GetObservationBits(h.Observation(i), false);
+                for (int i = 0; i < 26; i++) {
+                    char c = ',';
+                    if (i==25){c = '*';}
+                    oss << obs_binary[i] << c;
+                }
+                
+            }
+        oss << NumActions() << ",";
+        for (int i = 0; i < 26; i++)
+        {
+            oss << ",-1";
+        }
+        
+        oss << " ";
+                
+    }
 };
 
 #endif	/* GRASPING_V4_H */
