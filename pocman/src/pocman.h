@@ -130,7 +130,7 @@ public:
                 oss << h.Action(i) << ",";
                 oss << h.Observation(i) << "*";
             }
-            oss << "5,-1 ; cd - ;" ;
+            oss << "5,-1 " ;
         }
 
        /* 
