@@ -217,7 +217,7 @@ public:
                 }
                 
             }
-        oss << NumActions() << ",";
+        oss << NumActions() ;
         for (int i = 0; i < 26; i++)
         {
             oss << ",-1";
