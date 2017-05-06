@@ -133,8 +133,11 @@ def generate_params_file(file_name, problem_type):
                     ans['output_dir'] = ans['output_dir'] + "/" + filetype
                     ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
     
+    if 'combined' in file_name:
+        ans['solver'] = 'LEARNINGPLANNING'
     
-    
+    if 'learning' in file_name:
+        ans['solver'] = 'DEEPLEARNING'
 
     
                 
