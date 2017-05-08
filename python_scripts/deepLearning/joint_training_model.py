@@ -14,11 +14,12 @@ import random
 import config
 from sklearn import svm
 from sklearn.externals import joblib
-from model import Encoder, Seq2SeqModel, DataGenerator, is_stump, is_pad, PROBLEM_NAME
+import model as rnn_model
+#from model import Encoder, Seq2SeqModel, DataGenerator, is_stump, is_pad, PROBLEM_NAME
 
 import numpy as np
 
-class Seq2SeqModelExt(Seq2SeqModel):
+class Seq2SeqModelExt(rnn_model.Seq2SeqModel):
     def predict_and_return_state(self, input_values, summary = False):
         input_feed = {}
         for i, inp in enumerate(self.testing_graph.inputs):
@@ -51,7 +52,7 @@ def compute_svm(data,output_dir,file_prefix, nu=0.1, kernel="rbf", gamma=0.1):
     
 def train(model_name, output_dir, model_input= None):
     
-    data_generator = DataGenerator(1, model_input)
+    data_generator = rnn_model.DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
     print len(data_generator.xseqs)
     print data_generator.seq_length
@@ -98,7 +99,7 @@ def train(model_name, output_dir, model_input= None):
 
 def test(model_name, svm_model_prefix, model_input, action = 'test'):
     #generate training data for two svms
-    data_generator = DataGenerator(1, model_input)
+    data_generator = rnn_model.DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
     if action == 'testBatch':
         print len(data_generator.xseqs)
@@ -130,7 +131,7 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
             #print outputs[0:2]
             
             for i in xrange(len(outputs)):
-                if (not is_stump(x[0][i]) ) and (not is_pad(x[0][i]) ): #not stump nd pad
+                if (not rnn_model.is_stump(x[0][i]) ) and (not rnn_model.is_pad(x[0][i]) ): #not stump nd pad
                     prediction_outputs.append(outputs[i][0])
         
         if len(prediction_outputs) == 0: #Initial stump
@@ -183,14 +184,14 @@ def load_model(model_name, sess, seq_length = None):
     hidden_units = model_params['hidden_units']
     num_layers = model_params['num_layers']
     ### TODO: Get this information from a separate config
-    prob_config = config.get_problem_config(PROBLEM_NAME)
+    prob_config = config.get_problem_config(rnn_model.PROBLEM_NAME)
     if seq_length is None:
         seq_length = prob_config['max_sequence_length']
     observation_length = prob_config['input_length']
     action_length = prob_config['output_length']
     
     
-    encoder = Encoder(action_length, observation_length)
+    encoder = rnn_model.Encoder(action_length, observation_length)
     input_length = encoder.size_x()
     output_length = encoder.size_y()
     
@@ -224,7 +225,7 @@ def main():
     model_name = None
     model_input = None
     output_dir = None
-    global PROBLEM_NAME
+    #global PROBLEM_NAME
     
     opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:",["action=","model=","input=", "outdir=", "problem="])
     #print opts
@@ -244,7 +245,8 @@ def main():
       elif opt in ("-o", "--outdir"):
           output_dir = arg
       elif opt in ("-p", "--problem"):
-          PROBLEM_NAME = arg
+          #PROBLEM_NAME = arg
+          rnn_model.PROBLEM_NAME = arg
         
     if action == 'train':
         train(model_name, output_dir, model_input)
