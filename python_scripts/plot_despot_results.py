@@ -55,7 +55,8 @@ def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_n
         system_command = "grep 'Total undiscounted reward = ' "
         system_command = system_command  + new_pattern + " | cut -d'=' -f2 "
         system_command = system_command + out_str + " " + reward_file_name
-        os.system(system_command)
+        subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
+        #os.system(system_command)
         i = i+1
     
     a = int(os.popen("cat " + reward_file_name + " | wc -l").read())
@@ -82,7 +83,9 @@ def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_
         system_command = system_command + repr(reward_value) + "' | "
         system_command = system_command + "grep 'Simulation terminated in' | cut -d' ' -f4 "
         system_command = system_command + out_str + " " + reward_file_name
-        os.system(system_command)
+        subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
+            
+        #os.system(system_command)
         i = i+1
     
     a = int(os.popen("cat " + reward_file_name + " | wc -l").read())
