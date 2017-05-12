@@ -40,18 +40,20 @@ def get_mean_std_for_numbers_in_file(filename):
     #print std2
     return (mean, std, std2)
 
-def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_name):
+def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_name, end_index):
     prev_path = os.getcwd()
     os.chdir(dir_name)
     #r = os.popen("cd " + dir_name).read()
     #print r
     i = 0
+    number_pattern = get_regex_from_number_range(0, end_index - 1)
     for pattern in pattern_list:
+        new_pattern = pattern.replace('.log', number_pattern + '.log')
         out_str = '>>'
         if i == 0:
             out_str = '>'
         system_command = "grep 'Total undiscounted reward = ' "
-        system_command = system_command  + pattern + " | cut -d'=' -f2 "
+        system_command = system_command  + new_pattern + " | cut -d'=' -f2 "
         system_command = system_command + out_str + " " + reward_file_name
         os.system(system_command)
         i = i+1
@@ -65,16 +67,18 @@ def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_n
         #assert(False)
     os.chdir(prev_path)
 
-def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_file_name, reward_value):
+def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_file_name, reward_value, end_index):
     prev_path = os.getcwd()
     os.chdir(dir_name)
     i = 0
+    number_pattern = get_regex_from_number_range(0, end_index - 1)
     for pattern in pattern_list:
+        new_pattern = pattern.replace('.log', number_pattern + '.log')
         out_str = '>>'
         if i == 0:
             out_str = '>'
         system_command = "grep -B 5 'Simulation terminated in' "
-        system_command = system_command + pattern + " | grep -A 5 'Reward = "
+        system_command = system_command + new_pattern + " | grep -A 5 'Reward = "
         system_command = system_command + repr(reward_value) + "' | "
         system_command = system_command + "grep 'Simulation terminated in' | cut -d' ' -f4 "
         system_command = system_command + out_str + " " + reward_file_name
@@ -95,7 +99,7 @@ def get_highest_number(start_number, i):
     return ((int(start_number/m) + 1)*m) -1
     
 def get_regex_from_number_range(start_number, end_number):
-    #Assuming end_number - start_number + 1 is a multiple of 10
+    
     end_number_string = str(end_number)
     start_number_string = str(start_number)
     num_digits_end_number = len(str(end_number_string))
@@ -302,7 +306,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     success_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
     success_cases = sum(success_cases_per_index_step)
-    generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , max_reward)
+    generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , max_reward, end_index)
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
     av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
             
@@ -312,7 +316,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     failure_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
     failure_cases = sum(failure_cases_per_index_step)
-    generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , min_reward)
+    generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , min_reward, end_index)
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
     av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
@@ -320,7 +324,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     (mean, stddev, stderr) = get_mean_std_for_array(stuck_cases_per_index_step)        
     stuck_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
-    generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name)
+    generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name, end_index)
     (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
     reward_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
@@ -407,7 +411,34 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
                     csv_file.write("\n")
                 
    
+def generate_latex_table(means,stds, legend, xlabels, csv_file):
+    latex_table_file_name = csv_file.split('.')[0] + '.tex'
+    NC = len(means[0])
+    NR = len(means)
+    lines = []
+    lines.append('\\begin{tabular}{l*{'+repr(NC) + "}{c}}")
+    lines.append("\hline")
+    line = "Policy "
+    for i in range(0,NC):
+        line = line + "& " + xlabels[i] + " "
+    line = line + "\\\\ "
+    lines.append(line)
+    lines.append("\hline")
+    
+    for i in range(0,NR):
+        line = legend[i] + " "
+        for j in range(0, NC):
 
+            line = line + "& $" + "{:.2f}".format(means[i][j]) + " \pm " + "{:.2f}".format(stds[i][j]) + " $ "
+        line = line + '\\\\ '
+        lines.append(line)
+    lines.append("\hline")
+    lines.append("\end{tabular}")
+    
+    with open(latex_table_file_name, 'w') as f:
+        f.write('\n'.join(lines))
+      
+         
 def plot_graph_from_csv(csv_file, plt_error):
     plt_title = None
     xlabels = None
@@ -433,6 +464,9 @@ def plot_graph_from_csv(csv_file, plt_error):
                     stderr = float(value.split(':')[1])
                 means[-1].append(mean)
                 stds[-1].append(stderr)
+    ans = raw_input('Generate latex table file[y or n]?')
+    if ans=='y':
+        generate_latex_table(means,stds, legend, xlabels, csv_file)
     plot_line_graph_with_std_error(fig_name, means, stds, plt_title, legend, xlabels)
     
 
