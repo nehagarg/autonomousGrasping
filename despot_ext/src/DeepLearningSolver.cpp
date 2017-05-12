@@ -54,7 +54,7 @@ ValuedAction DeepLearningSolver::Search() {
     std::istringstream iss(result);
     iss >> action;
     std::cout << "Action is " << action << std::endl;
-    int num_actions = model_->NumActions();
+    /*int num_actions = model_->NumActions();
     for(int i = 0; i < num_actions; i++)
     {
         double current_value;
@@ -65,7 +65,8 @@ ValuedAction DeepLearningSolver::Search() {
         }
         
         
-    }
+    }*/
+    value = 1;
     return ValuedAction(action, value);
     //For toy problem
     //return ValuedAction(deepLearningIdsToModelIds[action], value);

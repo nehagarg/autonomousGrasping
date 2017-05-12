@@ -384,7 +384,7 @@ class Seq2SeqModel(object):
         saver = tf.train.Saver()
         saver.restore(self.session, os.path.join(output_dir, checkpoint_file))
 
-def parse_data(fileName):
+def parse_data(fileName, my_seq_length):
     if(fileName is None) or (fileName.endswith('log')) or (',' not in fileName):
         if PROBLEM_NAME in ['pocman']:
             import pocman_data_generator as traces
@@ -408,6 +408,8 @@ def parse_data(fileName):
     yseqs = [[t[0] for t in seq][1:]+st for seq in seqs]
     '''
     maxlen = max(map(len, seqs)) + 1
+    if my_seq_length is not None:
+            maxlen = my_seq_length
     # extend to maxlen
     xseqs = [seq + [PAD]*(maxlen-len(seq)) for seq in xseqs]
     yseqs = [seq + [PAD]*(maxlen-len(seq)) for seq in yseqs]
@@ -424,9 +426,9 @@ def parse_data(fileName):
     return (seqs, xseqs, yseqs, encoder, maxlen)
 
 class DataGenerator(object):
-    def __init__(self, batch_size, fileName=None):
+    def __init__(self, batch_size, fileName=None, my_seq_length = None):
         self.batch_size = batch_size
-        self.seqs, self.xseqs, self.yseqs, self.encoder, self.seq_length = parse_data(fileName)
+        self.seqs, self.xseqs, self.yseqs, self.encoder, self.seq_length = parse_data(fileName, my_seq_length)
         #print len(self.xseqs)
         #print self.seq_length
         if batch_size == -1:

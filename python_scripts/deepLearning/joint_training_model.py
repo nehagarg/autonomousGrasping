@@ -80,7 +80,7 @@ def train(model_name, output_dir, model_input= None):
             #print outputs[0:2]
             correct_prediction = target==prediction #batch size *seq length * 1
             for i in xrange(len(outputs)):
-                if x[0][i][-1] == 0 and x[0][i][-2] == 0 : #not stump nd pad
+                if (not rnn_model.is_stump(x[0][i]) ) and (not rnn_model.is_pad(x[0][i]) ): #not stump nd pad
                     if correct_prediction[0][i]:
                         correct_prediction_outputs.append(outputs[i][0])
                     else:
@@ -98,7 +98,6 @@ def train(model_name, output_dir, model_input= None):
 
 
 def test(model_name, svm_model_prefix, model_input, action = 'test'):
-    #generate training data for two svms
     data_generator = rnn_model.DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
     if action == 'testBatch':
@@ -106,7 +105,7 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
         print data_generator.seq_length
         print 'data number of batches', data_generator.num_batches
     #num_val_batches = 1
-    seq_length = data_generator.seq_length
+    seq_length = data_generator.seq_length   
     with tf.Session(config=config.get_tf_config()) as sess:
         h_to_a_model = load_model(model_name, sess, seq_length)
         #summary_writer = tf.summary.FileWriter('output', sess.graph)
@@ -121,15 +120,39 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
         for _ in xrange(num_val_batches):
             x, y = data_generator.next_batch() # x/y = batch size*seq length*input_length/output length
             #target = np.argmax(y, axis=2) #target  = batch size*seq length *1
-            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
+            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #probs = batch size*seq length * output length #output = seqlength*batch size* hiddenunits
+
+                
+        
+            probs_without_dummy_actions = [i[:-2] for i in probs[0] ]
+            prediction = np.argmax([probs_without_dummy_actions], axis=2)
+            #prob_prediction = get_prob_prediction(probs_without_dummy_actions)
+        
+        
+            #print prediction[0]
+            
+            #if prob_prediction == -1:
+            #    print prediction[0][-2]
+            #else:
+            #    print prob_prediction
+            if action in [ 'testModel']:
+                print prediction[0][-2]
+                print ' '.join(str(p) for p in probs_without_dummy_actions[-2])
+                print prediction[0][-2]
+                print prediction[0]
+                print data_generator.yseqs
+                print model_name
+                return
+        
+        
             #summary_writer.add_summary(image_summary)
-            prediction = np.argmax(probs, axis=2) # prediction = batch size*seq length * 1
+            #prediction = np.argmax(probs, axis=2) # prediction = batch size*seq length * 1
             #print data_generator.xseqs
             #print y
             #print target[0]
             #print prediction[0]
             #print outputs[0:2]
-            
+
             for i in xrange(len(outputs)):
                 if (not rnn_model.is_stump(x[0][i]) ) and (not rnn_model.is_pad(x[0][i]) ): #not stump nd pad
                     prediction_outputs.append(outputs[i][0])
@@ -137,15 +160,22 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
         if len(prediction_outputs) == 0: #Initial stump
             print 1
             print -1
+            print prediction[0][-2]
         else:
             correct_prediction_svm = joblib.load(svm_model_prefix+ 'correct_prediction_svm.pkl') 
             wrong_prediction_svm = joblib.load(svm_model_prefix + 'wrong_prediction_svm.pkl') 
-            if action == 'test' :
-                y_correct_predict = correct_prediction_svm.predict([prediction_outputs[-1]])   
-                y_wrong_predict = wrong_prediction_svm.predict([prediction_outputs[-1]])
-        
+
+            svm_input = [prediction_outputs[-1]]
+            if action == 'testBatch':
+                svm_input = prediction_outputs
+
+            y_correct_predict = correct_prediction_svm.predict(svm_input)   
+            y_wrong_predict = wrong_prediction_svm.predict(svm_input)
+            
+            if action != 'testBatch':
                 print y_correct_predict[-1]
                 print y_wrong_predict[-1]
+                print prediction[0][-2]
                 #if(y_correct_predict[-1] == 1) and (y_wrong_predict[-1] == -1):
                 #    print 1
                 #else:
@@ -154,25 +184,78 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
                 print y_wrong_predict
                 #print data_generator.xseqs
             if action == 'testBatch':
-                y_correct_predict = correct_prediction_svm.predict(prediction_outputs)   
-                y_wrong_predict = wrong_prediction_svm.predict(prediction_outputs)
                 num_seen_predictions_correct_svm = num_seen_predictions_correct_svm + sum(xx for xx in y_correct_predict if xx == 1)
                 num_unseen_prediction_correct_svm = num_unseen_prediction_correct_svm + sum(xx for xx in y_correct_predict if xx == -1)
                 num_seen_predictions_wrong_svm = num_seen_predictions_wrong_svm + sum(xx for xx in y_wrong_predict if xx == 1)
                 num_unseen_prediction_wrong_svm = num_unseen_prediction_wrong_svm + sum(xx for xx in y_wrong_predict if xx == -1)
-        if action == 'test' :
-            print data_generator.yseqs
+        if action != 'testBatch' :
+
+            print ' '.join(str(p) for p in probs_without_dummy_actions[-2])
+            print prediction[0][-2]
             print prediction[0]
+            print data_generator.yseqs
+            print model_name
+
         if action == 'testBatch':
             print "Num seen predictions (correct svm, wrong svm):" + repr(num_seen_predictions_correct_svm) + "," + repr(num_seen_predictions_wrong_svm)
             print "Num unseen predictions (corect svm, wrong svm):" + repr(num_unseen_prediction_correct_svm) + "," + repr(num_unseen_prediction_wrong_svm)
-        #print x
-            
+            #print x
+
+
+def test_with_server(model_input, action = 'testServerWithSwitching', random_id  = None):
+    #This code has only been tested for learning model
+    #Needs to be tested for switching server
+    import rospy        
+    from learning_ros_server.srv import LearningServer, UnseenScenarioServer
+    learning_server_name = get_learning_server_name(random_id)
+    switching_server_name = get_switching_server_name(random_id)
+    
+    rospy.wait_for_service(learning_server_name)
+    learning_predictor = rospy.ServiceProxy(learning_server_name, LearningServer)
+    resp = learning_predictor(model_input)
+    prediction = resp.prediction
+    last_output = resp.last_activation
+    print prediction[resp.ans_index]
+    
+    if action == 'testServerWithSwitching':
+        if len(last_output) == 0:
+            print 1
+            print -1
+        else:
+    
+            #req = UnseenScenarioServerRequest()
+            #req.rnn_activations_batch = svm_input
+            rospy.wait_for_service(switching_server_name)
+            switching_predictor = rospy.ServiceProxy(switching_server_name, UnseenScenarioServer)
+            resp = switching_predictor(last_output)
+            y_correct_predict = resp.correct_predictions
+            y_wrong_predict = resp.wrong_predctions
+            print y_correct_predict[-1]
+            print y_wrong_predict[-1]
+            #if(y_correct_predict[-1] == 1) and (y_wrong_predict[-1] == -1):
+            #    print 1
+            #else:
+            #    print 0
+            print y_correct_predict
+            print y_wrong_predict
+    
+
+    print prediction
+    print random_id
 
     
     
-    
+def get_server_name(server_name, random_id):
+    ans = server_name
+    if random_id is not None:
+        ans = server_name + "_" + random_id
+    return ans
 
+def get_learning_server_name(random_id):
+    return get_server_name("learning_server", random_id)
+
+def get_switching_server_name(random_id):
+    return get_server_name("unseen_scenario_server", random_id)
 
 def load_model(model_name, sess, seq_length = None):
     model_dir = os.path.dirname(model_name + '.meta')
@@ -183,10 +266,9 @@ def load_model(model_name, sess, seq_length = None):
     model = model_params['model']
     hidden_units = model_params['hidden_units']
     num_layers = model_params['num_layers']
-    ### TODO: Get this information from a separate config
     prob_config = config.get_problem_config(rnn_model.PROBLEM_NAME)
     if seq_length is None:
-        seq_length = prob_config['max_sequence_length']
+        seq_length = prob_config['max_sequence_length'] + 1
     observation_length = prob_config['input_length']
     action_length = prob_config['output_length']
     
@@ -212,6 +294,78 @@ def load_model(model_name, sess, seq_length = None):
     start = time.time()
     model_load_time = start-end
     return model
+
+
+def handle_unseen_scenario_server_request(req):
+    global server_correct_prediction_svm
+    global server_wrong_prediction_svm
+    from learning_ros_server.srv import UnseenScenarioServerResponse
+    y_correct_predict = correct_prediction_svm.predict([req.rnn_activations_batch])   
+    y_wrong_predict = wrong_prediction_svm.predict([req.rnn_activation_batch])
+    ans = UnseenScenarioServerResponse()
+    ans.correct_predictions = y_correct_predict
+    ans.wrong_predictions = y_wrong_predict
+    return ans
+    
+    
+    
+    
+def launch_unseen_scenario_server(svm_model_prefix, random_id):
+    import rospy
+    from learning_ros_server.srv import UnseenScenarioServer
+    server_name = get_switching_server_name(random_id)
+    rospy.init_node(server_name)
+    global server_correct_prediction_svm
+    global server_wrong_prediction_svm
+    server_correct_prediction_svm = joblib.load(svm_model_prefix+ 'correct_prediction_svm.pkl') 
+    server_wrong_prediction_svm = joblib.load(svm_model_prefix + 'wrong_prediction_svm.pkl') 
+    rospy.Service(server_name, UnseenScenarioServer, handle_unseen_scenario_server_request)
+    rospy.spin()
+
+
+def handle_learning_server_request(req):
+    global h_to_a_model
+    from learning_ros_server.srv import LearningServerResponse
+    prob_config = config.get_problem_config(rnn_model.PROBLEM_NAME)
+    my_seq_length = prob_config['max_sequence_length'] + 1
+    data_generator = rnn_model.DataGenerator(1, req.input, my_seq_length)
+    x,y = data_generator.next_batch()
+    ans_index = len(data_generator.seqs[0]) - 1
+    probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #probs = batch size*seq length * output length #output = seqlength*batch size* hiddenunits
+            #summary_writer.add_summary(image_summary)
+    probs_without_dummy_actions = [i[:-2] for i in probs[0] ]
+    prediction = np.argmax([probs_without_dummy_actions], axis=2)
+    prediction_outputs = []
+    ans = LearningServerResponse()
+    ans.last_activation = []
+    for i in xrange(len(outputs)):
+        if (not rnn_model.is_stump(x[0][i]) ) and (not rnn_model.is_pad(x[0][i]) ): #not stump nd pad
+            prediction_outputs.append(outputs[i][0])
+    if len(prediction_outputs) > 0:
+        ans.last_activation = prediction_outputs[-1]
+    
+    
+    ans.prediction = prediction[0]
+    ans.ans_index = ans_index
+    print data_generator.yseqs
+    
+    return ans
+    
+    
+def launch_learning_server(model_name, random_id):
+    import rospy
+    from learning_ros_server.srv import LearningServer 
+    
+    server_name = get_learning_server_name(random_id)
+    rospy.init_node(server_name)
+
+    global h_to_a_model
+    
+    with tf.Session(config=config.get_tf_config()) as sess:
+        h_to_a_model = load_model(model_name, sess)
+        rospy.Service(server_name, LearningServer, handle_learning_server_request)
+        rospy.spin()
+    
     
     
     
@@ -225,9 +379,10 @@ def main():
     model_name = None
     model_input = None
     output_dir = None
+    random_id = None
     #global PROBLEM_NAME
-    
-    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:",["action=","model=","input=", "outdir=", "problem="])
+    action_list = ['testModel', 'testServer', 'testServerWithSwitching', "train", "test", 'testBatch', 'launch_learning_server', 'launch_unseen_scenario_server']
+    opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:r:",["action=","model=","input=", "outdir=", "problem="])
     #print opts
     for opt, arg in opts:
       # print opt
@@ -236,7 +391,7 @@ def main():
          sys.exit()
       elif opt in ("-a","--action" ):
           action = arg
-          if action not in ("train", "test", 'testBatch'):
+          if action not in action_list:
               action = raw_input("Please specify correction action[train|test]:")
       elif opt in ("-m", "--model"):
          model_name = arg
@@ -247,11 +402,20 @@ def main():
       elif opt in ("-p", "--problem"):
           #PROBLEM_NAME = arg
           rnn_model.PROBLEM_NAME = arg
+      elif opt == '-r':
+          random_id = arg    
         
     if action == 'train':
         train(model_name, output_dir, model_input)
-    else:
+    elif action in ['test', 'testBatch', 'testModel']:
         test(model_name, output_dir, model_input, action)
+    elif action == 'launch_learning_server':
+        launch_learning_server(model_name, random_id)
+    elif action == 'launch_unseen_scenario_server':
+        launch_unseen_scenario_server(output_dir, random_id)
+    elif action in ['testServer', 'testServerWithSwitching']:
+        test_with_server(model_input, action, random_id)
+    
     #test()
     #test_dataGenerator(1,logfileName)   
 

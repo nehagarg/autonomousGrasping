@@ -68,11 +68,18 @@ void LearningModel::GetInputSequenceForLearnedmodel(History h, std::ostream& oss
 
 std::string LearningModel::GetPythonExecutionString(History h) const {
     std::ostringstream oss;
-        
-    oss << "cd python_scripts/deepLearning ; python model.py -p " << problem_name << " -a test -i ";
-    GetInputSequenceForLearnedmodel(h, oss);
-    oss << "-m " << learned_model_name<< " ; cd - ;" ;
-           
+    
+    if (next_action !=-1)
+    {
+        oss << "echo " << next_action ;
+        next_action = -1;
+    }
+    else
+    {
+        oss << "cd python_scripts/deepLearning ; python model.py -p " << problem_name << " -a test -i ";
+        GetInputSequenceForLearnedmodel(h, oss);
+        oss << "-m " << learned_model_name<< " ; cd - ;" ;
+    }       
     return oss.str();
 }
 
@@ -99,6 +106,7 @@ ValuedAction LearningModel::GetNextActionFromUser(History h) const {
 
 bool LearningModel::ShallISwitchFromLearningToPlanning(History h) const {
     std::cout<< "Asking for switch using method" << automatic_switching_method << std::endl;
+    next_action = -1;
         if (automatic_switching_method == 0)
         {
             int hist_size = h.Size();
@@ -114,6 +122,7 @@ bool LearningModel::ShallISwitchFromLearningToPlanning(History h) const {
         std::istringstream iss(result);
         iss >> seen_scenario_correct;
         iss >> seen_scenario_wrong;
+        iss >> next_action;
         //std::cout << seen_scenario_correct;
         //std::cout << seen_scenario_wrong;
         int seen_scenario_correct_int = (int)seen_scenario_correct;
