@@ -29,7 +29,10 @@ class MainWindow(QWidget):
         self.playButtonTimers = [threading.Timer(1, self.playTimer), threading.Timer(1, self.playTimer)]
         self.currentTimer = 0
         
-        self.logParser = ParseLogFile(logfileName,drawPlanningBelief)
+        belief_type = ''
+        if drawPlanningBelief:
+            belief_type = 'planning'
+        self.logParser = ParseLogFile(logfileName,belief_type)
         self.stateWindow = DrawState(self.logParser, self)
         if self.drawPlanningBelief:
             self.beliefWindow = DrawPlanningBelief(self.logParser, self)
@@ -402,7 +405,7 @@ def main():
     if len(sys.argv) > 2:
         logType = sys.argv[2]
     
-
+    logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/graspingV4/results/despot_logs/t1_n20/Toy_test_belief_default_t1_n20_trial_' + stateId + '.log'
     #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/5_objects_obs_prob_change_particles_as_state/graspingV3_state_' + stateId + '_t120_obs_prob_change_particles_as_state_5objects.log' 
     #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/single_object_belief/training_objects/graspingV4_state_' + stateId + '_t10_n10_obs_prob_change_single_object_radius_1_4objects_100_particles.log' 
     #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(stateId) + '_t20_obs_prob_change_particles_as_state_4objects.log'

@@ -138,11 +138,13 @@ def main():
         
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_different_objects/grasping_v' + featureId + '/state_' + repr(i) + '.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_different_objects/sensor_observation_sum/state_' + repr(i) + '.log'
-        logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_different_objects/version3/state_' + repr(i) + '.log'
+        #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/deepLearning_different_objects/version3/state_' + repr(i) + '.log'
+        logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/graspingV4/results/despot_logs/t1_n20/Toy_test_belief_default_t1_n20_trial_' + repr(i) + '.log'
+        
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/adaboost_different_objects' + '/state_' + repr(i) + '.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_t10_obs_prob_change_particles_as_state_4objects.log'
         #logfileName = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2-server-version/4_objects_obs_prob_change_particles_as_state/graspingV3_state_' + repr(i) + '_t20_obs_prob_change_particles_as_state_4objects.log'
-        logParser = ParseLogFile(logfileName,False)
+        logParser = ParseLogFile(logfileName,'')
         if(len(logParser.stepInfo_) < 90):
             successfulTestCases.append(logParser)
         else:
