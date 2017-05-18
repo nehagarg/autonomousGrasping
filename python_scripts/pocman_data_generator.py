@@ -2,7 +2,7 @@
 import re
 import sys
 import os
-from plot_despot_results import generate_reward_file, get_mean_std_for_numbers_in_file
+from plot_despot_results import generate_reward_file, get_mean_std_for_numbers_in_file, get_mean_std_for_array
 import operator
 
 def get_mean_std_for_pocman(filename):
@@ -110,8 +110,12 @@ def get_high_reward_filenames(filenames):
     
     print sorted_x[0:5]
     high_reward_filenames = []
+    high_rewards = []
     for filename,reward in sorted_x[0:len(sorted_x)/2]:
 	high_reward_filenames.append(filename)
+        high_rewards.append(reward)
+    (high_reward_mean,_,_) = get_mean_std_for_array(high_rewards)
+    print high_reward_mean
     return high_reward_filenames
         
 
