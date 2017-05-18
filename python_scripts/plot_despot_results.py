@@ -40,13 +40,15 @@ def get_mean_std_for_numbers_in_file(filename):
     #print std2
     return (mean, std, std2)
 
-def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_name, end_index):
+def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_name, end_index = None):
     prev_path = os.getcwd()
     os.chdir(dir_name)
     #r = os.popen("cd " + dir_name).read()
     #print r
     i = 0
-    number_pattern = get_regex_from_number_range(0, end_index - 1)
+    number_pattern = ''
+    if end_index is not None:
+        number_pattern = get_regex_from_number_range(0, end_index - 1)
     for pattern in pattern_list:
         new_pattern = pattern.replace('.log', number_pattern + '.log')
         out_str = '>>'
