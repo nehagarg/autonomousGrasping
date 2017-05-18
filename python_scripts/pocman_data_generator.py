@@ -109,7 +109,7 @@ def get_high_reward_filenames(filenames):
     print len(sorted_x)
     
     print sorted_x[0:5]
-    print sorted_x[-5:-1]
+    print sorted_x[(len(sorted_x)/2) - 5:len(sorted_x)/2]
     high_reward_filenames = []
     high_rewards = []
     for filename,reward in sorted_x[0:len(sorted_x)/2]:
