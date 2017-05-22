@@ -158,7 +158,7 @@ def get_regex_from_number_range(start_number, end_number):
     #    pattern = pattern + '[' + start_number_string[i-(num_digits_end_number-num_digits_start_number)] + '-' + end_number_string[i] + ']'
     return pattern
     
-def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, end_index ):
+def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, end_index , checkPick = False):
     prev_path = os.getcwd()
     os.chdir(dir_name)
     all_cases = []
@@ -172,6 +172,10 @@ def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, 
             new_pattern = pattern.replace('.log', number_pattern + '.log')
             system_command = "grep -B 5 'Simulation terminated in' "
             system_command = system_command + new_pattern + " | grep 'Reward = "
+            if checkPick:
+                system_command = "grep -B 11 'Simulation terminated in' "
+                system_command = system_command + new_pattern + " | grep -A 6 'PICK' | grep 'Reward = "
+                
             system_command = system_command + repr(reward_value) + "' | wc -l"
             success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
             cases.append(float(success_cases))
@@ -305,6 +309,8 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     stuck_csv_file = csv_files[5]
     fraction_learning_calls_file = csv_files[6]
     error_file = csv_files[7]
+    if PROBLEM_NAME == 'vrep':
+        pick_failure_file = csv_files[8]
     
     success_cases_array = get_success_failure_cases(new_dir_name,patterns, max_reward, index_step, end_index)
     success_cases_per_index_step = [sum(x) for x in success_cases_array]
@@ -348,7 +354,13 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     num_ERROR_calls = sum(get_number_of_learning_calls(new_dir_name, 'ERROR', patterns, end_index, end_index)[0])
     num_error_calls = sum(get_number_of_learning_calls(new_dir_name, 'error', patterns, end_index, end_index)[0])
     error_file.write("," + repr(num_failed_calls) + ":" + repr(num_Error_calls) + ":" + repr(num_error_calls) + ":" + repr(num_ERROR_calls))
-    
+    if PROBLEM_NAME == 'vrep':
+        pick_failure_calls_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index, True)
+        pick_failure_calls_per_index_step = [sum(x) for x in pick_failure_calls_array]
+        fraction_pick_failures_per_index_step = [float(x)/float(y) for x,y in zip(pick_failure_calls_per_index_step, failure_cases_per_index_step)]
+        (mean, stddev, stderr) = get_mean_std_for_array(fraction_pick_failures_per_index_step) 
+        pick_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+        
 def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_scenarios, learning_versions, combined_policy_versions, begin_index, end_index, index_step):
     if dir_name is None:
         dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"    
@@ -372,6 +384,9 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     csv_files.append(av_learning_calls_file)
     error_file = open(csv_file_name[7], 'w')
     csv_files.append(error_file)
+    if PROBLEM_NAME == 'vrep':
+        pick_failure_file = open(csv_file_name[8], 'w')
+        csv_files.append(pick_failure_file)
     
     reward_csv_file.write("Average undiscounted reward")
     success_csv_file.write("Success cases")
@@ -381,6 +396,8 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     stuck_csv_file.write("Stuck cases")
     av_learning_calls_file.write("Leaning calls fraction")
     error_file.write("Files with error")
+    if PROBLEM_NAME == 'vrep':
+        pick_failure_file("Fractin pick failures")
     
     for n in sampled_scenarios:
         for csv_file in csv_files:
@@ -493,6 +510,8 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     #input_data_type = raw_input("Data type: reward or success_cases ?")
     data_types = ['reward', 'success_cases', 'av_step_success', 'av_step_failure', 'failure_cases', 'stuck_cases', 'percent_learning_calls']
     data_types.append('error_cases')
+    if PROBLEM_NAME == 'vrep':
+        data_types.append('pick_failures')
     #if input_data_type in data_types:
     #    data_type = input_data_type
     #else:
