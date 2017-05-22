@@ -397,7 +397,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     av_learning_calls_file.write("Leaning calls fraction")
     error_file.write("Files with error")
     if PROBLEM_NAME == 'vrep':
-        pick_failure_file("Fractin pick failures")
+        pick_failure_file.write("Fractin pick failures")
     
     for n in sampled_scenarios:
         for csv_file in csv_files:
