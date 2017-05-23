@@ -357,7 +357,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     if PROBLEM_NAME == 'vrep':
         pick_failure_calls_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index, True)
         pick_failure_calls_per_index_step = [sum(x) for x in pick_failure_calls_array]
-        fraction_pick_failures_per_index_step = [float(x)/float(y) for x,y in zip(pick_failure_calls_per_index_step, failure_cases_per_index_step)]
+        fraction_pick_failures_per_index_step = [0 if y==0 else float(x)/float(y) for x,y in zip(pick_failure_calls_per_index_step, failure_cases_per_index_step)]
         (mean, stddev, stderr) = get_mean_std_for_array(fraction_pick_failures_per_index_step) 
         pick_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
         
