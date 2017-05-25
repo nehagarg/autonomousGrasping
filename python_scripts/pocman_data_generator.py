@@ -121,10 +121,27 @@ def get_high_reward_filenames(filenames):
         
 
 def parse(filename=None, round = -1):
+    seqs = []
     if filename is None:
         filename = '../pocman_t10_100runs_access9.log'
 	
-    	return parse_pocman_trace(filename)
+    	seqs = seqs + parse_pocman_trace(filename)
+    elif filename == 'pocman/version2':
+        seqs = []
+        filenames = []
+        for i in range(0,1000):
+            for t in ['1','5','10']:
+                for n in ['100', '500', '1000']:
+                    logfilename = '../../pocman/results/t' + t + '_n' + n + '/full_pocman_t' + t + '_n' + n + '_trial_' + repr(i) + '.log'
+                    filenames.append(logfilename)
+                    logfilename = '../../pocman/results/learning/version1/combined_2/t' + t + '_n' + n + '/full_pocman__belief_default_t' + t + '_n' + n + '_trial_' + repr(i) + '.log'
+                    
+            logfilename = '../../pocman/results/learning/version1/full_pocman__trial_' + repr(i) + '.log'
+            filenames.append(logfilename)
+        high_reward_filenames = get_high_reward_filenames(filenames)
+        for logfilename in high_reward_filenames:
+            seqs = seqs + parse_pocman_trace(logfilename, round, True)            
+                    
     elif filename == 'pocman/version1':
         seqs = []
         filenames = []
@@ -136,11 +153,12 @@ def parse(filename=None, round = -1):
         high_reward_filenames = get_high_reward_filenames(filenames)
         for logfilename in high_reward_filenames:
             seqs = seqs + parse_pocman_trace(logfilename, round, True)
-        return seqs
+        
             
             
     else:
-	return parse_pocman_trace(filename, -1, False)
+	seqs = seqs + parse_pocman_trace(filename, -1, False)
+    return seqs
 
 def test_parser(filename):
     seqs = parse_pocman_trace(filename, 11)
