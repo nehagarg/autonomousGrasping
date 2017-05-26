@@ -46,7 +46,7 @@ def parse_pocman_trace(filename, round=-1, isTraining = True):
         line = f.readline()
         if not line:
             if isTraining and reward < -1: #Criteria for selecting trace in full pocman
-                    print "Removing Seq " + repr(round_no - 1)
+                    print "Removing Seq " + repr(round_no - 1) + " in file " + filename
                     del(seqs[-1])
 	    if not isTraining:
 		seqs[-1].append((5,None))
@@ -135,7 +135,7 @@ def parse(filename=None, round = -1):
                     logfilename = '../../pocman/results/t' + t + '_n' + n + '/full_pocman_t' + t + '_n' + n + '_trial_' + repr(i) + '.log'
                     filenames.append(logfilename)
                     logfilename = '../../pocman/results/learning/version1/combined_2/t' + t + '_n' + n + '/full_pocman__belief_default_t' + t + '_n' + n + '_trial_' + repr(i) + '.log'
-                    
+                    filenames.append(logfilename)
             logfilename = '../../pocman/results/learning/version1/full_pocman__trial_' + repr(i) + '.log'
             filenames.append(logfilename)
         high_reward_filenames = get_high_reward_filenames(filenames)
