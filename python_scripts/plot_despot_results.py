@@ -446,6 +446,8 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
    
 def generate_latex_table(means,stds, legend, xlabels, csv_file):
     latex_table_file_name = csv_file.split('.')[0] + '.tex'
+    ans = raw_input('Show standard deviation [y or n]?')
+    showStandardDeviation = (ans=='y')
     NC = len(means[0])
     NR = len(means)
     lines = []
@@ -459,10 +461,12 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
     lines.append("\hline")
     
     for i in range(0,NR):
-        line = legend[i] + " "
+        line = legend[i].replace('L7', 'L1').replace('L8', 'L1') + " "
         for j in range(0, NC):
-
-            line = line + "& $" + "{:.2f}".format(means[i][j]) + " \pm " + "{:.2f}".format(stds[i][j]) + " $ "
+            standard_deviation_string = ''
+            if showStandardDeviation:
+                standard_deviation_string = " \pm " + "{:.2f}".format(stds[i][j])
+            line = line + "& $" + "{:.2f}".format(means[i][j]) + standard_deviation_string + " $ "
         line = line + '\\\\ '
         lines.append(line)
     lines.append("\hline")
