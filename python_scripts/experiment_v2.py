@@ -164,9 +164,9 @@ def generate_params_file(file_name, problem_type):
 def generate_fixed_distribution_commands():
     for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20']:
         for interface_type in ["vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
-            generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml")
+            generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml")       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
 
     
 def main():
