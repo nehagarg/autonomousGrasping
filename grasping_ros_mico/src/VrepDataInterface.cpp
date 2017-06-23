@@ -80,27 +80,31 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     GetDefaultStartState(initial_state);
     
     
-    /*if (start_state_index >= 0 ) 
+    if (start_state_index >= 0 ) 
     {
         std::cout << "Start_state index is " << start_state_index << std::endl;
         
-        std::vector<GraspingStateRealArm> initial_states =  InitialStartStateParticles(initial_state);
-        std::cout << "Particle size is " <<  initial_states.size()<< std::endl;
-        int ii = start_state_index % initial_states.size();
-        initial_state.object_pose.pose.position.x = initial_states[ii].object_pose.pose.position.x ;
-        initial_state.object_pose.pose.position.y = initial_states[ii].object_pose.pose.position.y ;
+        //std::vector<GraspingStateRealArm> initial_states =  InitialStartStateParticles(initial_state);
+        //std::cout << "Particle size is " <<  initial_states.size()<< std::endl;
+        //int ii = start_state_index % initial_states.size();
+        //initial_state.object_pose.pose.position.x = initial_states[ii].object_pose.pose.position.x ;
+        //initial_state.object_pose.pose.position.y = initial_states[ii].object_pose.pose.position.y ;
         //initial_state = initial_states[i];
     //return  initial_states[ii];
+        int i = start_state_index / 7;
+        int j = start_state_index % 7;
+        grasping_state.object_pose.pose.position.y = initial_object_y -0.03 + (j*0.01);
+        grasping_state.object_pose.pose.position.x = initial_object_x -0.03 + (i*0.01);
     }
     else
-    {*/
+    {
        while(true){
             
           GenerateGaussianParticleFromState(initial_state, type);
-           //initial_state.object_pose.pose.position.x = 0.525039;
-           //initial_state.object_pose.pose.position.y = 0.171831;
+           //initial_state.object_pose.pose.position.x = 0.518375;
+           //initial_state.object_pose.pose.position.y = 0.155915;
            //initial_state.object_pose.pose.position.x = initial_object_x - 0.03;
-           //initial_state.object_pose.pose.position.y = initial_object_y + 0.03;
+           //initial_state.object_pose.pose.position.y = initial_object_y;
            // the engine for generator samples from a distribution
            /* unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             std::default_random_engine generator(seed);
@@ -139,15 +143,15 @@ std::vector<GraspingStateRealArm> VrepDataInterface::InitialStartStateParticles(
     int num_particles = 0;
     
     
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 7; i++)
     {
-        for(int j = 0; j < 10; j++)
+        for(int j = 0; j < 7; j++)
         {
            
             GraspingStateRealArm grasping_state(start);
             
-            grasping_state.object_pose.pose.position.y = min_y_o + (j*(max_y_o - min_y_o)/9.0);
-            grasping_state.object_pose.pose.position.x = min_x_o + (i*(max_x_o - min_x_o)/9.0);
+            grasping_state.object_pose.pose.position.y = initial_object_y -0.03 + (j*0.01);
+            grasping_state.object_pose.pose.position.x = initial_object_x -0.03 + (i*0.01);
             if(IsValidState(grasping_state))
             {
                particles.push_back(grasping_state);

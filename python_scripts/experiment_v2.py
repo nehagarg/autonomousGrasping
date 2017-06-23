@@ -27,8 +27,10 @@ def generate_commands(yaml_config):
     problem_type = yaml_config['problem_type']
     modified_additional_params = additional_params
     for i in range(begin_index, end_index):
-        if problem_type == 'graspingV4':
-            modified_additional_params = additional_params + repr(i)
+        #if problem_type == 'graspingV4':
+        #    modified_additional_params = additional_params + repr(i)
+        if additional_params.endswith('='):
+             modified_additional_params = additional_params + repr(i)
         command = "./bin/" + problem_type + " -v3 -t " + repr(planning_time) + " -n "
         command = command + repr(number_scenarios)+ ' -s ' + repr(horizon) + ' --solver=' + solver
         command = command + ' ' + modified_additional_params + ' -m ' + config_file + ' --belief=' + belief_type + ' > '
@@ -139,7 +141,11 @@ def generate_params_file(file_name, problem_type):
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
 
-    
+     if 'fixed_distribution' in file_name:
+        ans = get_default_params(file_name.replace('_fixed_distribuiton', '') )
+        ans['additional_params'] = '-l CAP --number='
+        ans['output_dir'] = ans['output_dir'] + "/fixed_distribution"
+        ans['end_index'] = 245
                 
     if file_name == 'data_model_9cm_combined_automatic.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_v4_automatic.yaml'
@@ -155,6 +161,13 @@ def generate_params_file(file_name, problem_type):
     f = open(file_name, 'w')
     f.write(output)
     
+def generate_fixed_distribution_commands():
+    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20']:
+        for interface_type in ["vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
+            generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml")
+            for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml")       
+
     
 def main():
     global LEARNED_MODEL_NAME
