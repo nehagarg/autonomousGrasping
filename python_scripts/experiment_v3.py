@@ -3,7 +3,7 @@ import os
 import getopt
 import sys
 from plot_despot_results import get_list_input
-
+import subprocess
     
 
 initial_ros_port = 11311
@@ -13,19 +13,19 @@ running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
 
-def generate_despot_command(t, n, l, c, problem_type, pattern):
-    actual_command = actual_command + ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
+def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
+    actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
     actual_command = actual_command + ' -c ' + repr(end_index)
     actual_command = actual_command + ' -t ' + t
-    actual_command = actual_command + ' -t ' + n
+    actual_command = actual_command + ' -n ' + n
     actual_command = actual_command + ' commands/' + command_prefix.replace('pattern', pattern)
     
-    if c is not 'None':
+    if c != 'None':
         actual_command = actual_command + '_combined_' + c
-    elif l is not 'None':
+    elif l != 'None':
         actual_command = actual_command + '_learning'
-    if l is not 'empty' and l is not 'None':    
+    if l != 'empty' and l != 'None':    
         actual_command = actual_command + "_v" + l
     actual_command = actual_command + '.yaml'
     return actual_command
@@ -41,7 +41,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     vrep_dir =  work_folder_dir + '/V-REP_PRO_EDU_V3_3_2_64_Linux'
     problem_dir = work_folder_dir + "/neha_github/autonomousGrasping/" + problem_type
     if problem_type == 'despot_without_display':
-        problem_dir = work_folder_dir + "/grasping_ros_mico"
+        problem_dir = work_folder_dir + "/neha_github/autonomousGrasping/" + "/grasping_ros_mico"
     
     input_pattern = raw_input("Pattern type: all or file identifier?")
     pattern = input_pattern
@@ -82,44 +82,44 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                 for n in sampled_scenarios:
                     for p in pattern_list:
                     
-                        actual_command = 'cd ' + problem_dir + ';' + generate_despot_command(t, n, l, c, problem_type, pattern)
+                        actual_command = 'cd ' + problem_dir + ';' + generate_despot_command(t, n, l, c, problem_type, p, begin_index, end_index, command_prefix)
                         despot_screen_name = repr(starting_screen_counter)+ '_' + problem_type
                         if separate_ros_vrep_port:
                             starting_ros_port = vrep_ros_port
                             despot_screen_name = repr(starting_screen_counter)+ '_' + problem_type + '_' + repr(starting_ros_port)
                             roscore_screen_name = repr(starting_screen_counter)+ '_roscore_' + repr(starting_ros_port)
                             
-                        f.write('screen -S ' + despot_screen_name + '-d -m \n')
+                        f.write('screen -S ' + despot_screen_name + ' -d -m \n')
                         script_start_command = 'script ' + despot_screen_name
-                        f.write("screen -S " + despot_screen_name + " -X stuff '" + script_start_command + "'^M")
+                        f.write("screen -S " + despot_screen_name + " -X stuff '" + script_start_command + " ^M' \n")
                             
                         if separate_ros_vrep_port:
                             ros_master_uri_command = 'export ROS_MASTER_URI=http://localhost:' +  repr(starting_ros_port)
                             roscore_command = 'roscore -p ' + repr(starting_ros_port)
                             f.write('screen -S ' + roscore_screen_name + ' -d -m  \n')
-                            f.write("screen -S " + roscore_screen_name + " -X stuff '" + ros_master_uri_command +  "'^M")
-                            f.write("screen -S roscore_" + roscore_screen_name + " -X stuff '" + roscore_command +  "'^M")
+                            f.write("screen -S " + roscore_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
+                            f.write("screen -S " + roscore_screen_name + " -X stuff '" + roscore_command +  " ^M' \n")
                             f.write("sleep 5s \n")
-                            f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  "'^M")
+                            f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                         
             
                             
                             vrep_command = 'cd ' + vrep_dir + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder' + p + '.ttt'
                             vrep_screen_name = repr(starting_screen_counter)+ '_vrep_' + repr(starting_ros_port)
 
-                            f.write('screen -S ' +  vrep_screen_name + '-d -m \n')
-                            f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  "'^M")
-                            f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  "'^M")
+                            f.write('screen -S ' +  vrep_screen_name + ' -d -m \n')
+                            f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
+                            f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  " ^M' \n")
                             f.write("sleep 5s \n")
 
                             vrep_ros_port = vrep_ros_port + 1
                             if vrep_ros_port > max_ros_port:
-                                vrep_ros_port = vrep_ros_port + 1
+                                vrep_ros_port = initial_ros_port + 1
                         if source_tensorflow:
                             tensorflow_command = 'source ' + tensorflow_path + '/bin/activate'
-                            f.write("screen -S " + despot_screen_name + " -X stuff '" + tensorflow_command + "'^M")
+                            f.write("screen -S " + despot_screen_name + " -X stuff '" + tensorflow_command + " ^M'\n")
                             
-                        f.write("screen -S " + despot_screen_name + " -X stuff '" + actual_command +  "'^M^D")
+                        f.write("screen -S " + despot_screen_name + " -X stuff '" + actual_command +  " ^M^D' \n")
                         starting_screen_counter = starting_screen_counter + 1
 
 def get_screen_counter_from_command(command):
@@ -138,7 +138,7 @@ def get_screen_counter_port_from_screen_name(screen_name):
     ros_port = -1
     try:
         ros_port = int(screen_name.split('_')[-1])
-    except NameError:
+    except ValueError:
         pass
     return(screen_counter, ros_port)
 
@@ -154,7 +154,7 @@ def add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes,
         running_screen_to_nodes[screen_name] = node_name
         
 def update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes):
-    ans = -1
+    ans = 0
     with open(running_node_file, 'r') as f:
         for line in f:
             values = line.strip().split()
@@ -169,14 +169,22 @@ def update_running_nodes(running_node_file, running_nodes_to_screen, running_scr
 def port_running_on_node(screen_port, node):
     global running_nodes_to_screen   
     global stopped_nodes_to_screen
-    screen_name_list = running_nodes_to_screen[node].copy()
-    for screen_name in stopped_nodes_to_screen[node]:
-        screen_name_list.remove(screen_name)
-    for screen_name in screen_name_list:
-        (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
-        if screen_port == ros_port:
-            return True
+    if node in running_nodes_to_screen.keys():
+        screen_name_list = running_nodes_to_screen[node].copy()
+        if node in stopped_nodes_to_screen.keys():
+            for screen_name in stopped_nodes_to_screen[node]:
+                screen_name_list.remove(screen_name)
+        for screen_name in screen_name_list:
+            (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
+            if screen_port == ros_port:
+                return True
     return False 
+def get_maximum_load_for_node(node):
+    if 'ncl' in node:
+        return 22
+    if 'eagle' in node:
+        return 30
+    return 4
     
 def assign_node(node_list, screen_name, running_node_file):
     global initial_ros_port
@@ -195,7 +203,14 @@ def assign_node(node_list, screen_name, running_node_file):
             continue
         #check node load
         command = "ssh " + node + " cat /proc/loadavg | awk '{print $1}'"
-        avg_load = run_command_on_node(command )
+        avg_load = 100
+        try:
+            output = run_command_on_node(command )
+            avg_load = float(output)
+        except ValueError:
+            print output
+            print "Taking default avg load of " + repr(avg_load)
+            
         max_av_load = get_maximum_load_for_node(node)
         if avg_load > max_av_load:
             continue
@@ -204,6 +219,8 @@ def assign_node(node_list, screen_name, running_node_file):
         if screen_port > initial_ros_port:
             if port_running_on_node(screen_port, node):
                 continue
+        elif 'despot_without_display' in screen_name:
+            do_roscore_setup([node])
         
         #update ans
         #update file containing screen_counters and node
@@ -217,12 +234,15 @@ def assign_node(node_list, screen_name, running_node_file):
     return None   
     
 
-def run_command_on_node(command):
+def run_command_on_node(command, node = None):
+    if node is not None:
+        command = "ssh " + node + " " + command
     ans = None
     try:
+        print "Executing : " + command
         ans = subprocess.check_output(["bash", "-O", "extglob", "-c", command])
-    except CalledProcessError as e:
-        pass
+    except subprocess.CalledProcessError as e:
+        print "Caught Called Process Error"
     return ans
 
 
@@ -235,22 +255,23 @@ def check_finished_processes(stopped_node_file):
     for screen_name in running_screen_to_nodes.keys():
         node_name = running_screen_to_nodes[screen_name]
         #try stopping the screen process
-        command = "ssh " + node_name + "screen -S "  + screen_name + " -X stuff '^D'"
-        run_command_on_node(command)
-        output = run_command_on_node(command)
+        command = "screen -S "  + screen_name + " -X stuff '^D'"
+        run_command_on_node(command, node_name)
+        output = run_command_on_node(command, node_name)
         if output is None: #screen stopped
             (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
             if ros_port > initial_ros_port :
+                #stop vrep and roscore screens
                 vrep_screen_name = '_'.join([repr(screen_counter), "vrep", repr(ros_port)])
                 roscore_screen_name = '_'.join([repr(screen_counter), "roscore", repr(ros_port)])
-                command = "ssh " + node_name + "screen -S "  + vrep_screen_name + " -X stuff '^C'"
-                run_command_on_node(command)
-                command = "ssh " + node_name + "screen -S "  + vrep_screen_name + " -X stuff '^D'"
-                run_command_on_node(command)
-                command = "ssh " + node_name + "screen -S "  + rosccore_screen_name + " -X stuff '^C'"
-                run_command_on_node(command)
-                command = "ssh " + node_name + "screen -S "  + roscore_screen_name + " -X stuff '^D'"
-                run_command_on_node(command)
+                command =  "screen -S "  + vrep_screen_name + " -X stuff '^C'"
+                run_command_on_node(command, node_name)
+                command = "screen -S "  + vrep_screen_name + " -X stuff '^D'"
+                run_command_on_node(command, node_name)
+                command = "screen -S "  + roscore_screen_name + " -X stuff '^C'"
+                run_command_on_node(command, node_name)
+                command = "screen -S "  + roscore_screen_name + " -X stuff '^D'"
+                run_command_on_node(command, node_name)
             with open(stopped_node_file, 'a' ) as f:
                 f.write(node_name + " " + screen_name + "\n")
             
@@ -259,24 +280,24 @@ def check_finished_processes(stopped_node_file):
 def update_nodes(node_file_name):        
     with open(node_file_name, 'r') as f:
         nodes = f.readlines()
+    nodes = [x.strip() for x in nodes]
+    return nodes
         
 def do_roscore_setup(nodes):
     for node in nodes:    
         output = run_command_on_node('screen -S roscore -X select .', node) #check if screen exists
-        if output == 1: #command unsuccessful screen does not exist
+        if output is None: #command unsuccessful screen does not exist
             run_command_on_node('screen -S roscore -d -m', node) #create screen
             run_command_on_node('screen -S roscore -X stuff "roscore^M"', node) #start roscore
         else: #screen already exists
             #check if roscore running
             run_command_on_node('screen -S roscore -X stuff "^D"', node)
             output = run_command_on_node('screen -S roscore -X stuff "^D"', node)
-            if output == 1: #roscore not running
+            if output is None: #roscore not running
                 run_command_on_node('screen -S roscore -X stuff "roscore^M"', node) #start roscore
 
 def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, roscore_setup = True):    
     nodes = update_nodes(node_file_name)
-    if roscore_setup:
-        do_roscore_setup(nodes)
     
     #update ports on each node
     global running_nodes_to_screen 
@@ -287,46 +308,50 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
     
     with open(current_screen_counter_file, 'r') as f:
-        assert(int(f.readlines() ) ==   start_screen_counter + 1)
+        assert(int(f.readline() ) ==   start_screen_counter)
     
-    existing_screen_counter = -1
+    existing_screen_counter = start_screen_counter
     assigned_node = None
     line_number_found = False
     with open(command_file_name) as f:
-        command = f.readline()
-        (screen_name, screen_counter, screen_port) = get_screen_counter_from_command(command)
-        while not line_number_found:
-            if screen_counter != start_screen_counter + 1:
-                continue
+        for line in f:
+            command = line.strip()
+            (screen_name, screen_counter, screen_port) = get_screen_counter_from_command(command)
+            while not line_number_found:
+                #print screen_counter
+                if screen_counter != start_screen_counter + 1:
+                    continue
+                else:
+                    line_number_found = True
+            if screen_counter is None:
+                print "Executing " + command
+                os.system(command)
             else:
-                line_number_found = True
-        if screen_counter == -1:
-            os.system(command)
-        else:
-            if screen_counter != existing_screen_counter:
-                assigned_node = None
-                while assigned_node is None:
-                    check_finished_processes(stopped_node_file)
-                    assigned_node = assign_node(node_list, screen_counter, screen_name, screen_port, running_node_file)
-                    if assigned_node is None:
-                        print "All nodes busy sleeping"
-                        with open(current_screen_counter_file, 'w') as f:
-                            f.write(screen_counter)
-                        run_command_on_node('sleep 300s')
-                        nodes = update_nodes(node_file_name)
-                        if roscore_setup:
-                            do_roscore_setup(nodes)
-                    
-                
-                    
-                existing_screen_counter = screen_counter
-            else:
-                assert(assigned_node is not None)
-            #not checking if a screen with a given name exists on the node, assign node will take care of it
-            run_command_on_node(command)
+                if screen_counter != existing_screen_counter:
+                    assigned_node = None
+                    while assigned_node is None:
+                        assigned_node = assign_node(nodes, screen_name, running_node_file)
+                        if assigned_node is None:
+                            print "All nodes busy. Sleeping..."
+                            run_command_on_node('sleep 300s')
+                            nodes = update_nodes(node_file_name)
+                            check_finished_processes(stopped_node_file)
+
+
+                    with open(current_screen_counter_file, 'w') as f:
+                        f.write(repr(existing_screen_counter))    
+                    existing_screen_counter = screen_counter
+                else:
+                    assert(assigned_node is not None)
+                #not checking if a screen with a given name exists on the node, assign node will take care of it
+                output = run_command_on_node(command, assigned_node)
+                if output is None:
+                    print "Command not executed. Exiting"
+                    sys.exit()
             
             
-        
+    with open(current_screen_counter_file, 'w') as f:
+            f.write(repr(existing_screen_counter))      
     
     #screen -S Jetty -X kill ; echo $?
     #screen -S Jetty -X stuff '^D'
@@ -334,19 +359,20 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
 
 
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hegvd:p:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegvstd:p:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
     genarate_command_file = False
     separate_ros_vrep_port = False
+    source_tensorflow = False
     starting_screen_counter = 1
 
     problem_type = None
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'experiment_v3.py -e -g -v -s starting_screen_counter -p problem_type -d work_folder_dir command_file'
+         print 'experiment_v3.py -e |-g -v -t  -s starting_screen_counter -p problem_type -d work_folder_dir command_file'
          sys.exit()
       elif opt == '-e':
          execute_command_file = True
@@ -354,6 +380,8 @@ def main():
          genarate_command_file = True
       elif opt == '-v':
          separate_ros_vrep_port = True
+      elif opt == '-t':
+         source_tensorflow = True
       elif opt == '-p':
           problem_type = arg
       elif opt == '-s':
@@ -365,12 +393,30 @@ def main():
         command_file = args[0]
         
     if genarate_command_file:
-        generate_command_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port)
+        generate_commands_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port)
         
     
     if execute_command_file:
-        run_command_file(command_file_name, "node_list.txt")
-
+        current_screen_counter_file = "run_txt_files/current_screen_counter.txt"
+        current_screen_counter = 0
+        if not os.path.exists(current_screen_counter_file):
+            with open(current_screen_counter_file, 'w') as f:
+                f.write(repr(current_screen_counter))
+        running_nodes_file = "run_txt_files/running_nodes.txt"
+        if not os.path.exists(running_nodes_file):
+            os.system('touch ' + running_nodes_file)
+        stopped_nodes_file = "run_txt_files/stopped_nodes.txt"
+        if not os.path.exists(stopped_nodes_file):
+            os.system('touch ' + stopped_nodes_file)
+        
+        while True:            
+            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file)
+            with open(current_screen_counter_file, 'r') as f:
+                new_screen_counter = int(f.readline())
+                if new_screen_counter == current_screen_counter:
+                    break
+                else:
+                    current_screen_counter = new_screen_counter
         
 
         
