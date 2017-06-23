@@ -142,7 +142,7 @@ def generate_params_file(file_name, problem_type):
         ans['solver'] = 'DEEPLEARNING'
 
     if 'fixed_distribution' in file_name:
-        ans = get_default_params(file_name.replace('_fixed_distribuiton', '') )
+        ans = get_default_params(file_name.replace('_fixed_distribution', '') )
         ans['additional_params'] = '-l CAP --number='
         ans['output_dir'] = ans['output_dir'] + "/fixed_distribution"
         ans['end_index'] = 245
