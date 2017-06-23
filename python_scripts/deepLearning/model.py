@@ -432,7 +432,7 @@ class DataGenerator(object):
         #print len(self.xseqs)
         #print self.seq_length
         if batch_size == -1:
-            batch_size = len(self.xseqs)
+            self.batch_size = len(self.xseqs)
         self.num_batches = len(self.xseqs)/self.batch_size
         #print 'data number of batches', self.num_batches
         self.batch_id = -1

@@ -7,6 +7,7 @@ import os
 #import math
 import time
 import deepLearning_data_generator as traces
+from plot_despot_results import plot_scatter_graph
 #from tensorflow.python.framework import dtypes
 #from tensorflow.python.ops import variable_scope
 from tensorflow.python.ops import rnn, rnn_cell
@@ -15,6 +16,7 @@ import config
 from sklearn import svm
 from sklearn.externals import joblib
 import model as rnn_model
+import matplotlib.pyplot as plt
 #from model import Encoder, Seq2SeqModel, DataGenerator, is_stump, is_pad, PROBLEM_NAME
 
 import numpy as np
@@ -49,6 +51,25 @@ def compute_svm(data,output_dir,file_prefix, nu=0.1, kernel="rbf", gamma=0.1):
     filename = get_svm_file_name(file_prefix, nu, kernel, gamma)
     joblib.dump(clf, output_dir + '/' + filename) 
     return clf
+
+def get_learning_model_output(model_name, raw_input, batch_size):
+    data_generator = rnn_model.DataGenerator(batch_size, raw_input)
+    seq_length = data_generator.seq_length 
+    print len(data_generator.xseqs)
+    print data_generator.seq_length
+    print 'data number of batches', data_generator.num_batches
+    with tf.Session(config=config.get_tf_config()) as sess:
+        h_to_a_model = load_model(model_name, sess, seq_length, data_generator.batch_size)
+        x, y = data_generator.next_batch()
+        target = np.argmax(y, axis=2) #target  = batch size*seq length *1
+        probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
+        return (probs, outputs , target ,x)
+def get_svm_model_output(svm_model_prefix, svm_model_input):
+    correct_prediction_svm = joblib.load(svm_model_prefix+ 'correct_prediction_svm.pkl') 
+    wrong_prediction_svm = joblib.load(svm_model_prefix + 'wrong_prediction_svm.pkl')
+    y_correct_predict = correct_prediction_svm.predict(svm_model_input)   
+    y_wrong_predict = wrong_prediction_svm.predict(svm_model_input)
+    return (y_correct_predict, y_wrong_predict)
     
 def train(model_name, output_dir, model_input= None):
     
@@ -201,6 +222,157 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
             print "Num unseen predictions (corect svm, wrong svm):" + repr(num_unseen_prediction_correct_svm) + "," + repr(num_unseen_prediction_wrong_svm)
             #print x
 
+def debug_with_pca(model_name, model_input, svm_model_prefix, model_input_test = None):
+    pca = joblib.load("toy_pca_model.pkl")
+    (probs,outputs,target,x) = get_learning_model_output(model_name, model_input, -1)
+    
+    prediction = np.argmax(probs, axis=2)
+    correct_prediction = target==prediction
+    batch_size = len(probs)
+    correct_prediction_outputs = []
+    wrong_prediction_outputs = []
+    for j in xrange(batch_size):
+            i = 1
+            if (not rnn_model.is_stump(x[j][i]) ) and (not rnn_model.is_pad(x[j][i]) ): #not stump nd pad
+                if correct_prediction[j][i]:
+                    correct_prediction_outputs.append(outputs[i][j])
+                else:
+                    wrong_prediction_outputs.append(outputs[i][j])
+    
+    print len(correct_prediction_outputs + wrong_prediction_outputs)
+   
+    (y_correct_predict, y_wrong_predict) = get_svm_model_output(svm_model_prefix, correct_prediction_outputs + wrong_prediction_outputs)
+    transformed_correct_prediction_outputs = pca.transform(correct_prediction_outputs)
+    transformed_wrong_prediction_outputs = pca.transform(wrong_prediction_outputs)
+    scatter_x = []
+    scatter_y = []
+    scatter_colors = []
+    scatter_markers = []
+    csv_file = open('toy_test_outputs.csv', 'w')
+    csv_file.write("x,y,type,correct_predict,wrong_predict \n")
+    
+    for i in range(0,len(correct_prediction_outputs + wrong_prediction_outputs)):
+        data_type = 'correct'
+        if i < len(correct_prediction_outputs):
+            scatter_x.append(transformed_correct_prediction_outputs[i][0])
+            scatter_y.append(transformed_correct_prediction_outputs[i][1])
+            scatter_colors.append('green')
+        else:
+            data_type = 'wrong'
+            scatter_x.append(transformed_wrong_prediction_outputs[i-len(transformed_correct_prediction_outputs)][0])
+            scatter_y.append(transformed_wrong_prediction_outputs[i-len(transformed_correct_prediction_outputs)][1])
+            scatter_colors.append('red')
+        
+        csv_file.write(repr(scatter_x[-1]) + "," + repr(scatter_y[-1]) + ",")
+        csv_file.write(data_type + "," + repr(y_correct_predict[i]) + "," + repr(y_wrong_predict[i]) + "\n")
+        
+        if(y_correct_predict[i]*y_wrong_predict[i] == 1):
+            if(y_correct_predict[i] == 1):
+                scatter_markers.append('^')
+            else:
+                scatter_markers.append('v')
+        else:
+            if(y_correct_predict[i] == 1):
+                scatter_markers.append('+')
+            else:
+                scatter_markers.append('o')
+    
+    csv_file.close()        
+    area = np.pi * (15 * 1)**2
+    m = np.array(scatter_markers)
+
+    unique_markers = set(m)  # or yo can use: np.unique(m)
+
+    for um in unique_markers:
+        mask = m == um 
+        # mask is now an array of booleans that van be used for indexing  
+        plt.scatter(np.array(scatter_x)[mask], np.array(scatter_y)[mask], marker=um, c = np.array(scatter_colors)[mask], s = area)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Data')
+    plt.show()
+    
+    
+def debug_with_pca_train(model_name, model_input, svm_model_prefix, model_input_test = None):
+    (probs,outputs,target,x) = get_learning_model_output(model_name, model_input, -1)
+    
+    prediction = np.argmax(probs, axis=2)
+    correct_prediction = target==prediction
+    batch_size = len(probs)
+    correct_prediction_outputs = []
+    wrong_prediction_outputs = []
+    for j in xrange(batch_size):
+        for i in xrange(len(outputs)):
+            if (not rnn_model.is_stump(x[j][i]) ) and (not rnn_model.is_pad(x[j][i]) ): #not stump nd pad
+                if correct_prediction[j][i]:
+                    correct_prediction_outputs.append(outputs[i][j])
+                else:
+                    wrong_prediction_outputs.append(outputs[i][j])
+    
+    #print len(correct_prediction_outputs + wrong_prediction_outputs)
+   
+    (y_correct_predict, y_wrong_predict) = get_svm_model_output(svm_model_prefix, correct_prediction_outputs + wrong_prediction_outputs)
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components = 2)
+    pca.fit(correct_prediction_outputs + wrong_prediction_outputs)
+    joblib.dump(pca, "toy_pca_model.pkl") 
+    
+    print pca.explained_variance_ratio_
+    #print pca.explained_variance_
+    print len(pca.components_)
+    transformed_correct_prediction_outputs = pca.transform(correct_prediction_outputs)
+    transformed_wrong_prediction_outputs = pca.transform(wrong_prediction_outputs)
+    scatter_x = []
+    scatter_y = []
+    scatter_colors = []
+    scatter_markers = []
+    csv_file = open('toy_outputs.csv', 'w')
+    csv_file.write("x,y,type,correct_predict,wrong_predict \n")
+    
+    for i in range(0,len(correct_prediction_outputs + wrong_prediction_outputs)):
+        data_type = 'correct'
+        if i < len(correct_prediction_outputs):
+            scatter_x.append(transformed_correct_prediction_outputs[i][0])
+            scatter_y.append(transformed_correct_prediction_outputs[i][1])
+            scatter_colors.append('green')
+        else:
+            data_type = 'wrong'
+            scatter_x.append(transformed_wrong_prediction_outputs[i-len(transformed_correct_prediction_outputs)][0])
+            scatter_y.append(transformed_wrong_prediction_outputs[i-len(transformed_correct_prediction_outputs)][1])
+            scatter_colors.append('red')
+        
+        csv_file.write(repr(scatter_x[-1]) + "," + repr(scatter_y[-1]) + ",")
+        csv_file.write(data_type + "," + repr(y_correct_predict[i]) + "," + repr(y_wrong_predict[i]) + "\n")
+        
+        if(y_correct_predict[i]*y_wrong_predict[i] == 1):
+            if(y_correct_predict[i] == 1):
+                scatter_markers.append('^')
+            else:
+                scatter_markers.append('v')
+        else:
+            if(y_correct_predict[i] == 1):
+                scatter_markers.append('+')
+            else:
+                scatter_markers.append('o')
+    
+    csv_file.close()        
+    area = np.pi * (15 * 1)**2
+    m = np.array(scatter_markers)
+
+    unique_markers = set(m)  # or yo can use: np.unique(m)
+
+    for um in unique_markers:
+        mask = m == um 
+        # mask is now an array of booleans that van be used for indexing  
+        plt.scatter(np.array(scatter_x)[mask], np.array(scatter_y)[mask], marker=um, c = np.array(scatter_colors)[mask], s = area)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Data')
+    plt.show()
+    
+    
+    
+    
 
 def test_with_server(model_input, action = 'testServerWithSwitching', random_id  = None):
     #This code has only been tested for learning model
@@ -257,7 +429,7 @@ def get_learning_server_name(random_id):
 def get_switching_server_name(random_id):
     return get_server_name("unseen_scenario_server", random_id)
 
-def load_model(model_name, sess, seq_length = None):
+def load_model(model_name, sess, seq_length = None, batch_size = 1):
     model_dir = os.path.dirname(model_name + '.meta')
     model_config_file = './output/' + model_dir+ "/params.yaml"
     import yaml
@@ -275,6 +447,7 @@ def load_model(model_name, sess, seq_length = None):
     
     encoder = rnn_model.Encoder(action_length, observation_length)
     input_length = encoder.size_x()
+    print input_length
     output_length = encoder.size_y()
     
     start = time.time()
@@ -285,7 +458,7 @@ def load_model(model_name, sess, seq_length = None):
                 seq_length=seq_length,
                 input_length=input_length,
                 output_length=output_length,
-                batch_size=1,
+                batch_size= batch_size,
                 scope="model")
     end = time.time()
     model_create_time = end-start
@@ -382,6 +555,7 @@ def main():
     random_id = None
     #global PROBLEM_NAME
     action_list = ['testModel', 'testServer', 'testServerWithSwitching', "train", "test", 'testBatch', 'launch_learning_server', 'launch_unseen_scenario_server']
+    action_list.append('pca_debug')
     opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:r:",["action=","model=","input=", "outdir=", "problem="])
     #print opts
     for opt, arg in opts:
@@ -415,6 +589,8 @@ def main():
         launch_unseen_scenario_server(output_dir, random_id)
     elif action in ['testServer', 'testServerWithSwitching']:
         test_with_server(model_input, action, random_id)
+    elif action =='pca_debug':
+        debug_with_pca(model_name, model_input, output_dir, None)
     
     #test()
     #test_dataGenerator(1,logfileName)   
