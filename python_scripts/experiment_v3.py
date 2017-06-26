@@ -316,7 +316,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
         for line in f:
             command = line.strip()
             (screen_name, screen_counter, screen_port) = get_screen_counter_from_command(command)
-            while not line_number_found:
+            if not line_number_found:
                 #print screen_counter
                 if screen_counter != start_screen_counter + 1:
                     continue
