@@ -99,7 +99,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' + roscore_screen_name + ' -d -m  \n')
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + roscore_command +  " ^M' \n")
-                            f.write("sleep 5s \n")
+                            f.write("sleep 60s \n")
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                         
             
@@ -110,7 +110,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' +  vrep_screen_name + ' -d -m \n')
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  " ^M' \n")
-                            f.write("sleep 5s \n")
+                            f.write("sleep 60s \n")
 
                             vrep_ros_port = vrep_ros_port + 1
                             if vrep_ros_port > max_ros_port:
@@ -148,7 +148,7 @@ def add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes,
             running_nodes_to_screen[node_name].append(screen_name)
     else:
         running_nodes_to_screen[node_name] = [screen_name]
-    if screen_name in running_screen_to_nodes:
+    if screen_name in running_screen_to_nodes.keys():
         assert(running_screen_to_nodes[screen_name] == node_name)
     else:
         running_screen_to_nodes[screen_name] = node_name
@@ -170,7 +170,7 @@ def port_running_on_node(screen_port, node):
     global running_nodes_to_screen   
     global stopped_nodes_to_screen
     if node in running_nodes_to_screen.keys():
-        screen_name_list = running_nodes_to_screen[node].copy()
+        screen_name_list = list(running_nodes_to_screen[node])
         if node in stopped_nodes_to_screen.keys():
             for screen_name in stopped_nodes_to_screen[node]:
                 screen_name_list.remove(screen_name)
