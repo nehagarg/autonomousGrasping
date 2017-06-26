@@ -186,9 +186,9 @@ def port_running_on_node(screen_port, node):
     return False 
 def get_maximum_load_for_node(node):
     if 'ncl' in node:
-        return 22
+        return 20
     if 'eagle' in node:
-        return 30
+        return 28
     return 4
     
 def assign_node(node_list, screen_name, running_node_file):
@@ -280,7 +280,7 @@ def check_finished_processes(stopped_node_file):
             with open(stopped_node_file, 'a' ) as f:
                 f.write(node_name + " " + screen_name + "\n")
             
-            add_entry_to_running_nodes(stopped_nodes_to_screen, stopped_screen_to_nodes, node, screen_name)    
+            add_entry_to_running_nodes(stopped_nodes_to_screen, stopped_screen_to_nodes, node_name, screen_name)    
                 
 def update_nodes(node_file_name):        
     with open(node_file_name, 'r') as f:
