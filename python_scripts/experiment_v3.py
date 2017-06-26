@@ -110,7 +110,8 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  " ^M' \n")
                             f.write("sleep 60s \n")
-
+                            
+                            actual_command = "until rostopic list | grep vrep ; do sleep 1; done ; " + actual_command
                             vrep_ros_port = vrep_ros_port + 1
                             if vrep_ros_port > max_ros_port:
                                 vrep_ros_port = initial_ros_port + 1
@@ -294,7 +295,8 @@ def do_roscore_setup(nodes):
             output = run_command_on_node("screen -S roscore -X stuff '^D'", node)
             if output is None: #roscore not running
                 run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
-
+                run_command_on_node("sleep 60s")
+                
 def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, roscore_setup = True):    
     nodes = update_nodes(node_file_name)
     
