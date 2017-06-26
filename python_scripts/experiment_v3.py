@@ -358,7 +358,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
 
 
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hegvstd:p:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegvtd:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
