@@ -4,8 +4,8 @@ import getopt
 import sys
 from plot_despot_results import get_list_input
 import subprocess
-    
 
+    
 initial_ros_port = 11311
 max_ros_port = initial_ros_port + 50
 running_nodes_to_screen = {}
@@ -235,8 +235,8 @@ def assign_node(node_list, screen_name, running_node_file):
     
 
 def run_command_on_node(command, node = None):
-    if node is not None:
-        command = "ssh " + node + " " + command
+    if node is not None: 
+        command = 'ssh ' + node + ' "' + command.replace('"', '\\"') + ' "'
     ans = None
     try:
         print "Executing : " + command
@@ -288,13 +288,13 @@ def do_roscore_setup(nodes):
         output = run_command_on_node('screen -S roscore -X select .', node) #check if screen exists
         if output is None: #command unsuccessful screen does not exist
             run_command_on_node('screen -S roscore -d -m', node) #create screen
-            run_command_on_node('screen -S roscore -X stuff "roscore^M"', node) #start roscore
+            run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
         else: #screen already exists
             #check if roscore running
-            run_command_on_node('screen -S roscore -X stuff "^D"', node)
-            output = run_command_on_node('screen -S roscore -X stuff "^D"', node)
+            run_command_on_node("screen -S roscore -X stuff '^D'", node)
+            output = run_command_on_node("screen -S roscore -X stuff '^D'", node)
             if output is None: #roscore not running
-                run_command_on_node('screen -S roscore -X stuff "roscore^M"', node) #start roscore
+                run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
 
 def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, roscore_setup = True):    
     nodes = update_nodes(node_file_name)
