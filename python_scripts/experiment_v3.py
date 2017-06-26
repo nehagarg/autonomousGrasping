@@ -74,15 +74,20 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     end_index_input = raw_input("End index (default 1000):")
     if end_index_input:
         end_index = int(end_index_input)
-    
+    index_step = end_index
+    index_step_input = raw_input("Index step (default " + repr(index_step) + " ):")
+    if index_step_input:
+        index_step = int(index_step_input)
+        
    
     for l in learning_versions:
         for c in combined_policy_versions:
             for t in time_steps:
                 for n in sampled_scenarios:
                     for p in pattern_list:
+                      for b_index in range(begin_index, end_index, index_step):
                     
-                        actual_command = 'cd ' + problem_dir + ';' + generate_despot_command(t, n, l, c, problem_type, p, begin_index, end_index, command_prefix)
+                        actual_command = 'cd ' + problem_dir + ';' + generate_despot_command(t, n, l, c, problem_type, p, b_index, b_index + index_step, command_prefix)
                         despot_screen_name = repr(starting_screen_counter)+ '_' + problem_type
                         if separate_ros_vrep_port:
                             starting_ros_port = vrep_ros_port
@@ -418,7 +423,8 @@ def main():
                     break
                 else:
                     current_screen_counter = new_screen_counter
-        
+                    #TODO automatically merge runnign and stopped nodes files using command
+                    #awk 'NR==FNR{a[$0];next} !($0 in a)' test_stopped_nodes.txt test_running_nodes.txt
 
         
 if __name__ == '__main__':
