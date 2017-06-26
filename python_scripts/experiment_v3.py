@@ -103,8 +103,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                         
             
-                            
-                            vrep_command = 'cd ' + vrep_dir + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder' + p + '.ttt'
+                            vrep_command = 'until rostopic list ; do sleep 1; done ; cd ' + vrep_dir + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder' + p + '.ttt'
                             vrep_screen_name = repr(starting_screen_counter)+ '_vrep_' + repr(starting_ros_port)
 
                             f.write('screen -S ' +  vrep_screen_name + ' -d -m \n')
