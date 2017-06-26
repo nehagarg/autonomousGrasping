@@ -38,8 +38,9 @@ GraspingRealArm::GraspingRealArm(int start_state_index_, VrepInterface* robotInt
     
 }
 
-GraspingRealArm::GraspingRealArm(std::string modelParamFileName) : LearningModel(modelParamFileName, "vrep"){
+GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state_index_) : LearningModel(modelParamFileName, "vrep"){
     YAML::Node config = YAML::LoadFile(modelParamFileName);
+    start_state_index = start_state_index_;
      int interface_type = 0;
     if(config["interface_type"])
     {
@@ -95,11 +96,11 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName) : LearningModel
     }
     
    
-    start_state_index = -1;
+    /*start_state_index = -1;
     if(config["start_state_index"])
     {
         start_state_index = config["start_state_index"].as<int>();
-    }
+    }*/
      
     InitializeRobotInterface(interface_type);
     
@@ -170,7 +171,7 @@ void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
   
     if(interfaceType == 0)
      {
-        VrepInterface* vrepInterfacePointer = new VrepInterface();
+        VrepInterface* vrepInterfacePointer = new VrepInterface(start_state_index);
     //
         robotInterface = vrepInterfacePointer;
      }
@@ -199,21 +200,21 @@ void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
 }
 
 
-
+/*
 GraspingRealArm::GraspingRealArm(std::string dataFileName, int start_state_index_) {
     
     start_state_index = start_state_index_;
-    /*for (int i = 0; i < num_sampled_objects; i++) {
-        object_id_to_radius.push_back(i + 0.5);
-    }
-    for (int i = num_sampled_objects; i < num_sampled_objects + 5; i++) {
-        object_id_to_radius.push_back(i+1 - num_sampled_objects);
-    }*/
+    //for (int i = 0; i < num_sampled_objects; i++) {
+    //    object_id_to_radius.push_back(i + 0.5);
+    //}
+    //for (int i = num_sampled_objects; i < num_sampled_objects + 5; i++) {
+    //    object_id_to_radius.push_back(i+1 - num_sampled_objects);
+   // }
     learning_data_file_name = dataFileName;
     
     
 }
-
+*/
 
 
 /*vector<HistoryWithReward*> GraspingRealArm::LearningData() const {

@@ -132,17 +132,21 @@ DSPOMDP* InitializeModelCommon(option::Option* options) {
             else
             {
        
-        */  
-     
+        */
+       int number = -1;
+       if (options[E_NUMBER]) {
+                number = atoi(options[E_NUMBER].arg);
+        }
+        
        if (options[E_PARAMS_FILE]) {
                     
            std::cout << "Config file is " << options[E_PARAMS_FILE].arg << std::endl;
                        
-                        model = new GraspingRealArm(options[E_PARAMS_FILE].arg );
+                        model = new GraspingRealArm(options[E_PARAMS_FILE].arg, number );
                 }
                 else
                 {
-                    model = new GraspingRealArm(-1);
+                    model = new GraspingRealArm(number);
                 }
         //    }
    
