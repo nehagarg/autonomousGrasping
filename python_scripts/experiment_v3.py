@@ -258,6 +258,8 @@ def check_finished_processes(stopped_node_file):
     global running_nodes_to_screen 
     global running_screen_to_nodes
     for screen_name in running_screen_to_nodes.keys():
+        if screen_name in stopped_screen_to_nodes.keys():
+            continue
         node_name = running_screen_to_nodes[screen_name]
         #try stopping the screen process
         command = "screen -S "  + screen_name + " -X stuff '^D'"
@@ -273,14 +275,18 @@ def check_finished_processes(stopped_node_file):
                 run_command_on_node(command, node_name)
                 command = "screen -S "  + vrep_screen_name + " -X stuff '^D'"
                 run_command_on_node(command, node_name)
-                command = "screen -S "  + roscore_screen_name + " -X stuff '^C'"
-                run_command_on_node(command, node_name)
-                command = "screen -S "  + roscore_screen_name + " -X stuff '^D'"
-                run_command_on_node(command, node_name)
-            with open(stopped_node_file, 'a' ) as f:
-                f.write(node_name + " " + screen_name + "\n")
-            
-            add_entry_to_running_nodes(stopped_nodes_to_screen, stopped_screen_to_nodes, node_name, screen_name)    
+                output = run_command_on_node(command, node_name)
+                if output is None:
+                    command = "screen -S "  + roscore_screen_name + " -X stuff '^C'"
+                    run_command_on_node(command, node_name)
+                    command = "screen -S "  + roscore_screen_name + " -X stuff '^D'"
+                    run_command_on_node(command, node_name)
+                    output = run_command_on_node(command, node_name)
+            if output is None:        
+                with open(stopped_node_file, 'a' ) as f:
+                    f.write(node_name + " " + screen_name + "\n")
+
+                add_entry_to_running_nodes(stopped_nodes_to_screen, stopped_screen_to_nodes, node_name, screen_name)    
                 
 def update_nodes(node_file_name):        
     with open(node_file_name, 'r') as f:
@@ -294,11 +300,13 @@ def do_roscore_setup(nodes):
         if output is None: #command unsuccessful screen does not exist
             run_command_on_node('screen -S roscore -d -m', node) #create screen
             run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
+            run_command_on_node("sleep 60s")
         else: #screen already exists
             #check if roscore running
             run_command_on_node("screen -S roscore -X stuff '^D'", node)
             output = run_command_on_node("screen -S roscore -X stuff '^D'", node)
-            if output is None: #roscore not running
+            if output is None: #roscore not running and screen killed
+                run_command_on_node('screen -S roscore -d -m', node) #create screen
                 run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
                 run_command_on_node("sleep 60s")
                 
@@ -334,6 +342,9 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
                 os.system(command)
             else:
                 if screen_counter != existing_screen_counter:
+                    with open(current_screen_counter_file, 'w') as f:
+                        f.write(repr(existing_screen_counter))    
+                    existing_screen_counter = screen_counter
                     assigned_node = None
                     while assigned_node is None:
                         assigned_node = assign_node(nodes, screen_name, running_node_file)
@@ -344,9 +355,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
                             check_finished_processes(stopped_node_file)
 
 
-                    with open(current_screen_counter_file, 'w') as f:
-                        f.write(repr(existing_screen_counter))    
-                    existing_screen_counter = screen_counter
+                    
                 else:
                     assert(assigned_node is not None)
                 #not checking if a screen with a given name exists on the node, assign node will take care of it
