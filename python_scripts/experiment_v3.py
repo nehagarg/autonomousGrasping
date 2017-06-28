@@ -309,7 +309,15 @@ def do_roscore_setup(nodes):
                 run_command_on_node('screen -S roscore -d -m', node) #create screen
                 run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
                 run_command_on_node("sleep 60s")
-                
+
+def all_processes_stopped():
+    global running_screen_to_nodes
+    global stopped_screen_to_nodes
+    running_screens = running_screen_to_nodes.keys()
+    stopped_screens = stopped_screen_to_nodes.keys()
+    
+    return set(running_screens) == set(stopped_screens)
+    
 def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, roscore_setup = True):    
     nodes = update_nodes(node_file_name)
     
@@ -434,7 +442,10 @@ def main():
                     current_screen_counter = new_screen_counter
                     #TODO automatically merge runnign and stopped nodes files using command
                     #awk 'NR==FNR{a[$0];next} !($0 in a)' test_stopped_nodes.txt test_running_nodes.txt
-
+        while(not all_processes_stopped()):
+            print "Sleeping before checking process status..."
+            run_command_on_node('sleep 600s')
+            check_finished_processes(stopped_nodes_file)
         
 if __name__ == '__main__':
     main()
