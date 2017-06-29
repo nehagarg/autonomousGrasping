@@ -314,14 +314,13 @@ def next_screen_counter(screen_counter_list, current_screen_counter):
     if screen_counter_list is None:
         return current_screen_counter + 1
     else:
-        if current_screen_counter < screen_counter_list[0]
+        if current_screen_counter < screen_counter_list[0]:
             return screen_counter_list[0]
         if current_screen_counter >= screen_counter_list[-1]:
             return 10000000  #Something more than number of commands in file
         else:
             i = screen_counter_list.index(current_screen_counter) + 1
-            if i < len(screen_counter_list):
-                return screen_counter_list[i]
+            return screen_counter_list[i]
                 
             
 def all_processes_stopped():
