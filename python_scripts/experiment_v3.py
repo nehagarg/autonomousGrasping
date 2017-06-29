@@ -2,7 +2,7 @@
 import os
 import getopt
 import sys
-from plot_despot_results import get_list_input
+#from plot_despot_results import get_list_input
 import subprocess
 
     
@@ -12,6 +12,20 @@ running_nodes_to_screen = {}
 running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
+
+#Copied from plot_despot_results to avoid importing the modeules it is dependent on
+def get_list_input(sampled_scenarios, command):
+    while True:
+        input = raw_input(command + " are " + " ".join(map(str, sampled_scenarios)) + " To add type a <no>. To remove type r <no>. To stop type s.")
+        if 's' in input:
+            break
+        if 'a' in input:
+            sampled_scenarios.append(input.split(' ')[1])
+            sampled_scenarios = sorted(set(sampled_scenarios))
+        if 'r' in input:
+            sampled_scenarios.remove(input.split(' ')[1])
+    return sampled_scenarios  
+
 
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
