@@ -310,6 +310,18 @@ def do_roscore_setup(nodes):
                 run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
                 run_command_on_node("sleep 60s")
 
+def next_screen_counter(screen_counter_list, current_screen_counter):
+    if screen_counter_list is None:
+        return current_screen_counter + 1
+    else:
+        if current_screen_counter < screen_counter_list[0]
+            return screen_counter_list[0]
+        else:
+            i = screen_counter_list.index(current_screen_counter) + 1
+            if i >= len(screen_counter_list):
+                i = len(screen_counter_list) -1 
+            return screen_counter_list[i]
+            
 def all_processes_stopped():
     global running_screen_to_nodes
     global stopped_screen_to_nodes
@@ -318,7 +330,7 @@ def all_processes_stopped():
     
     return set(running_screens) == set(stopped_screens)
     
-def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, roscore_setup = True):    
+def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file):    
     nodes = update_nodes(node_file_name)
     
     #update ports on each node
@@ -329,6 +341,13 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     start_screen_counter = update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
     update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
     
+    start_screen_counter_list = None
+    if screen_counter_list_file is not None:
+        print "Reading counter list from " + screen_counter_list_file
+        with open(screen_counter_list_file, 'r') as f:
+            all_lines = f.readlines()
+            start_screen_counter_list = sorted(set([int(x) for x in all_lines]))
+        
     with open(current_screen_counter_file, 'r') as f:
         assert(int(f.readline() ) ==   start_screen_counter)
     
@@ -341,7 +360,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
             (screen_name, screen_counter, screen_port) = get_screen_counter_from_command(command)
             if not line_number_found:
                 #print screen_counter
-                if screen_counter != start_screen_counter + 1:
+                if screen_counter != next_screen_counter(start_screen_counter_list, existing_screen_counter):
                     continue
                 else:
                     line_number_found = True
@@ -351,7 +370,9 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
             else:
                 if screen_counter != existing_screen_counter:
                     with open(current_screen_counter_file, 'w') as f:
-                        f.write(repr(existing_screen_counter))    
+                        f.write(repr(existing_screen_counter))  
+                    if screen_counter != next_screen_counter(start_screen_counter_list, existing_screen_counter):
+                        continue
                     existing_screen_counter = screen_counter
                     assigned_node = None
                     while assigned_node is None:
@@ -431,9 +452,14 @@ def main():
         stopped_nodes_file = "run_txt_files/stopped_nodes.txt"
         if not os.path.exists(stopped_nodes_file):
             os.system('touch ' + stopped_nodes_file)
+        counter_list_file_name = "run_txt_files/screen_counter_list.txt"
+        counter_list_file = None
+        if os.path.exists(counter_list_file_name):
+            counter_list_file = counter_list_file_name
+            
         
         while True:            
-            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file)
+            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file)
             with open(current_screen_counter_file, 'r') as f:
                 new_screen_counter = int(f.readline())
                 if new_screen_counter == current_screen_counter:
