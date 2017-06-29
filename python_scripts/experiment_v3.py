@@ -317,7 +317,7 @@ def next_screen_counter(screen_counter_list, current_screen_counter):
         if current_screen_counter < screen_counter_list[0]:
             return screen_counter_list[0]
         if current_screen_counter >= screen_counter_list[-1]:
-            return 10000000  #Something more than number of commands in file
+            return current_screen_counter + 1  #Assuming we want to start with the rest of the commands
         else:
             i = screen_counter_list.index(current_screen_counter) + 1
             return screen_counter_list[i]
