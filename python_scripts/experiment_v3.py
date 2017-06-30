@@ -118,7 +118,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' + roscore_screen_name + ' -d -m  \n')
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + roscore_command +  " ^M' \n")
-                            f.write("sleep 60s \n")
+                            f.write("sleep 60 \n")
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                         
             
@@ -128,7 +128,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' +  vrep_screen_name + ' -d -m \n')
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  " ^M' \n")
-                            f.write("sleep 60s \n")
+                            f.write("sleep 60 \n")
                             
                             actual_command = "until rostopic list | grep vrep ; do sleep 1; done ; " + actual_command
                             vrep_ros_port = vrep_ros_port + 1
@@ -320,7 +320,7 @@ def do_roscore_setup(nodes):
         if output is None: #command unsuccessful screen does not exist
             run_command_on_node('screen -S roscore -d -m', node) #create screen
             run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
-            run_command_on_node("sleep 60s")
+            run_command_on_node("sleep 60")
         else: #screen already exists
             #check if roscore running
             run_command_on_node("screen -S roscore -X stuff '^D'", node)
@@ -328,7 +328,7 @@ def do_roscore_setup(nodes):
             if output is None: #roscore not running and screen killed
                 run_command_on_node('screen -S roscore -d -m', node) #create screen
                 run_command_on_node("screen -S roscore -X stuff 'roscore^M'", node) #start roscore
-                run_command_on_node("sleep 60s")
+                run_command_on_node("sleep 60")
 
 def next_screen_counter(screen_counter_list, current_screen_counter):
     if screen_counter_list is None:
@@ -400,7 +400,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
                         assigned_node = assign_node(nodes, screen_name, running_node_file)
                         if assigned_node is None:
                             print "All nodes busy. Sleeping..."
-                            run_command_on_node('sleep 300s')
+                            run_command_on_node('sleep 300')
                             nodes = update_nodes(node_file_name)
                             check_finished_processes(stopped_node_file)
 
@@ -491,7 +491,7 @@ def main():
                     #awk 'NR==FNR{a[$0];next} !($0 in a)' test_stopped_nodes.txt test_running_nodes.txt
         while(not all_processes_stopped()):
             print "Sleeping before checking process status..."
-            run_command_on_node('sleep 600s')
+            run_command_on_node('sleep 600')
             check_finished_processes(stopped_nodes_file)
         
 if __name__ == '__main__':
