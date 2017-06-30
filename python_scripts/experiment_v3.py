@@ -275,6 +275,12 @@ def check_finished_processes(stopped_node_file):
         if screen_name in stopped_screen_to_nodes.keys():
             continue
         node_name = running_screen_to_nodes[screen_name]
+        #check node ssh
+        command = "timeout 5 ssh " + node_name + " echo 'hello'"
+        success = run_command_on_node(command )
+        if success is None:
+            print "Could not ssh. So not updated finished process list"
+            continue
         #try stopping the screen process
         command = "screen -S "  + screen_name + " -X stuff '^D'"
         run_command_on_node(command, node_name)
