@@ -44,7 +44,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
     actual_command = actual_command + '.yaml'
     return actual_command
     
-def generate_commands_file(file_name, problem_type, work_folder_dir, starting_screen_counter = 0, source_tensorflow = False, separate_ros_vrep_port = False):
+def generate_commands_file(file_name, problem_type, work_folder_dir, starting_screen_counter = 1, source_tensorflow = False, separate_ros_vrep_port = False):
     f = open(file_name, 'w')    
     global initial_ros_port
     global max_ros_port 
