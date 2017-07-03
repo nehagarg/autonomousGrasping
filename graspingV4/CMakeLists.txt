@@ -12,6 +12,9 @@ set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")
 set(CONFIG_INSTALL_PATH "${LIBRARY_INSTALL_PATH}/${PROJECT_NAME}/cmake")
 
 include_directories("${DESPOT_HOME}/include" "../despot_ext/include")
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
 find_library(DESPOT_LIB NAMES despot HINTS "${DESPOT_HOME}/build")
 find_library(DESPOT_EXT_LIB NAMES despot_ext HINTS "../build/despot_ext")
 find_library(YAML-CPP yaml-cpp /usr/local/lib)

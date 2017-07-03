@@ -22,24 +22,54 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class Seq2SeqModelExt(rnn_model.Seq2SeqModel):
-    def predict_and_return_state(self, input_values, summary = False):
+    def predict_and_return_state(self, input_values, rnn_state, summary = False):
+        #print "Before input"
+        #from pprint import pprint
+        #pprint(vars(self))
+        input_feed = self.get_input_feed_from_input(input_values, rnn_state)
+        #probs, states, output_summary = self.session.run([self.testing_graph.probs, self.testing_graph._outputs, self.testing_graph.merged], input_feed)
+        output_summary = None
+        if summary:
+            output_summary, probs, output, new_rnn_state = self.session.run([self.testing_graph.merged, self.testing_graph.probs, self.testing_graph._outputs, self.testing_graph.rnn_states], feed_dict=input_feed)
+        else:
+            probs, output, new_rnn_state = self.session.run([ self.testing_graph.probs, self.testing_graph._outputs, self.testing_graph.rnn_states], feed_dict=input_feed)
+        
+        probs = np.array(probs)
+        probs = np.transpose(probs, (1,0,2))
+        #output_summary=None
+        return probs, output, new_rnn_state, output_summary
+    
+    def get_input_feed_from_input(self, input_values, rnn_state = None):
         input_feed = {}
         for i, inp in enumerate(self.testing_graph.inputs):
             #print inp.name
             #print input_values[:,i,:]
             input_feed[inp.name] = input_values[:, i, :]
-        #probs, states, output_summary = self.session.run([self.testing_graph.probs, self.testing_graph._outputs, self.testing_graph.merged], input_feed)
-        output_summary = None
-        if summary:
-            output_summary, probs, states = self.session.run([self.testing_graph.merged, self.testing_graph.probs, self.testing_graph._outputs], feed_dict=input_feed)
-        else:
-            probs, states = self.session.run([ self.testing_graph.probs, self.testing_graph._outputs], feed_dict=input_feed)
+        if rnn_state is not None:
+            #print "Rnn state not none"
+            from tensorflow.python.util.nest import flatten
+            placeholder_list = flatten(self.testing_graph.state_placeholder)
+            data_list = flatten(rnn_state)
+            #print placeholder_list
+            #print data_list
+            for i, inp in enumerate(placeholder_list):
+                input_feed[inp.name] = data_list[i]
+        return input_feed
+    
+    def get_rnn_state_info(self, input_values, rnn_state = None):
+        input_feed = {}
+        if input_values is not None:
+            input_feed = self.get_input_feed_from_input(input_values, rnn_state)
         
-        probs = np.array(probs)
-        probs = np.transpose(probs, (1,0,2))
-        #output_summary=None
-        return probs, states, output_summary
+            
+        state = self.session.run([ self.testing_graph.rnn_states ], feed_dict=input_feed)
+        #cells, state = self.session.run([ self.testing_graph.cells, self.testing_graph.zero_state_var], feed_dict=input_feed)
+        #state_size = cells.state_size
+        state_size = 1
+        return (state_size, state)
+        
 
+    
 def get_svm_file_name(file_prefix,nu=0.1, kernel="rbf", gamma=0.1 ):
     filename = 'nu_'+ repr(nu).replace('.', '_') + '_kernel_' + kernel +  '_gamma_' + repr(gamma).replace('.', '_') + '_'
     filename = filename + file_prefix + '_svm.pkl'
@@ -52,7 +82,49 @@ def compute_svm(data,output_dir,file_prefix, nu=0.1, kernel="rbf", gamma=0.1):
     joblib.dump(clf, output_dir + '/' + filename) 
     return clf
 
-def get_learning_model_output(model_name, raw_input, batch_size):
+#function to be called by cpp
+def get_learning_model(model_name, problem_name):
+    rnn_model.PROBLEM_NAME = problem_name
+    sess = tf.Session(config=config.get_tf_config())
+    h_to_a_model = load_model(model_name, sess, 1, 1)
+    return h_to_a_model
+def get_output_learning_model(problem_name, h_to_a_model,raw_input,rnn_state = None):
+    rnn_model.PROBLEM_NAME = problem_name
+    #print raw_input
+    data_generator = rnn_model.DataGenerator(1, raw_input)
+    print data_generator.xseqs
+    if rnn_state is None:
+        assert(data_generator.seq_length == 2)
+    else:
+        assert(data_generator.seq_length == 3)
+    x, y = data_generator.next_batch()
+    #print x
+    actual_input = x[:,-2:-1,:]
+    #print actual_input
+    probs, outputs, new_rnn_state, image_summary = h_to_a_model.predict_and_return_state(actual_input, rnn_state, summary = False) #output = seqlength*batch size* hiddenunits
+    #print probs
+    probs_without_dummy_actions = [i[:-2] for i in probs[0] ]
+    prediction = np.argmax([probs_without_dummy_actions], axis=2)
+    #print prediction
+    print ' '.join(str(p) for p in probs_without_dummy_actions[-1])
+    action = prediction[0][-1]
+    print action
+    return (action, new_rnn_state, outputs[0][0]) #batch size is 1 , seq length is 1
+def get_svm_model(svm_model_prefix, problem_name):
+    rnn_model.PROBLEM_NAME = problem_name
+    correct_prediction_svm = joblib.load(svm_model_prefix+ 'correct_prediction_svm.pkl') 
+    wrong_prediction_svm = joblib.load(svm_model_prefix + 'wrong_prediction_svm.pkl')
+    return (correct_prediction_svm, wrong_prediction_svm)
+def get_svm_output_from_model(problem_name, svm_model, svm_model_input):
+    rnn_model.PROBLEM_NAME = problem_name
+    #print "Getting svm output"
+    return svm_model.predict([svm_model_input])[0]
+
+    
+    
+    
+    
+def get_learning_model_output(model_name, raw_input, rnn_state, batch_size):
     data_generator = rnn_model.DataGenerator(batch_size, raw_input)
     seq_length = data_generator.seq_length 
     print len(data_generator.xseqs)
@@ -62,8 +134,8 @@ def get_learning_model_output(model_name, raw_input, batch_size):
         h_to_a_model = load_model(model_name, sess, seq_length, data_generator.batch_size)
         x, y = data_generator.next_batch()
         target = np.argmax(y, axis=2) #target  = batch size*seq length *1
-        probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
-        return (probs, outputs , target ,x)
+        probs, outputs, new_rnn_state, image_summary = h_to_a_model.predict_and_return_state(x, rnn_state, summary = False) #output = seqlength*batch size* hiddenunits
+        return (probs, outputs , new_rnn_state, target ,x)
 def get_svm_model_output(svm_model_prefix, svm_model_input):
     correct_prediction_svm = joblib.load(svm_model_prefix+ 'correct_prediction_svm.pkl') 
     wrong_prediction_svm = joblib.load(svm_model_prefix + 'wrong_prediction_svm.pkl')
@@ -71,7 +143,7 @@ def get_svm_model_output(svm_model_prefix, svm_model_input):
     y_wrong_predict = wrong_prediction_svm.predict(svm_model_input)
     return (y_correct_predict, y_wrong_predict)
     
-def train(model_name, output_dir, model_input= None):
+def train(model_name, output_dir, model_input):
     
     data_generator = rnn_model.DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
@@ -91,7 +163,7 @@ def train(model_name, output_dir, model_input= None):
         for _ in xrange(num_val_batches):
             x, y = data_generator.next_batch() # x/y = batch size*seq length*input_length/output length
             target = np.argmax(y, axis=2) #target  = batch size*seq length *1
-            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
+            probs, outputs, rnn_state, image_summary = h_to_a_model.predict_and_return_state(x, None, summary = False) #output = seqlength*batch size* hiddenunits
             #summary_writer.add_summary(image_summary)
             prediction = np.argmax(probs, axis=2) # prediction = batch size*seq length * 1
             #print data_generator.xseqs
@@ -118,7 +190,7 @@ def train(model_name, output_dir, model_input= None):
         #print y_wrong_predict
 
 
-def test(model_name, svm_model_prefix, model_input, action = 'test'):
+def test(model_name, svm_model_prefix, model_input, rnn_state, action = 'test'):
     data_generator = rnn_model.DataGenerator(1, model_input)
     num_val_batches = data_generator.num_batches
     if action == 'testBatch':
@@ -141,7 +213,7 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
         for _ in xrange(num_val_batches):
             x, y = data_generator.next_batch() # x/y = batch size*seq length*input_length/output length
             #target = np.argmax(y, axis=2) #target  = batch size*seq length *1
-            probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #probs = batch size*seq length * output length #output = seqlength*batch size* hiddenunits
+            probs, outputs, new_rnn_state, image_summary = h_to_a_model.predict_and_return_state(x, rnn_state, summary = False) #probs = batch size*seq length * output length #output = seqlength*batch size* hiddenunits
 
                 
         
@@ -163,7 +235,7 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
                 print prediction[0]
                 print data_generator.yseqs
                 print model_name
-                return
+                return new_rnn_state
         
         
             #summary_writer.add_summary(image_summary)
@@ -221,10 +293,11 @@ def test(model_name, svm_model_prefix, model_input, action = 'test'):
             print "Num seen predictions (correct svm, wrong svm):" + repr(num_seen_predictions_correct_svm) + "," + repr(num_seen_predictions_wrong_svm)
             print "Num unseen predictions (corect svm, wrong svm):" + repr(num_unseen_prediction_correct_svm) + "," + repr(num_unseen_prediction_wrong_svm)
             #print x
+        return new_rnn_state
 
 def debug_with_pca(model_name, model_input, svm_model_prefix, model_input_test = None):
     pca = joblib.load("toy_pca_model.pkl")
-    (probs,outputs,target,x) = get_learning_model_output(model_name, model_input, -1)
+    (probs,outputs,new_rnn_state,target,x) = get_learning_model_output(model_name, model_input, None, -1)
     
     prediction = np.argmax(probs, axis=2)
     correct_prediction = target==prediction
@@ -294,7 +367,7 @@ def debug_with_pca(model_name, model_input, svm_model_prefix, model_input_test =
     
     
 def debug_with_pca_train(model_name, model_input, svm_model_prefix, model_input_test = None):
-    (probs,outputs,target,x) = get_learning_model_output(model_name, model_input, -1)
+    (probs,outputs,new_rnn_state, target,x) = get_learning_model_output(model_name, model_input, None, -1)
     
     prediction = np.argmax(probs, axis=2)
     correct_prediction = target==prediction
@@ -447,7 +520,7 @@ def load_model(model_name, sess, seq_length = None, batch_size = 1):
     
     encoder = rnn_model.Encoder(action_length, observation_length)
     input_length = encoder.size_x()
-    print input_length
+    #print input_length
     output_length = encoder.size_y()
     
     start = time.time()
@@ -504,7 +577,7 @@ def handle_learning_server_request(req):
     data_generator = rnn_model.DataGenerator(1, req.input, my_seq_length)
     x,y = data_generator.next_batch()
     ans_index = len(data_generator.seqs[0]) - 1
-    probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #probs = batch size*seq length * output length #output = seqlength*batch size* hiddenunits
+    probs, outputs, new_rnn_state, image_summary = h_to_a_model.predict_and_return_state(x, None, summary = False) #probs = batch size*seq length * output length #output = seqlength*batch size* hiddenunits
             #summary_writer.add_summary(image_summary)
     probs_without_dummy_actions = [i[:-2] for i in probs[0] ]
     prediction = np.argmax([probs_without_dummy_actions], axis=2)
@@ -541,7 +614,87 @@ def launch_learning_server(model_name, random_id):
     
     
     
+def debug(model_name, model_input):  
     
+    hidden_units = 128
+    model = 'rnn'
+    num_layers = 2
+    prob_config = config.get_problem_config(rnn_model.PROBLEM_NAME)
+    observation_length = prob_config['input_length']
+    action_length = prob_config['output_length']
+    encoder = rnn_model.Encoder(action_length, observation_length)
+    input_length = encoder.size_x()
+    output_length = encoder.size_y()
+    batch_size = 3
+    seq_length = 1
+    #data_generator = rnn_model.DataGenerator(batch_size, model_input)
+    #seq_length = data_generator.seq_length 
+    #print len(data_generator.xseqs)
+    #print data_generator.seq_length
+    #print 'data number of batches', data_generator.num_batches
+    x1 = np.ones((batch_size, seq_length, input_length), dtype = np.int8)
+    x2 = 2*x1
+    x = np.concatenate((x1,x2), axis=1)
+    print x1.shape
+    print x2.shape
+    print x.shape
+    
+    with tf.Session(config=config.get_tf_config()) as sess:
+        #h_to_a_model = load_model(model_name, sess, seq_length, data_generator.batch_size)
+        print "Before creating model"
+        h_to_a_model_1 = Seq2SeqModelExt(session=sess,
+                hidden_units=hidden_units,
+                model=model,
+                num_layers=num_layers,
+                seq_length=seq_length,
+                input_length=input_length,
+                output_length=output_length,
+                batch_size= batch_size,
+                scope="model")
+        print "model_rceated"
+        h_to_a_model_1.init_variables()
+        tf.train.Saver(max_to_keep = 0).save(sess, "output/" + model_name)
+        #x, y = data_generator.next_batch()
+        #target = np.argmax(y, axis=2) #target  = batch size*seq length *1
+        #probs, outputs, image_summary = h_to_a_model.predict_and_return_state(x, summary = False) #output = seqlength*batch size* hiddenunits
+        #print probs
+        state_size, rnn_state_1 = h_to_a_model_1.get_rnn_state_info(x1) #output = seqlength*batch size* hiddenunits
+        print np.array(rnn_state_1).shape
+        print rnn_state_1
+        print "Querying again"
+        state_size, rnn_state_2 = h_to_a_model_1.get_rnn_state_info(x2, rnn_state_1) 
+        #print state_size
+        print np.array(rnn_state_2).shape
+        print rnn_state_2
+        
+    #for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='model'):
+    #    print i 
+        
+    tf.reset_default_graph()
+    
+    #for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='model'):
+    #    print i 
+        
+    
+         
+    with tf.Session(config=config.get_tf_config()) as sess:
+        #h_to_a_model = load_model(model_name, sess, seq_length, data_generator.batch_size)
+        print "Before creating model"
+        h_to_a_model_2 = Seq2SeqModelExt(session=sess,
+                hidden_units=hidden_units,
+                model=model,
+                num_layers=num_layers,
+                seq_length=2*seq_length,
+                input_length=input_length,
+                output_length=output_length,
+                batch_size= batch_size,
+                scope="model")
+        h_to_a_model_2.load(model_name)
+        state_size, rnn_state_3 = h_to_a_model_2.get_rnn_state_info(x)
+        print rnn_state_3
+        assert np.array_equal(rnn_state_3,rnn_state_2)
+        
+        
 def main():
     # running parameters
     #batch_size = 1
@@ -556,6 +709,8 @@ def main():
     #global PROBLEM_NAME
     action_list = ['testModel', 'testServer', 'testServerWithSwitching', "train", "test", 'testBatch', 'launch_learning_server', 'launch_unseen_scenario_server']
     action_list.append('pca_debug')
+    action_list.append('debug')
+    
     opts, args = getopt.getopt(sys.argv[1:],"ha:m:i:o:p:r:",["action=","model=","input=", "outdir=", "problem="])
     #print opts
     for opt, arg in opts:
@@ -582,7 +737,7 @@ def main():
     if action == 'train':
         train(model_name, output_dir, model_input)
     elif action in ['test', 'testBatch', 'testModel']:
-        test(model_name, output_dir, model_input, action)
+        test(model_name, output_dir, model_input, None, action)
     elif action == 'launch_learning_server':
         launch_learning_server(model_name, random_id)
     elif action == 'launch_unseen_scenario_server':
@@ -591,6 +746,8 @@ def main():
         test_with_server(model_input, action, random_id)
     elif action =='pca_debug':
         debug_with_pca(model_name, model_input, output_dir, None)
+    elif action =='debug':
+        debug(model_name, model_input)
     
     #test()
     #test_dataGenerator(1,logfileName)   

@@ -7,9 +7,49 @@
 
 #include "DeepLearningSolver.h"
 #include <despot/core/lower_bound.h>
+#include <unistd.h>
 
-DeepLearningSolver::DeepLearningSolver(const LearningModel* model, Belief* belief) : Solver(model, belief) {
+DeepLearningSolver::DeepLearningSolver(const LearningModel* model, Belief* belief) : LearningSolverBase(model, belief) {
     
+    
+
+    //Py_SetProgramName(argv[0]);
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('python_scripts')");
+    PyRun_SimpleString("sys.path.append('python_scripts/deepLearning')");
+    char ** argv;
+    PySys_SetArgv(0, argv);
+    PyRun_SimpleString("print sys.argv[0]");
+    //PyRun_SimpleString("import tensorflow as tf");
+    PyObject *pName;
+    pName = PyString_FromString("joint_training_model");
+    PyObject *pModule = PyImport_Import(pName);
+    if(pModule == NULL)
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"joint training model\"\n");
+        assert(0==1);
+        return ;
+    }
+    Py_DECREF(pName);
+    load_function = PyObject_GetAttrString(pModule, "get_learning_model");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"get_learning_model\"\n");
+    }
+    run_function = PyObject_GetAttrString(pModule, "get_output_learning_model");
+    if (!(run_function && PyCallable_Check(run_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"get_learning_model_output\"\n");
+    }
+    
+    
+    load_deep_policy(model->learned_model_name);
     //cout << "Initializing adaboost solver" << endl;
     //Currently id mapping done manually 
     //Ideally should be done by parsing .data file in the model
@@ -28,9 +68,11 @@ DeepLearningSolver::DeepLearningSolver(const LearningModel* model, Belief* belie
 }
 
 
+
 DeepLearningSolver::~DeepLearningSolver() {
-    
+    Py_Finalize();
 }
+
 /*template <typename T>
 std::string to_string(T const& value) {
     std::stringstream sstr;
@@ -38,13 +80,136 @@ std::string to_string(T const& value) {
     return sstr.str();
 }*/
 
+
+PyObject* DeepLearningSolver::get_state_and_next_action(PyObject* rnn_state, int action, uint64_t obs) {
+    PyObject *ans;
+    History h;
+    if (action >=0)
+    {
+        h.Add(action, obs);
+    }
+    std::ostringstream oss;
+    ((LearningModel*)model_)->GetInputSequenceForLearnedmodel(h, oss);
+    
+    PyObject *pArgs;
+    if(rnn_state != NULL)
+    {
+        std::cout << "Rnn state is not null " << std::endl;
+     pArgs = PyTuple_New(4);
+     PyTuple_SetItem(pArgs, 3, rnn_state );
+     Py_INCREF(rnn_state);
+    }
+    else
+    {
+        std::cout << "Rnn state is null " << std::endl;
+       pArgs = PyTuple_New(3); 
+    }
+    PyObject *pValue = PyString_FromString((((LearningModel*)model_)->problem_name).c_str());
+    PyTuple_SetItem(pArgs, 0, pValue );
+    PyTuple_SetItem(pArgs, 1, h_to_a_model );
+    Py_INCREF(h_to_a_model);
+    pValue = PyString_FromString(oss.str().c_str());
+    PyTuple_SetItem(pArgs, 2, pValue );
+    ans = PyObject_CallObject(run_function, pArgs);
+    Py_DECREF(pArgs);
+    //Call python function to give rnn state and next action
+    if (ans != NULL) {
+        //std::cout << "Call to run model succeeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to run model failed\n");
+        assert(0==1);
+    }
+    return ans;
+}
+
+void DeepLearningSolver::load_deep_policy(std::string learned_model_name) {
+    
+    PyObject *pArgs, *pValue;
+   
+    char* prev_directory = getcwd(NULL, 0);
+    char *directory = "python_scripts/deepLearning";
+    int directory_changed = chdir(directory);
+    assert(directory_changed == 0);
+    pArgs = PyTuple_New(2);
+    pValue = PyString_FromString(learned_model_name.c_str());
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, 0, pValue);
+    /* pValue reference stolen here: */
+    pValue = PyString_FromString((((LearningModel*)model_)->problem_name).c_str());
+    PyTuple_SetItem(pArgs, 1, pValue);
+
+    h_to_a_model = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(pArgs);
+    if (h_to_a_model != NULL) {
+        std::cout << "Call to load model succeeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to load model failed\n");
+        assert(0==1);
+    }
+    
+    directory_changed = chdir(prev_directory);
+    assert(directory_changed == 0);
+        
+}
+
+
+
+
+
 ValuedAction DeepLearningSolver::Search() {
     std::cout << "Starting search" << std::endl;
     
    // std::string cmd_string = "cd python_scripts/deepLearning ; python model.py " + to_string((int)((LearningModel*)model_)->GetStartStateIndex()) + "; cd - ;";
     
-    std::string cmd_string = ((LearningModel*)model_)->GetPythonExecutionString(history_);
     
+    return Search(history_);
+}
+
+ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h) {
+    PyObject *rnn_state = NULL;
+    for(int i = h.Size(); i< rnn_state_history.size(); i++)
+    {
+        Py_DECREF(rnn_state_history[i]);
+        Py_DECREF(rnn_output_history[i]);
+         //TODO delete PyObjects properly
+    }
+    rnn_state_history.resize(h.Size());
+    rnn_output_history.resize(h.Size());
+    int action = -1;
+    uint64_t obs;
+    if(h.Size() > 0){
+        std::cout << "History size greater than zero" << std::endl;
+        rnn_state = rnn_state_history[h.Size() -1 ];
+        action = h.LastAction();
+        obs = h.LastObservation();
+    }
+    PyObject *new_rnn_state;
+    PyObject *new_rnn_output;
+    PyObject *ans;
+    
+    ans = get_state_and_next_action(rnn_state, action, obs);
+    action = (int) PyInt_AsLong(PyTuple_GetItem(ans, 0));
+    new_rnn_state = PyTuple_GetItem(ans, 1);
+    Py_INCREF(new_rnn_state);
+    rnn_state_history.push_back(new_rnn_state);
+    
+    new_rnn_output = PyTuple_GetItem(ans, 2);
+    Py_INCREF(new_rnn_output);
+    rnn_output_history.push_back(new_rnn_output);
+    
+    Py_DECREF(ans);
+    double value = 1;
+    return ValuedAction(action, value);
+}
+
+ValuedAction DeepLearningSolver::SearchUsingCommandLineCall(History h) {
+        std::string cmd_string = ((LearningModel*)model_)->GetPythonExecutionString(h);
     std::cout << "Before calling exec" << std::endl;
     std::string result = exec(cmd_string.c_str());
     std::cout << result << std::endl;
@@ -70,6 +235,14 @@ ValuedAction DeepLearningSolver::Search() {
     return ValuedAction(action, value);
     //For toy problem
     //return ValuedAction(deepLearningIdsToModelIds[action], value);
+}
+
+ValuedAction DeepLearningSolver::Search(History h) {
+    
+    ValuedAction ans1 = SearchUsingPythonFunction(h);
+    //ValuedAction ans2 = SearchUsingCommandLineCall(h);
+    //assert(ans1.action == ans2.action);
+    return ans1;
     
 }
 

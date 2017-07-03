@@ -18,7 +18,7 @@ public:
 
     
   
-private:
+protected:
     std::string exec(const char* cmd) {
     FILE* pipe = popen(cmd, "r");
     if (!pipe) return "ERROR";

@@ -7,11 +7,12 @@
 
 #ifndef DEEPLEARNINGSOLVER_H
 #define	DEEPLEARNINGSOLVER_H
-#include <despot/core/solver.h>
 #include "LearningModel.h"
+#include "LearningSolverBase.h"
+#include "Python.h"
 
 
-class DeepLearningSolver : public Solver {
+class DeepLearningSolver : public LearningSolverBase {
 public:
     DeepLearningSolver(const LearningModel* model, Belief* belief = NULL);
     
@@ -19,13 +20,25 @@ public:
 
     virtual ValuedAction Search();
     virtual void Update(int action, uint64_t obs);
+    virtual ValuedAction Search(History h);
     
     /*virtual void Update(int action, ObservationClass obs){
         Solver::Update(action, obs.GetHash());
     }*/
-
-
+    
+    std::vector< PyObject*> rnn_state_history;
+    std::vector< PyObject*> rnn_output_history; //required for svm model input
 private:
+    PyObject *h_to_a_model;
+    PyObject *load_function, *run_function;
+
+    void load_deep_policy(std::string learned_model_name);
+    PyObject* get_state_and_next_action(PyObject* rnn_state, int action, uint64_t obs);
+    
+    ValuedAction SearchUsingPythonFunction(History h);
+    ValuedAction SearchUsingCommandLineCall(History h);
+        
+/*private:
     std::string exec(const char* cmd) {
     FILE* pipe = popen(cmd, "r");
     if (!pipe) return "ERROR";
@@ -40,6 +53,7 @@ private:
     }
     
     int deepLearningIdsToModelIds[10] = {6, 4, 7, 3, 1, 9, 2, 8, 5, 0}; //This was used for adaboost solver
+ */ 
 };
 
 

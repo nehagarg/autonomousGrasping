@@ -30,16 +30,18 @@ public:
     virtual std::string GetPythonExecutionStringForJointTraining(History h) const;
     virtual double GetUncertaintyValue(Belief* b) const;
     virtual ValuedAction GetNextActionFromUser(History h) const;
-    virtual bool ShallISwitchFromLearningToPlanning(History h) const;
-    virtual bool ShallISwitchFromPlanningToLearning(History h) const;
+
     virtual void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const;
+    virtual int GetSwitchingMethod() const;
+    virtual void SetStoreObsHash(bool value) const;
     
     std::string learned_model_name = "";
     int automatic_switching_method = 0; // 0  for threshold switching 1 for switching wirh both correct and wrong prediction 2 for switching with only correct prediction
     std::string svm_model_prefix = "";
     int switch_threshold = 10;
     std::string problem_name = "vrep";
-    mutable int next_action = -1; //Obtained from joint model
+    //mutable int next_action = -1; //Obtained from joint model
+    mutable bool store_obs_hash = false;
     
     private:
         std::string python_exec(const char* cmd) const {

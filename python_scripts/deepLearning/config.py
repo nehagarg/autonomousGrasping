@@ -29,6 +29,12 @@ def get_problem_config(problem_name):
         ans['output_length'] = 4
         ans['input_data_type'] = tf.bool
         ans['input_data_type_np'] = np.bool
+    if problem_name == 'test' :
+        ans['max_sequence_length'] = 10
+        ans['input_length'] = 1
+        ans['output_length'] = 2
+        ans['input_data_type'] = tf.int8
+        ans['input_data_type_np'] = np.int8
     return ans
 
 def global_var_setting():

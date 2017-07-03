@@ -444,7 +444,10 @@ bool GraspingRealArm::Step(State& state, double random_num, int action,
     PrintObs(grasping_obs, obs_string);
     uint64_t hashValue = obsHash(obs_string.str());
     obs.SetIntObs(hashValue);
-    //Not storing the hash value in map as the observation returned is not compared using ObsProb function
+    if (store_obs_hash) {
+        obsHashMap[hashValue] = grasping_obs;
+    }
+    //Not storing the hash value in map for all cases as the observation returned is not compared using ObsProb function
     //Need to do so in StepActual
     
     double step_end_t = get_time_second();

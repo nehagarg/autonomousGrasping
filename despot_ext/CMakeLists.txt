@@ -9,6 +9,9 @@ set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")
 set(CONFIG_INSTALL_PATH "${LIBRARY_INSTALL_PATH}/${PROJECT_NAME}/cmake")
 
 include_directories("${DESPOT_HOME}/include" "include")
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
 
 find_library(DESPOT_LIB NAMES despot HINTS "${DESPOT_HOME}/build")
 
@@ -20,6 +23,7 @@ add_library("${PROJECT_NAME}" SHARED
 )
 target_link_libraries("${PROJECT_NAME}"
   "${DESPOT_LIB}"
+  "${PYTHON_LIBRARIES}"
 )
 
 #install(TARGETS "${PROJECT_NAME}"

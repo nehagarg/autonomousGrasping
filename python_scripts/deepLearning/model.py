@@ -89,6 +89,7 @@ class Seq2SeqGraph(object):
                 batch_size=32):
         self.inputs = []
         self.outputs = []
+        self.state_placeholder = None
         self.batch_size = batch_size
         self.output_length = output_length
         tf.constant(seq_length, name='seq_length')
@@ -104,9 +105,25 @@ class Seq2SeqGraph(object):
         # valid action mask for action filtering in sampling
         self.valid_actions = tf.placeholder(tf.bool, shape=(None, self.output_length), name='valid')
         ### end for c++ calling
+        
 
         def random_uniform():
             return tf.random_uniform_initializer(-weight_amplitude, weight_amplitude)
+        
+        def rnn_placeholders(state):
+        #Convert RNN state tensors to placeholders with the zero state as default.
+            if isinstance(state, tf.nn.rnn_cell.LSTMStateTuple):
+                c, h = state
+                c = tf.placeholder_with_default(c, c.get_shape(), c.op.name)
+                h = tf.placeholder_with_default(h, h.get_shape(), h.op.name)
+                return tf.nn.rnn_cell.LSTMStateTuple(c, h)
+            elif isinstance(state, tf.Tensor):
+                h = state
+                h = tf.placeholder_with_default(h, h.get_shape(), h.op.name)
+                return h
+            else:
+                structure = [rnn_placeholders(x) for x in state]
+                return tuple(structure)
 
         if model == 'rnn':
             cell_fn = rnn_cell.BasicRNNCell
@@ -123,17 +140,22 @@ class Seq2SeqGraph(object):
 
         self.softmax_w = tf.get_variable('softmax_w', shape=(hidden_units, output_length), initializer=random_uniform())
         self.softmax_b = tf.get_variable('softmax_b', shape=(output_length,), initializer=random_uniform())
-
+        
+        #print self.cells.state_size
         state = self.cells.zero_state(batch_size=batch_size, dtype=tf.float32)
+        self.state_placeholder = rnn_placeholders(state)
+        #print self.state_placeholder
+        #self.zero_state_var = state
         inputs = [tf.cast(inp, tf.float32) for inp in self.inputs]
         #_outputs, _ = rnn.rnn(self.cells, inputs, state)
-        self._outputs, self.rnn_states = rnn.rnn(self.cells, inputs, state)
-        image_summaries = []
-        for i in xrange(seq_length):
-            image_summaries.append(tf.summary.image('rnn_output_' + repr(i), tf.reshape(self._outputs[i], [-1,16, 8,1])))
+        self._outputs, self.rnn_states = rnn.rnn(self.cells, inputs, self.state_placeholder)
+        if hidden_units == 128:
+            image_summaries = []
+            for i in xrange(seq_length):
+                image_summaries.append(tf.summary.image('rnn_output_' + repr(i), tf.reshape(self._outputs[i], [-1,16, 8,1])))
 
         
-        self.merged = tf.summary.merge(image_summaries)
+            self.merged = tf.summary.merge(image_summaries)
         self.output_logits = [tf.matmul(_output, self.softmax_w) + self.softmax_b for _output in self._outputs]
         self.probs = [tf.nn.softmax(logit, name='prob_{}'.format(i)) for i, logit in enumerate(self.output_logits)]
         #self.tops = [tf.argmax(prob, 1, name='top_{}'.format(i)) for i, prob in enumerate(self.probs)]
@@ -172,6 +194,22 @@ class Seq2SeqGraph(object):
             # but we defenetely need to save graph as binary!
             tf.train.write_graph(sess.graph_def, cpp_dir, 'graph_{}.pb'.format(global_step), as_text=False)
         return save
+    
+    
+    
+    """
+    from tensorflow.python.util.nest import flatten
+
+    state = rnn_placeholders(cell.zero_state(batch_size, tf.float32))
+
+    for tensor in flatten(state):
+        tf.add_to_collection('rnn_state_input', tensor)
+
+
+
+    for tensor in flatten(new_state):
+        tf.add_to_collection('rnn_state_output', tensor)
+    """
 
 class Seq2SeqModel(object):
     def __init__(self,

@@ -69,17 +69,17 @@ void LearningModel::GetInputSequenceForLearnedmodel(History h, std::ostream& oss
 std::string LearningModel::GetPythonExecutionString(History h) const {
     std::ostringstream oss;
     
-    if (next_action !=-1)
-    {
-        oss << "echo " << next_action ;
-        next_action = -1;
-    }
-    else
-    {
+    //if (next_action !=-1)
+    //{
+    //    oss << "echo " << next_action ;
+    //    next_action = -1;
+    //}
+    //else
+    //{
         oss << "cd python_scripts/deepLearning ; python model.py -p " << problem_name << " -a test -i ";
         GetInputSequenceForLearnedmodel(h, oss);
         oss << "-m " << learned_model_name<< " ; cd - ;" ;
-    }       
+    //}       
     return oss.str();
 }
 
@@ -104,66 +104,14 @@ ValuedAction LearningModel::GetNextActionFromUser(History h) const {
     return ValuedAction(next_action, 1);
 }
 
-bool LearningModel::ShallISwitchFromLearningToPlanning(History h) const {
-    std::cout<< "Asking for switch using method" << automatic_switching_method << std::endl;
-    next_action = -1;
-        if (automatic_switching_method == 0)
-        {
-            int hist_size = h.Size();
-            return ((hist_size/switch_threshold) % 2 != 0);
-        }
-        
-        std::string command = GetPythonExecutionStringForJointTraining(h);
-        std::string result = python_exec(command.c_str());
-        std::cout << result << std::endl;
-        double seen_scenario_correct;
-        double seen_scenario_wrong;
-        int seen_scenario;
-        std::istringstream iss(result);
-        iss >> seen_scenario_correct;
-        iss >> seen_scenario_wrong;
-        iss >> next_action;
-        //std::cout << seen_scenario_correct;
-        //std::cout << seen_scenario_wrong;
-        int seen_scenario_correct_int = (int)seen_scenario_correct;
-        int seen_scenario_wrong_int = (int)seen_scenario_wrong;
-        
-        if (automatic_switching_method == 1)
-        {
-            if((seen_scenario_correct_int == 1) && (seen_scenario_wrong_int == -1))
-            {
-                seen_scenario = 1;
-            }
-            else
-            {
-                seen_scenario = -1;
-            }
-        }
-        
-        if (automatic_switching_method == 2)
-        {
-            seen_scenario = seen_scenario_correct_int ; //for automatic switching method 2
-        }
-       
-        if (seen_scenario == 1){
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    
+
+
+int LearningModel::GetSwitchingMethod() const {
+    return automatic_switching_method;
 }
 
-bool LearningModel::ShallISwitchFromPlanningToLearning(History h) const {
-    if(ShallISwitchFromLearningToPlanning(h) == true)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-
+void LearningModel::SetStoreObsHash(bool value) const {
+    store_obs_hash = value;
 }
+
 
