@@ -144,7 +144,10 @@ def generate_params_file(file_name, problem_type):
     if 'fixed_distribution' in file_name:
         ans = get_default_params(file_name.replace('_fixed_distribution', '') )
         ans['additional_params'] = '-l CAP --number='
-        ans['output_dir'] = ans['output_dir'] + "/fixed_distribution"
+        if('simulator' in ans['output_dir']):
+            ans['output_dir'] = ans['output_dir'].replace("simulator","simulator/fixed_distribution")
+        else:
+            ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty10/fixed_distribution")
         ans['end_index'] = 245
                 
     if file_name == 'data_model_9cm_combined_automatic.yaml':
