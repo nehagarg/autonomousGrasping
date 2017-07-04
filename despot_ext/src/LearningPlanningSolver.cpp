@@ -217,13 +217,13 @@ bool LearningPlanningSolver::ShallISwitchFromPlanningToLearning(History h) {
 
 std::pair<int, int> LearningPlanningSolver::GetSVMOutput(History h) {
     
-    std::pair<int, int> ans2 =  GetSVMOutputUsingCommandLine(h);
+    //std::pair<int, int> ans2 =  GetSVMOutputUsingCommandLine(h);
     std::pair<int, int> ans1 =  GetSVMOutputUsingPythonFunction(h);
-    assert(ans1.first == ans2.first);
-    if(SecondSVMRequired())
-    {
-        assert(ans1.second == ans2.second);
-    }
+    //assert(ans1.first == ans2.first);
+    //if(SecondSVMRequired())
+    //{
+    //    assert(ans1.second == ans2.second);
+    //}
     return ans1;
 }
 
