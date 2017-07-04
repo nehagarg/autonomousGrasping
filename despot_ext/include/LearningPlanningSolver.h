@@ -28,6 +28,21 @@ public:
         
         return (learnedSolver->Search(history)).action;
     }
+    ValuedAction Search() {
+	RandomStreams streams(Globals::config.num_scenarios,
+		Globals::config.search_depth);
+	std::vector<State*> particles = belief_->Sample(Globals::config.num_scenarios);
+
+	//int action = Action(particles, streams, history_);
+	//double dummy_value = Globals::NEG_INFTY;
+        ValuedAction ans = Value(particles,streams,history_);
+
+	for (int i = 0; i < particles.size(); i++)
+		model_->Free(particles[i]);
+
+	return ans;
+    }
+
 };
 
 class LearningPlanningSolver : public LearningSolverBase{
@@ -70,4 +85,17 @@ private:
 };
 
 #endif	/* LEARNINGPLANNINGSOLVER_H */
+
+/*
+ Switching method:
+ 0 threshold based switching from learned policy to despot policy
+ 1 2 svms based switching
+ 2 1 svm based switching
+ 3 lower bound of deep policy based switching with switch threshold providing policy sim length
+ 4 lower bound of deep policy with 2 svms check based switching with switch threshold providing policy sim length
+ 5 lower bound of deep policy with 1 svm check based switching with switch threshold providing policy sim length
+ 
+ 
+ 
+ */
 

@@ -137,9 +137,16 @@ ValuedAction LearningPlanningSolver::GetLowerBoundForLearnedPolicy() {
     ValuedAction ans;
     if(!deepPolicy)
     {
-        deepPolicy = new LearnedPolicy(model_, new TrivialParticleLowerBound(model_), belief_, &deepLearningSolver);
-        ans = deepPolicy->Search();
+        deepPolicy = new LearnedPolicy(model_, model_->CreateParticleLowerBound(), belief_, &deepLearningSolver);
+        
     }
+    int sim_len = Globals::config.max_policy_sim_len;
+    if(switching_method == 3)
+    {
+        Globals::config.max_policy_sim_len = ((LearningModel*)model_)->switch_threshold ;
+    }
+    ans = deepPolicy->Search();
+    Globals::config.max_policy_sim_len = sim_len;
     ((LearningModel*)model_)->SetStoreObsHash(false);
     return ans;
     

@@ -91,7 +91,7 @@ def get_learning_config(filename, problem_type):
     ans= {}
     filename_filetype = None
     i = 0;
-    for filetype in ['combined_0','combined_1', 'combined_2']:
+    for filetype in ['combined_0','combined_1', 'combined_2','combined_3', 'combined_4', 'combined_5']:
         if filetype in filename:
             filename_filetype = filetype
             ans["switching_method"] = i
