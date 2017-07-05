@@ -181,6 +181,7 @@ ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h, int print_
     {
         std::cout << "Before calling exec" << std::endl; //For counting how many times learned call is used
     }
+//    std::cout << "Rnn state history size and history size " << rnn_state_history.size() << "," << h.Size() << std::endl;
     PyObject *rnn_state = NULL;
     int history_size = h.Size();
     for(int i = history_size; i< rnn_state_history.size(); i++)

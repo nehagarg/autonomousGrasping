@@ -176,7 +176,7 @@ void LearningPlanningSolver::Update(int action, uint64_t obs) {
     despotSolver.Update(action, obs);
     deepLearningSolver.Update(action, obs);
     history_.Add(action, obs);
-    
+
 
 }
 

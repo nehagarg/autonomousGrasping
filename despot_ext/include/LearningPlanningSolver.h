@@ -24,7 +24,7 @@ public:
 
     int Action(const std::vector<State*>& particles,
             RandomStreams& streams, History& history) const {
-        //std::cout << "Taking action in Learned policy" << std::endl;
+ //       std::cout << "Taking action in Learned policy with history size " << history.Size() << std::endl;
         
         return (learnedSolver->Search(history, 0)).action;
     }
@@ -41,7 +41,7 @@ public:
         //std::cout << "Sampled belief\n";
 	//int action = Action(particles, streams, history_);
 	//double dummy_value = Globals::NEG_INFTY;
-        ValuedAction ans = Value(particles,streams,history_);
+        ValuedAction ans = Value(particles,streams,*(learnedSolver->get_history()));
 
 	for (int i = 0; i < particles.size(); i++)
 		model_->Free(particles[i]);

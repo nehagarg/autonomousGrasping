@@ -15,6 +15,11 @@ public:
     LearningSolverBase(const LearningModel* model, Belief* belief = NULL) : Solver(model, belief){}
     
     ~LearningSolverBase(){}
+    
+    History* get_history()
+    {
+        return &history_;
+    }
 
     
   
