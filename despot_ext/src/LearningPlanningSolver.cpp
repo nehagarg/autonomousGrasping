@@ -109,6 +109,7 @@ ValuedAction LearningPlanningSolver::Search() {
             }
             else
             {
+                std::cout << "Before calling exec" << std::endl; //Phrase indicating use of learned policy
                 ans.action = next_action;
                 ans.value = 1;
                 next_action = -1;
@@ -130,6 +131,7 @@ ValuedAction LearningPlanningSolver::Search() {
             ans = ans1;
         }
         else {
+             std::cout << "Before calling exec" << std::endl; //Phrase indicating use of learned policy
             ans = ans2;
         }
         

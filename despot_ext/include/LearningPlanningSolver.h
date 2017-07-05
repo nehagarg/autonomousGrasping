@@ -26,7 +26,7 @@ public:
             RandomStreams& streams, History& history) const {
         //std::cout << "Taking action in Learned policy" << std::endl;
         
-        return (learnedSolver->Search(history)).action;
+        return (learnedSolver->Search(history, 0)).action;
     }
     ValuedAction Search() {
         //std::cout << "Starting search\n";

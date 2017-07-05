@@ -88,11 +88,12 @@ def get_learning_model(model_name, problem_name):
     sess = tf.Session(config=config.get_tf_config())
     h_to_a_model = load_model(model_name, sess, 1, 1)
     return h_to_a_model
-def get_output_learning_model(problem_name, h_to_a_model,raw_input,rnn_state = None):
+def get_output_learning_model(problem_name, h_to_a_model,raw_input, print_info = 1, rnn_state = None):
     rnn_model.PROBLEM_NAME = problem_name
     #print raw_input
     data_generator = rnn_model.DataGenerator(1, raw_input)
-    print data_generator.xseqs
+    if print_info == 1:
+        print data_generator.xseqs
     if rnn_state is None:
         assert(data_generator.seq_length == 2)
     else:
@@ -106,9 +107,11 @@ def get_output_learning_model(problem_name, h_to_a_model,raw_input,rnn_state = N
     probs_without_dummy_actions = [i[:-2] for i in probs[0] ]
     prediction = np.argmax([probs_without_dummy_actions], axis=2)
     #print prediction
-    print ' '.join(str(p) for p in probs_without_dummy_actions[-1])
+    if print_info == 1:
+        print ' '.join(str(p) for p in probs_without_dummy_actions[-1])
     action = prediction[0][-1]
-    print action
+    if print_info == 1:
+        print action
     return (action, new_rnn_state, outputs[0][0]) #batch size is 1 , seq length is 1
 def get_svm_model(svm_model_prefix, problem_name):
     rnn_model.PROBLEM_NAME = problem_name

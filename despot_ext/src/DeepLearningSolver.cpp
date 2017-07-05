@@ -81,7 +81,7 @@ std::string to_string(T const& value) {
 }*/
 
 
-PyObject* DeepLearningSolver::get_state_and_next_action(PyObject* rnn_state, int action, uint64_t obs) {
+PyObject* DeepLearningSolver::get_state_and_next_action(PyObject* rnn_state, int action, uint64_t obs, int print_info) {
     PyObject *ans;
     History h;
     if (action >=0)
@@ -95,14 +95,14 @@ PyObject* DeepLearningSolver::get_state_and_next_action(PyObject* rnn_state, int
     if(rnn_state != NULL)
     {
        // std::cout << "Rnn state is not null " << std::endl;
-     pArgs = PyTuple_New(4);
-     PyTuple_SetItem(pArgs, 3, rnn_state );
+     pArgs = PyTuple_New(5);
+     PyTuple_SetItem(pArgs, 4, rnn_state );
      Py_INCREF(rnn_state);
     }
     else
     {
         //std::cout << "Rnn state is null " << std::endl;
-       pArgs = PyTuple_New(3); 
+       pArgs = PyTuple_New(4); 
     }
     PyObject *pValue = PyString_FromString((((LearningModel*)model_)->problem_name).c_str());
     PyTuple_SetItem(pArgs, 0, pValue );
@@ -110,7 +110,11 @@ PyObject* DeepLearningSolver::get_state_and_next_action(PyObject* rnn_state, int
     Py_INCREF(h_to_a_model);
     pValue = PyString_FromString(oss.str().c_str());
     PyTuple_SetItem(pArgs, 2, pValue );
+    pValue = PyInt_FromLong(print_info);
+    PyTuple_SetItem(pArgs, 3, pValue );
     ans = PyObject_CallObject(run_function, pArgs);
+    
+    
     Py_DECREF(pArgs);
     //Call python function to give rnn state and next action
     if (ans != NULL) {
@@ -171,7 +175,12 @@ ValuedAction DeepLearningSolver::Search() {
     return Search(history_);
 }
 
-ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h) {
+
+ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h, int print_info) {
+    if(print_info == 1)
+    {
+        std::cout << "Before calling exec" << std::endl; //For counting how many times learned call is used
+    }
     PyObject *rnn_state = NULL;
     int history_size = h.Size();
     for(int i = history_size; i< rnn_state_history.size(); i++)
@@ -185,7 +194,10 @@ ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h) {
     int action = -1;
     uint64_t obs;
     if(history_size > 0){
+        if(print_info ==1)
+        {
         std::cout << "History size is " << history_size <<  std::endl;
+        }
         rnn_state = rnn_state_history[history_size -1 ];
         action = h.LastAction();
         obs = h.LastObservation();
@@ -194,7 +206,7 @@ ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h) {
     PyObject *new_rnn_output;
     PyObject *ans;
     
-    ans = get_state_and_next_action(rnn_state, action, obs);
+    ans = get_state_and_next_action(rnn_state, action, obs, print_info);
     action = (int) PyInt_AsLong(PyTuple_GetItem(ans, 0));
     new_rnn_state = PyTuple_GetItem(ans, 1);
     Py_INCREF(new_rnn_state);
@@ -238,9 +250,9 @@ ValuedAction DeepLearningSolver::SearchUsingCommandLineCall(History h) {
     //return ValuedAction(deepLearningIdsToModelIds[action], value);
 }
 
-ValuedAction DeepLearningSolver::Search(History h) {
+ValuedAction DeepLearningSolver::Search(History h, int print_info) {
     
-    ValuedAction ans1 = SearchUsingPythonFunction(h);
+    ValuedAction ans1 = SearchUsingPythonFunction(h, print_info);
     //ValuedAction ans2 = SearchUsingCommandLineCall(h);
     //assert(ans1.action == ans2.action);
     return ans1;

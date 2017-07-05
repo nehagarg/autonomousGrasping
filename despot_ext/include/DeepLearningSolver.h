@@ -20,7 +20,7 @@ public:
 
     virtual ValuedAction Search();
     virtual void Update(int action, uint64_t obs);
-    virtual ValuedAction Search(History h);
+    virtual ValuedAction Search(History , int print_info = 1);
     
     /*virtual void Update(int action, ObservationClass obs){
         Solver::Update(action, obs.GetHash());
@@ -33,9 +33,9 @@ private:
     PyObject *load_function, *run_function;
 
     void load_deep_policy(std::string learned_model_name);
-    PyObject* get_state_and_next_action(PyObject* rnn_state, int action, uint64_t obs);
+    PyObject* get_state_and_next_action(PyObject* rnn_state, int action, uint64_t obs, int print_info = 1);
     
-    ValuedAction SearchUsingPythonFunction(History h);
+    ValuedAction SearchUsingPythonFunction(History h, int print_info = 1);
     ValuedAction SearchUsingCommandLineCall(History h);
         
 /*private:
