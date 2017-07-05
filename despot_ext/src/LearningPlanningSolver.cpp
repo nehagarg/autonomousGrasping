@@ -54,6 +54,10 @@ LearningPlanningSolver::LearningPlanningSolver(const LearningModel* model, Scena
     load_svm_model(model->svm_model_prefix);
 
     }
+    if(switching_method == 3)
+    {
+        deepPolicy = new LearnedPolicy(model_, model_->CreateParticleLowerBound(), belief_, &deepLearningSolver);
+    }
 }
 
 LearningPlanningSolver::~LearningPlanningSolver() {
@@ -117,8 +121,10 @@ ValuedAction LearningPlanningSolver::Search() {
     }
     else 
     {
-        ValuedAction ans1 =  despotSolver.Search();
         ValuedAction ans2 = GetLowerBoundForLearnedPolicy();
+        std::cout << "Learned policy bound :(" << ans2.action << "," << ans2.value << ")\n";
+        ValuedAction ans1 =  despotSolver.Search();
+        
         if (ans1.value > ans2.value)
         {
             ans = ans1;
@@ -133,13 +139,16 @@ ValuedAction LearningPlanningSolver::Search() {
 }
 
 ValuedAction LearningPlanningSolver::GetLowerBoundForLearnedPolicy() {
+    std::cout << "Getting lower bound for learned policy\n";
     ((LearningModel*)model_)->SetStoreObsHash(true);
     ValuedAction ans;
-    if(!deepPolicy)
+    if(deepPolicy == NULL)
     {
+        std::cout << "Initializing deep policy\n";
         deepPolicy = new LearnedPolicy(model_, model_->CreateParticleLowerBound(), belief_, &deepLearningSolver);
         
     }
+    //std::cout << "Initialized deep policy\n";
     int sim_len = Globals::config.max_policy_sim_len;
     if(switching_method == 3)
     {
@@ -165,6 +174,10 @@ void LearningPlanningSolver::belief(Belief* b) {
     despotSolver.belief(b);
     belief_ = b;
     history_.Truncate(0);
+    if(switching_method == 3)
+    {
+        deepPolicy->belief(b);
+    }
 }
 
 bool LearningPlanningSolver::ShallISwitchFromLearningToPlanning(History h) {

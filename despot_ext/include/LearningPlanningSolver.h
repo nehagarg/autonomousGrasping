@@ -24,15 +24,21 @@ public:
 
     int Action(const std::vector<State*>& particles,
             RandomStreams& streams, History& history) const {
-        //std::cout << "Taking action in CAP" << std::endl;
+        //std::cout << "Taking action in Learned policy" << std::endl;
         
         return (learnedSolver->Search(history)).action;
     }
     ValuedAction Search() {
+        //std::cout << "Starting search\n";
 	RandomStreams streams(Globals::config.num_scenarios,
 		Globals::config.search_depth);
+        // std::cout << "Genrated random streams\n";
 	std::vector<State*> particles = belief_->Sample(Globals::config.num_scenarios);
+        for (int i = 0; i < particles.size(); i++) {
+		particles[i]->scenario_id = i;
+	}
 
+        //std::cout << "Sampled belief\n";
 	//int action = Action(particles, streams, history_);
 	//double dummy_value = Globals::NEG_INFTY;
         ValuedAction ans = Value(particles,streams,history_);

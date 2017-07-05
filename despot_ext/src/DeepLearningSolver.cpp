@@ -94,14 +94,14 @@ PyObject* DeepLearningSolver::get_state_and_next_action(PyObject* rnn_state, int
     PyObject *pArgs;
     if(rnn_state != NULL)
     {
-        std::cout << "Rnn state is not null " << std::endl;
+       // std::cout << "Rnn state is not null " << std::endl;
      pArgs = PyTuple_New(4);
      PyTuple_SetItem(pArgs, 3, rnn_state );
      Py_INCREF(rnn_state);
     }
     else
     {
-        std::cout << "Rnn state is null " << std::endl;
+        //std::cout << "Rnn state is null " << std::endl;
        pArgs = PyTuple_New(3); 
     }
     PyObject *pValue = PyString_FromString((((LearningModel*)model_)->problem_name).c_str());
@@ -173,7 +173,8 @@ ValuedAction DeepLearningSolver::Search() {
 
 ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h) {
     PyObject *rnn_state = NULL;
-    for(int i = h.Size(); i< rnn_state_history.size(); i++)
+    int history_size = h.Size();
+    for(int i = history_size; i< rnn_state_history.size(); i++)
     {
         Py_DECREF(rnn_state_history[i]);
         Py_DECREF(rnn_output_history[i]);
@@ -183,9 +184,9 @@ ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h) {
     rnn_output_history.resize(h.Size());
     int action = -1;
     uint64_t obs;
-    if(h.Size() > 0){
-        std::cout << "History size greater than zero" << std::endl;
-        rnn_state = rnn_state_history[h.Size() -1 ];
+    if(history_size > 0){
+        std::cout << "History size is " << history_size <<  std::endl;
+        rnn_state = rnn_state_history[history_size -1 ];
         action = h.LastAction();
         obs = h.LastObservation();
     }
