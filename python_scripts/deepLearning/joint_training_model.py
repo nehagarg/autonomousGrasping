@@ -16,7 +16,7 @@ import config
 from sklearn import svm
 from sklearn.externals import joblib
 import model as rnn_model
-import matplotlib.pyplot as plt
+
 #from model import Encoder, Seq2SeqModel, DataGenerator, is_stump, is_pad, PROBLEM_NAME
 
 import numpy as np
@@ -299,6 +299,7 @@ def test(model_name, svm_model_prefix, model_input, rnn_state, action = 'test'):
         return new_rnn_state
 
 def debug_with_pca(model_name, model_input, svm_model_prefix, model_input_test = None):
+    import matplotlib.pyplot as plt
     pca = joblib.load("toy_pca_model.pkl")
     (probs,outputs,new_rnn_state,target,x) = get_learning_model_output(model_name, model_input, None, -1)
     
@@ -370,6 +371,7 @@ def debug_with_pca(model_name, model_input, svm_model_prefix, model_input_test =
     
     
 def debug_with_pca_train(model_name, model_input, svm_model_prefix, model_input_test = None):
+    import matplotlib.pyplot as plt
     (probs,outputs,new_rnn_state, target,x) = get_learning_model_output(model_name, model_input, None, -1)
     
     prediction = np.argmax(probs, axis=2)
