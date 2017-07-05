@@ -309,8 +309,9 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     stuck_csv_file = csv_files[5]
     fraction_learning_calls_file = csv_files[6]
     error_file = csv_files[7]
+    fraction_dummy_learning_calls_file = csv_files[8]
     if PROBLEM_NAME == 'vrep':
-        pick_failure_file = csv_files[8]
+        pick_failure_file = csv_files[9]
     
     success_cases_array = get_success_failure_cases(new_dir_name,patterns, max_reward, index_step, end_index)
     success_cases_per_index_step = [sum(x) for x in success_cases_array]
@@ -348,6 +349,12 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     (mean, stddev, stderr) = get_mean_std_for_array(fraction_learning_calls_per_index_step)        
     fraction_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
+    dummy_learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec dummy', patterns, index_step, end_index)
+    dummy_learning_calls_per_index_step = [sum(x) for x in dummy_learning_calls_array]
+    fraction_dummy_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(dummy_learning_calls_per_index_step, total_calls_per_index_step)]
+    (mean, stddev, stderr) = get_mean_std_for_array(fraction_dummy_learning_calls_per_index_step)        
+    fraction_dummy_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
+
     
     num_failed_calls = sum(get_number_of_learning_calls(new_dir_name, 'failed', patterns, end_index, end_index)[0])
     num_Error_calls = sum(get_number_of_learning_calls(new_dir_name, 'Error', patterns, end_index, end_index)[0])
@@ -384,8 +391,10 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     csv_files.append(av_learning_calls_file)
     error_file = open(csv_file_name[7], 'w')
     csv_files.append(error_file)
+    av_dummy_learning_calls_file = open(csv_file_name[8], 'w')
+    csv_files.append(av_dummy_learning_calls_file)
     if PROBLEM_NAME == 'vrep':
-        pick_failure_file = open(csv_file_name[8], 'w')
+        pick_failure_file = open(csv_file_name[9], 'w')
         csv_files.append(pick_failure_file)
     
     reward_csv_file.write("Average undiscounted reward")
@@ -396,6 +405,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     stuck_csv_file.write("Stuck cases")
     av_learning_calls_file.write("Leaning calls fraction")
     error_file.write("Files with error")
+    av_dummy_learning_calls_file.write("Dummy Leaning calls fraction")
     if PROBLEM_NAME == 'vrep':
         pick_failure_file.write("Fractin pick failures")
     
@@ -514,6 +524,7 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     #input_data_type = raw_input("Data type: reward or success_cases ?")
     data_types = ['reward', 'success_cases', 'av_step_success', 'av_step_failure', 'failure_cases', 'stuck_cases', 'percent_learning_calls']
     data_types.append('error_cases')
+    data_types.append('percent_dummy_learning_calls')
     if PROBLEM_NAME == 'vrep':
         data_types.append('pick_failures')
     #if input_data_type in data_types:
@@ -622,8 +633,11 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     scenarios = raw_input('Sccenarios?')
     time_scenario_string = 't'+ time_step + '_n' + scenarios
     for i in range(0,500):
-        log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+        #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
         #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_with_state_in_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+        #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+        log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_with_state_in_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+         
         
         fullData =  ParseLogFile(log_filename, 'vrep', 0, 'vrep').getFullDataWithoutBelief()
         x.append(fullData['roundInfo']['state'].o_x)
