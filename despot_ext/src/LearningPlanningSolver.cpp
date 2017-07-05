@@ -122,9 +122,17 @@ ValuedAction LearningPlanningSolver::Search() {
     }
     else 
     {
+        ValuedAction ans1 =  despotSolver.Search();
+        ValuedAction ans3 = deepLearningSolver.Search(history_, 0);
+        if(ans3.action == ans1.action)
+        {
+            std::cout << "Before calling exec dummy" << std::endl;
+            return ans1;
+            
+        }
         ValuedAction ans2 = GetLowerBoundForLearnedPolicy();
         std::cout << "Learned policy bound :(" << ans2.action << "," << ans2.value << ")\n";
-        ValuedAction ans1 =  despotSolver.Search();
+        
         
         if (ans1.value > ans2.value)
         {
