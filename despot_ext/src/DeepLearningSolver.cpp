@@ -261,6 +261,14 @@ ValuedAction DeepLearningSolver::Search(History h, int print_info) {
 }
 
 void DeepLearningSolver::Update(int action, uint64_t obs) {
+    
+    if(rnn_state_history.size() == history_.Size()) 
+        //rnn_state_history size should be 1 more than history size before updating history
+    {
+        //perfor search to update rnn_state_history
+        std::cout<<"Updating rnn state history" << std::endl;
+        Search(history_, 0);
+    }
     history_.Add(action, obs);
 }
 
