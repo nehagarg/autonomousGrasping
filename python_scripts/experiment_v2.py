@@ -135,11 +135,6 @@ def generate_params_file(file_name, problem_type):
                     ans['output_dir'] = ans['output_dir'] + "/" + filetype
                     ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
     
-    if 'combined' in file_name:
-        ans['solver'] = 'LEARNINGPLANNING'
-    
-    if 'learning' in file_name:
-        ans['solver'] = 'DEEPLEARNING'
 
     if 'fixed_distribution' in file_name:
         ans = get_default_params(file_name.replace('_fixed_distribution', '') )
@@ -149,6 +144,18 @@ def generate_params_file(file_name, problem_type):
         else:
             ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty10/fixed_distribution")
         ans['end_index'] = 245
+        
+    if 'combined' in file_name:
+        ans['solver'] = 'LEARNINGPLANNING'
+        #m = re.search('combined_[0-9]+', file_name)
+        #switching_version = int(m.group().split('_')[-1])
+        #if switching_version > 2:
+        #    ans['additional_params'] = '--max-policy-simlen=10 ' + ans['additional_params'] 
+        
+    
+    if 'learning' in file_name:
+        ans['solver'] = 'DEEPLEARNING'
+        
                 
     if file_name == 'data_model_9cm_combined_automatic.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_v4_automatic.yaml'
@@ -171,7 +178,86 @@ def generate_fixed_distribution_commands():
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
                   generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
 
+
+def add_learning_pattern(dir, pattern):
+    cur_dir = os.getcwd()
+    os.chdir(dir)
+    file_list = [f for f in os.listdir('.') if os.path.isfile(f)]
+    #print file_list
+    for file_name in file_list:
+        if '.log' in file_name:
+            with open(file_name,'r') as f:
+                all_text = f.read()
+            new_pattern = 'Before calling exec '
+            if('Learning' in pattern):
+                index = 0
+                while index < len(all_text):
+                    index = all_text.find(pattern, index)
+                    if index == -1:
+                        break
+                    new_index = index
+                    while not all_text[new_index -1].isdigit():
+                        new_index = new_index - 1
+                        #if new_index < index -50:
+                        #    break;
+                    print all_text[new_index -1 : index]   
+                    new_index2 = new_index -1
+                    while all_text[new_index2].isdigit():
+                        new_index2 = new_index2 - 1
+                        #if new_index2 < new_index -50:
+                        #    break;
+                    print all_text[new_index2:new_index -1]
+                    #new_index3 = new_index2 - 4;
+                    print all_text[new_index2 -4:new_index2]
+                    if all_text.find('/', new_index2 -4, new_index2) == -1:
+                    #new_index = all_text.find("\d+\.\d+",index)
+                    #print repr(index)
+                    #print repr(new_index)
+                    #print ":" + all_text[index:index+len(pattern)] + ":"
+                    #if len(all_text[new_index2+1:new_index]) == 1:
+                        all_text = all_text[:index] + '@' + all_text[index + 1 :]
+                    index = index + len(pattern) + 10
+                new_text = all_text.replace('@', new_pattern)
+            else:
+                new_text = all_text.replace(pattern, new_pattern)
+            with open(file_name,'w') as f:
+                f.write(new_text)
     
+    
+    os.chdir(cur_dir)
+def correct_log_files_percent_learning_calculation(dir_name = None):
+    root_dir = '~/WORK_FOLDER/add something'
+    if dir_name is not None:
+        root_dir = dir_name
+    dict1 = {}
+    dict1['single'] = 'cylinder_9cm_reward100_penalty10'
+    dict1['multi'] = 'belief_cylinder_7_8_9_reward100_penalty10'
+    dict1['data'] = 'fixed_distribution'
+    dict1['vrep'] =  'simulator/fixed_distribution'
+    dict2 = {}
+    dict2['single'] = [5,10,20,40,80,160,320]
+    dict2['multi'] = [5,10,20,40,80,160,320,640,1280]
+    dict3 = {}
+    dict3['single'] = 'learning/version7'
+    dict3['multi'] = 'learning/version8'
+    for experiment_type in ['single', 'multi']:
+        dir1 = root_dir +"/" + experiment_type + "ObjectType/" + dict1[experiment_type]
+        for interface_type in ['data','vrep']:
+            dir2 = dir1 + "/" + dict1[interface_type]
+            #for t in [1,5]:
+            #    for n in dict2[experiment_type]:
+            #        dir = dir2 + "/t" + repr(t) + '_n' + repr(n)
+            #        add_learning_pattern(dir,"[['$'")
+            dir3 = dir2 + "/" + dict3[experiment_type]
+            add_learning_pattern(dir3,"[['$'")
+            for switch_dir in [ 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
+                for t in [1,5]:
+                    for n in dict2[experiment_type]:
+                        dir = dir3 +"/" + switch_dir + "/t" + repr(t) + '_n' + repr(n)
+                        if switch_dir in [ 'combined_1', 'combined_2']:
+                            add_learning_pattern(dir,"22LearningPlanningSolver::Search()")
+                        else:
+                            add_learning_pattern(dir,"[['$'")
 def main():
     global LEARNED_MODEL_NAME
     opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:m:",["dir="])

@@ -489,6 +489,7 @@ def main():
                     current_screen_counter = new_screen_counter
                     #TODO automatically merge runnign and stopped nodes files using command
                     #awk 'NR==FNR{a[$0];next} !($0 in a)' test_stopped_nodes.txt test_running_nodes.txt
+                    #cat run_txt_files/stopped_nodes.txt | cut -d' ' -f2 | cut -d'_' -f1 | sort -n | awk '$1!=p+1{print p+1"-"$1-1}{p=$1}'
         while(not all_processes_stopped()):
             print "Sleeping before checking process status..."
             run_command_on_node('sleep 600')
