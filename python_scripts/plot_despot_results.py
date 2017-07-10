@@ -20,7 +20,10 @@ def get_mean_std_for_array(a, sum2 = None):
     else:
         mean = np.mean(a)
         std = np.std(a) #standard deviation)
-        std2 = math.sqrt((sum2/(len(a)*len(a))) - (mean*mean/len(a)))  #stderr
+        value1 = (sum2/(len(a)*len(a))) - (mean*mean/len(a))
+        if value1 < 0 and value1 > -0.00001:
+            value1 = 0
+        std2 = math.sqrt(value1)   #stderr
     return (mean, std, std2)
     
 def get_mean_std_for_numbers_in_file(filename):
@@ -632,11 +635,23 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     
     scenarios = raw_input('Sccenarios?')
     time_scenario_string = 't'+ time_step + '_n' + scenarios
-    for i in range(0,500):
+    if time_step != 'None':
+        dir_name = dir_name +'/' +time_scenario_string
+    print dir_name
+    cur_dir = os.getcwd()
+    os.chdir(dir_name)
+    for i in range(0, 49):
+        
+        a = '_'+repr(i)+ '.log'
+        
+        #file_list = [f for f in os.listdir('.')]
+        #print file_list
+        file_list = [f for f in os.listdir('.') if (os.path.isfile(f) and (pattern in f) and (a in f)) ]
+        log_filename = file_list[0]
         #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
         #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_with_state_in_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
         #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_' + time_scenario_string + '_trial_' + repr(i) + '.log'
-        log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_with_state_in_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+        #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_with_state_in_' + time_scenario_string + '_trial_' + repr(i) + '.log'
          
         
         fullData =  ParseLogFile(log_filename, 'vrep', 0, 'vrep').getFullDataWithoutBelief()
@@ -645,10 +660,11 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
         if fullData['stepInfo'][-1]['reward'] == max_reward:
             colors.append('green')
         elif fullData['stepInfo'][-1]['reward'] == min_reward:
+            print i
             colors.append('red')
         else:
             colors.append('yellow')
-            
+    os.chdir(cur_dir)         
     plot_scatter_graph(x, y, colors)
     
 def get_list_input(sampled_scenarios, command):
