@@ -44,7 +44,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
     actual_command = actual_command + '.yaml'
     return actual_command
     
-def generate_commands_file(file_name, problem_type, work_folder_dir, starting_screen_counter = 1, source_tensorflow = False, separate_ros_vrep_port = False):
+def generate_commands_file(file_name, problem_type, work_folder_dir, starting_screen_counter = 1, source_tensorflow = False, separate_ros_vrep_port = False, command_list_file = None):
     f = open(file_name, 'w')    
     global initial_ros_port
     global max_ros_port 
@@ -57,39 +57,61 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     if problem_type == 'despot_without_display':
         problem_dir = work_folder_dir + "/neha_github/autonomousGrasping/" + "/grasping_ros_mico"
     
-    input_pattern = raw_input("Pattern type: all or file identifier?")
+    if command_list_file is not None:
+        with open(command_list_file, 'r') as ff:
+            a =  ff.readlines()
+            inputs = a[0].split(' ')
+    if command_list_file is None:
+        input_pattern = raw_input("Pattern type: all or file identifier?")
+    else:
+        input_pattern = inputs[0]
     pattern = input_pattern
     pattern_list = [pattern]
     if pattern == 'all':
         pattern_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     
-    
-    command_prefix = raw_input("Command prefix?")
+    if command_list_file is None:
+        command_prefix = raw_input("Command prefix?")
+    else:
+        command_prefix = inputs[1]
     
     time_steps = ['1','5']
-    time_steps = get_list_input(time_steps, "Planning times")
-
     sampled_scenarios = ['5', '10', '20', '40', '80', '160', '320', '640', '1280']
-    sampled_scenarios = get_list_input(sampled_scenarios, "Sampled scenarios")
-
-
     learning_versions = ['8']
-    learning_versions =  get_list_input(learning_versions, "Learning versions")
-
-
     combined_policy_versions = ['0', '1', '2']
-    combined_policy_versions = get_list_input(combined_policy_versions, "Combined policy versions")
-
     begin_index = 0
-    begin_index_input = raw_input("Begin index (default 0):")
+    end_index = 1000
+    if command_list_file is None:
+        time_steps = get_list_input(time_steps, "Planning times")
+        sampled_scenarios = get_list_input(sampled_scenarios, "Sampled scenarios")
+        learning_versions =  get_list_input(learning_versions, "Learning versions")
+        combined_policy_versions = get_list_input(combined_policy_versions, "Combined policy versions")
+        begin_index_input = raw_input("Begin index (default 0):")
+        end_index_input = raw_input("End index (default 1000):")
+    else:
+        time_steps = inputs[2].split(',')
+        sampled_scenarios = inputs[3].split(',')
+        learning_versions =  inputs[4].split(',')
+        combined_policy_versions = inputs[5].split(',')
+        begin_index_input = inputs[6]
+        end_index_input = inputs[7]
+    
+    
+    
+    
     if begin_index_input:
         begin_index = int(begin_index_input)
-    end_index = 1000
-    end_index_input = raw_input("End index (default 1000):")
+    
+    
     if end_index_input:
         end_index = int(end_index_input)
     index_step = end_index
-    index_step_input = raw_input("Index step (default " + repr(index_step) + " ):")
+    
+    if command_list_file is None:
+        index_step_input = raw_input("Index step (default " + repr(index_step) + " ):")
+    else:
+        index_step_input = inputs[8]
+        
     if index_step_input:
         index_step = int(index_step_input)
         
@@ -422,7 +444,73 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     #screen -S Jetty -X stuff '^D'
 
 
-
+def generate_error_re_run_commands(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file):
+    command = "vrep_model_fixed_distribution_multi_object_pattern_low_friction"
+    inputs = [['7cm', command, '5', '80', 'None', '1', '215', '216', '1']]
+    inputs.append(['8cm', command, '5', '80', 'None', '1', '207', '208', '1'])
+    inputs.append(['9cm', command, '5', '80', 'None', '1', '200', '201', '1'])
+    inputs.append(['7cm', command, '5', '160', 'None', '1', '188', '189', '1'])
+    inputs.append(['9cm', command, '5', '640', 'None', '1', '20', '21', '1'])
+    inputs.append(['9cm', command, '5', '1280', 'None', '1', '227', '228', '1'])
+    inputs.append(['8cm', command, '1', '10', 'None', '2', '223', '224', '1'])
+    inputs.append(['9cm', command, '1', '10', 'None', '2', '238', '239', '1'])
+    inputs.append(['8cm', command, '1', '20', 'None', '2', '232', '233', '1'])
+    inputs.append(['8cm', command, '1', '40', 'None', '2', '64', '65', '1'])
+    inputs.append(['9cm', command, '1', '80', 'None', '2', '114', '115', '1'])
+    inputs.append(['9cm', command, '1', '320', 'None', '2', '163', '163', '1'])
+    inputs.append(['9cm', command, '1', '640', 'None', '2', '153', '154', '1'])
+    inputs.append(['8cm', command, '1', '640', 'None', '2', '177', '178', '1'])
+    inputs.append(['7cm', command, '1', '640', 'None', '2', '146', '147', '1'])
+    inputs.append(['8cm', command, '1', '1280', 'None', '2', '112', '113', '1'])
+    inputs.append(['8cm', command, '5', '5', 'None', '2', '75', '76', '1'])
+    inputs.append(['8cm', command, '5', '10', 'None', '2', '25', '26', '1'])
+    inputs.append(['8cm', command, '5', '20', 'None', '2', '17', '18', '1'])
+    inputs.append(['8cm', command, '5', '40', 'None', '2', '30', '31', '1'])
+    inputs.append(['9cm', command, '5', '40', 'None', '2', '21', '22', '1'])
+    inputs.append(['8cm', command, '5', '80', 'None', '2', '22', '23', '1'])
+    inputs.append(['85mm', command, '5', '5', 'None', '2', '30', '31', '1'])
+    inputs.append(['75mm', command, '5', '10', 'None', '2', '16', '17', '1'])
+    inputs.append(['85mm', command, '1', '1280', 'None', '2', '53', '54', '1'])
+    inputs.append(['75mm', command, '1', '320', 'None', '2', '181', '182', '1'])
+    inputs.append(['75mm', command, '1', '160', 'None', '2', '178', '179', '1'])
+    inputs.append(['75mm', command, '1', '20', 'None', '2', '56', '57', '1'])
+    inputs.append(['85mm', command, '1', '10', 'None', '2', '174', '175', '1'])
+    inputs.append(['75mm', command, '1', '5', 'None', '2', '19', '20', '1'])
+    inputs.append(['85mm', command, '1', '5', 'None', '1', '123', '124', '1'])
+    inputs.append(['85mm', command, '1', '5', 'None', '1', '153', '154', '1'])
+    inputs.append(['75mm', command, '1', '10', 'None', '1', '135', '136', '1'])
+    inputs.append(['85mm', command, '1', '20', 'None', '1', '126', '127', '1'])
+    inputs.append(['85mm', command, '1', '40', 'None', '1', '115', '116', '1'])
+    inputs.append(['85mm', command, '1', '80', 'None', '1', '180', '181', '1'])
+    inputs.append(['85mm', command, '1', '640', 'None', '1', '218', '219', '1'])
+    inputs.append(['75mm', command, '1', '1280', 'None', '1', '195', '196', '1'])
+    inputs.append(['85mm', command, '1', '1280', 'None', '1', '162', '163', '1'])
+    inputs.append(['85mm', command, '5', '320', 'None', '1', '219', '220', '1'])
+    inputs.append(['75mm', command, '5', '80', 'None', '1', '54', '55', '1'])
+    inputs.append(['85mm', command, '5', '80', 'None', '1', '47', '48', '1'])
+    inputs.append(['75mm', command, '5', '40', 'None', '1', '62', '63', '1'])
+    inputs.append(['85mm', command, '5', '40', 'None', '1', '206', '207', '1'])
+    inputs.append(['85mm', command, '5', '20', 'None', '1', '145', '146', '1'])
+    inputs.append(['85mm', command, '5', '10', 'None', '1', '76', '77', '1'])
+    
+    
+    
+    
+    global initial_ros_port
+    
+    for i in range(0,len(inputs)):
+        f = open(command_list_file, 'w')
+        f.write(' '.join(inputs[i]) + "\n")
+        f.close()
+        generate_commands_file(command_file + '_' + repr(i), problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
+        starting_screen_counter = starting_screen_counter + 1
+        if (i==0):
+            run_command_on_node('cat ' + command_file + '_' + repr(i) + ' > ' + command_file)
+        else:
+            run_command_on_node('cat ' + command_file + '_' + repr(i) + ' >> ' + command_file)
+        if separate_ros_vrep_port:
+            initial_ros_port = initial_ros_port + 1
+    
 def main():
     opts, args = getopt.getopt(sys.argv[1:],"hegvtd:p:s:",["dir="])
     work_folder_dir = None
@@ -456,9 +544,14 @@ def main():
          
     if len(args) > 0:
         command_file = args[0]
-        
+    command_list_file = None
+    if len(args) > 1:
+        command_list_file = args[1]
+        generate_error_re_run_commands(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
+        return
+    
     if genarate_command_file:
-        generate_commands_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port)
+        generate_commands_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
         
     
     if execute_command_file:
