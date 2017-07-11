@@ -285,7 +285,7 @@ std::pair<int, int> LearningPlanningSolver::GetSVMOutputUsingPythonFunction(Hist
     if(h.Size() > 0)
     {
 
-    ValuedAction ans = deepLearningSolver.Search(h);
+    ValuedAction ans = deepLearningSolver.Search(h, 0);
     next_action = ans.action;
     PyObject * rnn_output = deepLearningSolver.rnn_output_history.back();
     PyObject *ans0 = get_svm_model_output(rnn_output, 0);
