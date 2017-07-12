@@ -124,7 +124,7 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
         
-    for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
+    for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50']:
         for interface_type in ["", "Data"]:
             file_prefix = "Vrep" + interface_type + "Interface_low_friction"
             if filename == file_prefix + "_"+ filetype + ".yaml" :
