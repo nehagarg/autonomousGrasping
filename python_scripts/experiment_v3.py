@@ -162,6 +162,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             
                         f.write("screen -S " + despot_screen_name + " -X stuff '" + actual_command +  " ^M^D' \n")
                         starting_screen_counter = starting_screen_counter + 1
+    return starting_screen_counter
 
 def get_screen_counter_from_command(command):
     screen_name = None
@@ -415,6 +416,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
                     with open(current_screen_counter_file, 'w') as f:
                         f.write(repr(existing_screen_counter))  
                     if screen_counter != next_screen_counter(start_screen_counter_list, existing_screen_counter):
+                        line_number_found = False
                         continue
                     existing_screen_counter = screen_counter
                     assigned_node = None
@@ -465,7 +467,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
         inputs.append(['8cm', command, '1', '20', 'None', '2', '232', '233', '1'])
         inputs.append(['8cm', command, '1', '40', 'None', '2', '64', '65', '1'])
         inputs.append(['9cm', command, '1', '80', 'None', '2', '114', '115', '1'])
-        inputs.append(['9cm', command, '1', '320', 'None', '2', '163', '163', '1'])
+        #inputs.append(['9cm', command, '1', '320', 'None', '2', '163', '163', '1'])
         inputs.append(['9cm', command, '1', '640', 'None', '2', '153', '154', '1'])
         inputs.append(['8cm', command, '1', '640', 'None', '2', '177', '178', '1'])
         inputs.append(['7cm', command, '1', '640', 'None', '2', '146', '147', '1'])
@@ -511,8 +513,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
         f = open(command_list_file, 'w')
         f.write(' '.join(inputs[i]) + "\n")
         f.close()
-        generate_commands_file(command_file + '_' + repr(i), problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
-        starting_screen_counter = starting_screen_counter + 1
+        starting_screen_counter = generate_commands_file(command_file + '_' + repr(i), problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
         if (i==0):
             run_command_on_node('cat ' + command_file + '_' + repr(i) + ' > ' + command_file)
         else:
