@@ -147,7 +147,7 @@ def generate_params_file(file_name, problem_type):
         
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
-        if 'combined_4' in filename:
+        if 'combined_4' in file_name:
             ans['solver'] = 'DESPOTWITHLEARNEDPOLICY'
         
         #m = re.search('combined_[0-9]+', file_name)
