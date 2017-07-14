@@ -46,4 +46,4 @@ GAUSSIAN_WITH_STATE_IN : Belief contains 50 particles in gaussian distribution a
 
 number type:
 -1 for generating state through gaussian distribution
-0-100 for generating state therough belonging to 10x10 grid for object locations on table
+0-49 for generating state therough belonging to 7x7 grid for object locations on table
