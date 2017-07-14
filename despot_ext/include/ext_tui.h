@@ -16,6 +16,7 @@
 #include "PlanningDiffParamsSolver.h"
 #include "LearningModel.h"
 #include "UserDefinedActionSolver.h"
+#include "DespotWithLearnedDefaultPolicy.h"
 
 using namespace despot;
 
@@ -120,12 +121,18 @@ public:
       else if (solver_type == "DEEPLEARNING") {
 		solver = new DeepLearningSolver((LearningModel*)model, NULL);
         }
+      else if(solver_type == "DESPOTWITHLEARNEDPOLICY")   
+      {
+          DESPOT *despotSolver = (DESPOT *)InitializeSolver(model, "DESPOT", options);
+          solver = new DespotWithLearnedDefaultPolicy((LearningModel*)model, despotSolver->lower_bound(), despotSolver->upper_bound(), NULL);
+      } 
       else if (solver_type == "PLANNINGDIFFPARAMS") {
           DESPOT *despotSolver = (DESPOT *)InitializeSolver(model, "DESPOT", options);
           solver = new PlanningDiffParamsSolver((LearningModel*)model, despotSolver->lower_bound(), despotSolver->upper_bound(), NULL);
 
 		
         }
+      
       else if (solver_type == "USERDEFINED") {
 		solver = new UserDefinedActionSolver((LearningModel*)model, NULL);
         }

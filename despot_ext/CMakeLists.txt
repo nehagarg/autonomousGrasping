@@ -19,6 +19,7 @@ add_library("${PROJECT_NAME}" SHARED
   src/DeepLearningSolver.cpp
   src/LearningModel.cpp
   src/LearningPlanningSolver.cpp
+  src/DespotWithLearnedDefaultPolicy.cpp
 
 )
 target_link_libraries("${PROJECT_NAME}"

@@ -467,7 +467,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
         inputs.append(['8cm', command, '1', '20', 'None', '2', '232', '233', '1'])
         inputs.append(['8cm', command, '1', '40', 'None', '2', '64', '65', '1'])
         inputs.append(['9cm', command, '1', '80', 'None', '2', '114', '115', '1'])
-        #inputs.append(['9cm', command, '1', '320', 'None', '2', '163', '163', '1'])
+        #inputs.append(['9cm', command, '1', '320', 'None', '2', '162', '163', '1'])
         inputs.append(['9cm', command, '1', '640', 'None', '2', '153', '154', '1'])
         inputs.append(['8cm', command, '1', '640', 'None', '2', '177', '178', '1'])
         inputs.append(['7cm', command, '1', '640', 'None', '2', '146', '147', '1'])
