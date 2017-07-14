@@ -121,7 +121,7 @@ def generate_params_file(file_name, problem_type):
         if 'output_dir' in ans:
             ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
         
-    for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50']:
+    for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
         for interface_type in ["vrep_model", "data_model"]:
             file_prefix = interface_type + "_9cm_low_friction_"
             if file_name == file_prefix + filetype + ".yaml" :
@@ -147,6 +147,9 @@ def generate_params_file(file_name, problem_type):
         
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
+        if 'combined_4' in filename:
+            ans['solver'] = 'DESPOTWITHLEARNEDPOLICY'
+        
         #m = re.search('combined_[0-9]+', file_name)
         #switching_version = int(m.group().split('_')[-1])
         #if switching_version > 2:
