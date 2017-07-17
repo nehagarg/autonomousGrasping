@@ -40,6 +40,12 @@ public:
  
 
     double GetTimeNotToBeCounted(SearchStatistics* statistics);
+    
+
+
+    void UpdateHistoryDuringTrial(History& history, VNode* vnode);
+
+
 
 
 }; 
@@ -59,14 +65,17 @@ public:
     void belief(Belief* b);
 
 
-
+     DeepLearningSolver deepLearningSolver;
 protected:
+
+   // ValuedAction Search();
+
     void InitStatistics();
 
     void CoreSearch(std::vector<State*> particles, RandomStreams& streams);
     //ScenarioLowerBound* learned_policy_lower_bound_;
     LearnedPolicy* deepPolicy;
-    DeepLearningSolver deepLearningSolver;
+   
 
 };
 

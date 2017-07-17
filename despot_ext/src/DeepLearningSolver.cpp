@@ -175,6 +175,19 @@ ValuedAction DeepLearningSolver::Search() {
     return Search(history_);
 }
 
+void DeepLearningSolver::TruncateRnnHistories(int history_size) {
+    //std::cout << "In truncate " << rnn_state_history.size() << ","
+    //        << rnn_output_history.size() << std::endl;
+    assert(history_size <= rnn_state_history.size());
+    for(int i = history_size; i< rnn_state_history.size(); i++)
+    {
+        Py_DECREF(rnn_state_history[i]);
+        Py_DECREF(rnn_output_history[i]);
+         //TODO delete PyObjects properly
+    }
+    rnn_state_history.resize(history_size);
+    rnn_output_history.resize(history_size);
+}
 
 ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h, int print_info) {
     if(print_info == 1)
@@ -184,14 +197,8 @@ ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h, int print_
 //    std::cout << "Rnn state history size and history size " << rnn_state_history.size() << "," << h.Size() << std::endl;
     PyObject *rnn_state = NULL;
     int history_size = h.Size();
-    for(int i = history_size; i< rnn_state_history.size(); i++)
-    {
-        Py_DECREF(rnn_state_history[i]);
-        Py_DECREF(rnn_output_history[i]);
-         //TODO delete PyObjects properly
-    }
-    rnn_state_history.resize(h.Size());
-    rnn_output_history.resize(h.Size());
+    TruncateRnnHistories(history_size);
+    
     int action = -1;
     uint64_t obs;
     if(history_size > 0){
@@ -200,6 +207,11 @@ ValuedAction DeepLearningSolver::SearchUsingPythonFunction(History h, int print_
         std::cout << "History size is " << history_size <<  std::endl;
         }
         rnn_state = rnn_state_history[history_size -1 ];
+        if(rnn_state == NULL)
+        {
+            std::cout << "failed ERROR: Null Rnn state history size and history size " << rnn_state_history.size() << "," << h.Size() << std::endl;
+   
+        }
         action = h.LastAction();
         obs = h.LastObservation();
     }
@@ -262,6 +274,9 @@ ValuedAction DeepLearningSolver::Search(History h, int print_info) {
 
 void DeepLearningSolver::Update(int action, uint64_t obs) {
     
+    std::cout << "Deep Learnign Update: Rnn state history size and history size " 
+            << rnn_state_history.size() << "," << history_.Size() << std::endl;
+
     if(rnn_state_history.size() == history_.Size()) 
         //rnn_state_history size should be 1 more than history size before updating history
     {
@@ -270,6 +285,7 @@ void DeepLearningSolver::Update(int action, uint64_t obs) {
         Search(history_, 0);
     }
     history_.Add(action, obs);
+    TruncateRnnHistories(history_.Size());
 }
 
 

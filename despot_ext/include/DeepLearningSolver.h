@@ -28,6 +28,7 @@ public:
     
     std::vector< PyObject*> rnn_state_history;
     std::vector< PyObject*> rnn_output_history; //required for svm model input
+    void TruncateRnnHistories(int t_size);
 private:
     PyObject *h_to_a_model;
     PyObject *load_function, *run_function;
