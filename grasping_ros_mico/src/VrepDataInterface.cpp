@@ -91,16 +91,56 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
         //initial_state.object_pose.pose.position.y = initial_states[ii].object_pose.pose.position.y ;
         //initial_state = initial_states[i];
     //return  initial_states[ii];
+        if(start_state_index < 245)
+        {
         int i = (start_state_index % 49) / 7;
         int j = (start_state_index % 49) % 7;
         initial_state.object_pose.pose.position.y = initial_object_y -0.03 + (j*0.01);
         initial_state.object_pose.pose.position.x = initial_object_x -0.03 + (i*0.01);
+        }
+        else
+        {
+            int actual_index = (start_state_index - 245) % 32;
+            int i ;
+            int j;
+            if(actual_index < 8)
+            {
+                i = actual_index % 8;
+                j = 0;
+            }
+            else if(actual_index < 16)
+            {
+                i = 8;
+                j = (actual_index - 8) % 8;
+            }
+            else if(actual_index < 24)
+            {
+                i = 8 - (((actual_index - 16))%8);
+                j=8;
+            }
+            else
+            {
+                i = 0;
+                j = 8 - (((actual_index - 24))%8);
+            }
+            initial_state.object_pose.pose.position.y = initial_object_y -0.04 + (j*0.01);
+            initial_state.object_pose.pose.position.x = initial_object_x -0.04 + (i*0.01);
+        }
     }
     else
     {
        while(true){
             
           GenerateGaussianParticleFromState(initial_state, type);
+          // initial_state.object_pose.pose.position.y = initial_object_y ;
+          // initial_state.object_pose.pose.position.x = initial_object_x ;
+           //Setting for which learned policy shows wierd transition in data model
+           //This is because the gripper comes below hand
+           //initial_state.object_pose.pose.position.x = 0.521875;
+           //initial_state.object_pose.pose.position.y = 0.138427;
+           //initial_state.gripper_pose.pose.position.x =0.447917;
+           //initial_state.gripper_pose.pose.position.y = 0.151595;
+           //break;
            //initial_state.object_pose.pose.position.x = 0.518375;
            //initial_state.object_pose.pose.position.y = 0.155915;
            //initial_state.object_pose.pose.position.x = initial_object_x - 0.03;
