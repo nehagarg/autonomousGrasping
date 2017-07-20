@@ -273,15 +273,14 @@ def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, c
     plt.show()
 
 
-def plot_scatter_graph(x,y, colors):
+def plot_scatter_graph(y,x, colors):
     area = np.pi * (15 * 1)**2  # 0 to 15 point radiuses
 
     #plt.scatter(x, y, s=area, c=colors, alpha=0.5)
-    plt.scatter(x, y, s=area, c = colors)
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('Time step 20 sec')
-    plt.show()
+    plt.scatter(y,x, s=area, c = colors)
+    plt.xlabel('y')
+    plt.ylabel('x')
+    #plt.title('Time step 20 sec')
     
 
 
@@ -466,20 +465,29 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
     lines = []
     lines.append('\\begin{tabular}{l*{'+repr(NC) + "}{c}}")
     lines.append("\hline")
-    line = "Policy "
-    for i in range(0,NC):
-        line = line + "& " + xlabels[i] + " "
-    line = line + "\\\\ "
-    lines.append(line)
-    lines.append("\hline")
+    if 'dummy' not in csv_file:
+        line = "Policy "
+        for i in range(0,NC):
+            line = line + "& " + xlabels[i] + " "
+        line = line + "\\\\ "
+        lines.append(line)
+        lines.append("\hline")
     
     for i in range(0,NR):
         line = legend[i].replace('L7', 'L1').replace('L8', 'L1') + " "
+        if'T5S' in line:
+            continue
+        if 'dummy' in csv_file and 'S3' not in line:
+            continue
         for j in range(0, NC):
             standard_deviation_string = ''
             if showStandardDeviation:
                 standard_deviation_string = " \pm " + "{:.2f}".format(stds[i][j])
-            line = line + "& $" + "{:.2f}".format(means[i][j]) + standard_deviation_string + " $ "
+            if means[i][j] > 1:
+                line = line + "& $" + "{:.2f}".format(means[i][j]) + standard_deviation_string + " $ "
+            else:
+                line = line + "& $" + "{:.3f}".format(means[i][j]) + standard_deviation_string + " $ "
+
         line = line + '\\\\ '
         lines.append(line)
     lines.append("\hline")
@@ -501,6 +509,8 @@ def plot_graph_from_csv(csv_file, plt_error):
         plt_title = line[0]
         xlabels = line[1:]
         for line in f:
+            if'T5S' in line:
+                continue
             data = line.rstrip('\n').split(",")
             legend.append(data[0])
             means.append([])
@@ -628,9 +638,7 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     max_y_o = 0.2295; #range for object location
     max_reward = 100
     min_reward = -10
-    x = []
-    y = []
-    colors = []
+    
     time_step = raw_input('Time step?')
     
     scenarios = raw_input('Sccenarios?')
@@ -640,32 +648,43 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     print dir_name
     cur_dir = os.getcwd()
     os.chdir(dir_name)
-    for i in range(0, 49):
+    num_cases = 49
+    plt.subplots(1,5)
+    for j in range(0,5):
+        x = []
+        y = []
+        colors = []
+        for ii in range(0, num_cases):
+            i = j*num_cases + ii
+            a = '_'+repr(i)+ '.log'
+
+            #file_list = [f for f in os.listdir('.')]
+            #print file_list
+            file_list = [f for f in os.listdir('.') if (os.path.isfile(f) and (pattern in f) and (a in f)) ]
+            log_filename = file_list[0]
+            #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+            #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_with_state_in_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+            #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+            #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_with_state_in_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+
+
+            fullData =  ParseLogFile(log_filename, 'vrep', 0, 'vrep').getFullDataWithoutBelief()
+            x.append(fullData['roundInfo']['state'].o_x)
+            y.append(fullData['roundInfo']['state'].o_y)
+            if fullData['stepInfo'][-1]['reward'] == max_reward:
+                colors.append('green')
+            elif fullData['stepInfo'][-1]['reward'] == min_reward:
+                print "Red " + repr(i)
+                colors.append('red')
+            else:
+                print "Yellow " + repr(i)
+                colors.append('yellow')
+        plt.subplot(1,5,j+1)
+        plot_scatter_graph(y, x, colors)
+    os.chdir(cur_dir)
+    plt.show()
+    
         
-        a = '_'+repr(i)+ '.log'
-        
-        #file_list = [f for f in os.listdir('.')]
-        #print file_list
-        file_list = [f for f in os.listdir('.') if (os.path.isfile(f) and (pattern in f) and (a in f)) ]
-        log_filename = file_list[0]
-        #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
-        #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_with_state_in_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
-        #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_' + time_scenario_string + '_trial_' + repr(i) + '.log'
-        #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_with_state_in_' + time_scenario_string + '_trial_' + repr(i) + '.log'
-         
-        
-        fullData =  ParseLogFile(log_filename, 'vrep', 0, 'vrep').getFullDataWithoutBelief()
-        x.append(fullData['roundInfo']['state'].o_x)
-        y.append(fullData['roundInfo']['state'].o_y)
-        if fullData['stepInfo'][-1]['reward'] == max_reward:
-            colors.append('green')
-        elif fullData['stepInfo'][-1]['reward'] == min_reward:
-            print i
-            colors.append('red')
-        else:
-            colors.append('yellow')
-    os.chdir(cur_dir)         
-    plot_scatter_graph(x, y, colors)
     
 def get_list_input(sampled_scenarios, command):
     while True:
@@ -674,9 +693,11 @@ def get_list_input(sampled_scenarios, command):
             break
         if 'a' in input:
             sampled_scenarios.append(input.split(' ')[1])
-            sampled_scenarios = sorted(set(sampled_scenarios))
+            sampled_scenarios = set(sampled_scenarios)
         if 'r' in input:
-            sampled_scenarios.remove(input.split(' ')[1])
+            a = input.split(' ')[1]
+            if a in sampled_scenarios:
+                sampled_scenarios.remove(a)
     return sampled_scenarios        
 
 def main():
