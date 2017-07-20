@@ -693,7 +693,8 @@ def get_list_input(sampled_scenarios, command):
             break
         if 'a' in input:
             sampled_scenarios.append(input.split(' ')[1])
-            sampled_scenarios = list(set(sampled_scenarios))
+            #sampled_scenarios = list(set(sampled_scenarios))
+            #Removed removal of duplicate entries to keep input order
         if 'r' in input:
             a = input.split(' ')[1]
             if a in sampled_scenarios:
