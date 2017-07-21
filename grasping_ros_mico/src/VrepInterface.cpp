@@ -154,7 +154,7 @@ void VrepInterface::SetObjectPose(geometry_msgs::PoseStamped object_pose, int ha
         if(!sim_set_object_pose_client.call(set_object_pose_srv))
         {
             std::cout << "Call to set mico target pose failed " << std::endl;
-            assert(false);
+            assert(0==1);
         }
 }
 
@@ -168,7 +168,7 @@ void VrepInterface::SetMicoTargetPose(geometry_msgs::PoseStamped mico_target_pos
         if(!sim_set_object_pose_client.call(set_object_pose_srv))
         {
             std::cout << "Call to set mico target pose failed " << std::endl;
-            assert(false);
+            assert(0==1);
         }
                     
         //Wait for arm to stabilize
@@ -218,7 +218,7 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
         if(!sim_set_joint_position_client.call(joint_state_srv))
         {
             std::cout << "Call to set joint position failed" << std::endl;
-            assert(false);
+            assert(0==1);
         }
     }
 
@@ -229,7 +229,7 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
         if(!sim_set_joint_position_client.call(joint_state_srv))
         {
             std::cout << "Call to set joint position failed" << std::endl;
-            assert(false);
+            assert(0==1);
         }
 
     }
@@ -252,7 +252,7 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
     if(!sim_set_object_pose_client.call(set_object_pose_srv))
     {
         std::cout << "Call to set mico target pose failed " << std::endl;
-        assert(false);
+        assert(0==1);
     }
 
 
@@ -306,8 +306,8 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
 void VrepInterface::PickActionInVrep(int action_offset, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, double& reward) const {
         if(action_offset < A_PICK || action_offset > A_PICK)
     {   
-        std::cout << "wrong action id while performing pick " << action_offset << std::endl; 
-        assert(false);
+        std::cout << "ERROR wrong action id while performing pick " << action_offset << std::endl; 
+        assert(0==1);
     }
         GraspingStateRealArm initial_grasping_state = grasping_state;
     
@@ -364,8 +364,8 @@ void VrepInterface::OpenCloseGripperInVrep(int action_offset, GraspingStateRealA
     
     if(action_offset < A_CLOSE || action_offset > A_OPEN)
     {   
-        std::cout << "wrong action id while opening closing gripper " << action_offset << std::endl; 
-        assert(false);
+        std::cout << "ERROR wrong action id while opening closing gripper " << action_offset << std::endl; 
+        assert(0==1);
     }
     
     WaitForStability("closeGripper","/vrep/checkGripper",  action_offset - A_CLOSE + 1, 0);
@@ -531,8 +531,8 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
     }
     else
     {
-        std::cout << "Wrong action offset " << action_offset << std::endl;
-        assert(false);
+        std::cout << "ERROR Wrong action offset " << action_offset << std::endl;
+        assert(0==1);
     }
      
     //bool alreadyTouching = true;
@@ -667,7 +667,7 @@ void VrepInterface::GetTouchSensorReadingFromVrep(double touch_sensor_reading[])
         else
         {
             std::cout << "Call to set integer signal checkSensors 1 failed " << std::endl;
-            assert(false);
+            assert(0==1);
         }
                 
         
@@ -677,7 +677,7 @@ void VrepInterface::GetTouchSensorReadingFromVrep(double touch_sensor_reading[])
         if(!sim_set_integer_signal_client.call(set_integer_signal_srv))
         {
         std::cout << "Call to set integer signal checkSensors 0 failed " << std::endl;
-        assert(false);
+        assert(0==1);
         }
         
     //std::cout << std::endl;
@@ -780,7 +780,7 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
                 if(!sim_set_joint_position_client.call(joint_state_srv))
                 {
                     std::cout << "Call to set joint position failed" << std::endl;
-                    assert(false);
+                    assert(0==1);
                 }
             }
             for(int ii = 0; ii < 6; ii++)
@@ -790,7 +790,7 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
                 if(!sim_set_joint_position_client.call(joint_state_srv))
                 {
                     std::cout << "Call to set joint position failed" << std::endl;
-                    assert(false);
+                    assert(0==1);
                 }
               
             }
@@ -809,7 +809,7 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
             if(!sim_set_object_pose_client.call(set_object_pose_srv))
             {
                 std::cout << "Call to set mico target pose failed " << std::endl;
-                assert(false);
+                assert(0==1);
             }
            
             //Start simulation
@@ -1130,7 +1130,7 @@ void VrepInterface::GatherData(int object_id) const {
                     if(!sim_set_joint_position_client.call(joint_state_srv))
                     {
                         std::cout << "Call to set joint position failed" << std::endl;
-                        assert(false);
+                        assert(0==1);
                     }
                 }
                 for(int ii = 0; ii < 6; ii++)
@@ -1141,7 +1141,7 @@ void VrepInterface::GatherData(int object_id) const {
                     if(!sim_set_joint_position_client.call(joint_state_srv))
                     {
                         std::cout << "Call to set joint position failed" << std::endl;
-                        assert(false);
+                        assert(0==1);
                     }
 
                 }
@@ -1161,7 +1161,7 @@ void VrepInterface::GatherData(int object_id) const {
                 if(!sim_set_object_pose_client.call(set_object_pose_srv))
                 {
                     std::cout << "Call to set mico target pose failed " << std::endl;
-                    assert(false);
+                    assert(0==1);
                 }
  
                
@@ -1345,7 +1345,7 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
                     if(!sim_set_integer_signal_client.call(set_integer_signal_srv))
                     {
                         std::cout << "Call to set integer signal "<< signal_name << " " << signal_off_value << " failed " << std::endl;         
-                        assert(false);
+                        assert(0==1);
                     }
               //  }
                      
