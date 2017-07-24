@@ -7,9 +7,9 @@ try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dumper
-from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, get_switching_threshold, LEARNED_MODEL_NAME
+from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, get_switching_threshold, LEARNED_MODEL_NAME, get_grasping_object_name_list
 import re
-    
+
 def generate_commands(yaml_config):
     all_commands = []
     
@@ -120,7 +120,8 @@ def generate_params_file(file_name, problem_type):
         ans['solver'] = 'DEEPLEARNING'
         if 'output_dir' in ans:
             ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
-        
+    
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm'];
     for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
         for interface_type in ["vrep_model", "data_model"]:
             file_prefix = interface_type + "_9cm_low_friction_"
@@ -128,7 +129,7 @@ def generate_params_file(file_name, problem_type):
                 ans = get_default_params(file_prefix + "learning.yaml")
                 ans['output_dir'] = ans['output_dir'] + "/" + filetype
                 ans['config_file'] = (ans['config_file'].split('.'))[0] + '_' + filetype + ".yaml"
-            for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
+            for object_type in object_list:
                 file_prefix =  interface_type + "_multi_object_" + object_type + "_low_friction_"
                 if file_name == file_prefix  + filetype + '.yaml':
                     ans = get_default_params(file_prefix + 'learning.yaml')
@@ -137,19 +138,29 @@ def generate_params_file(file_name, problem_type):
     
 
     if 'fixed_distribution' in file_name:
-        ans = get_default_params(file_name.replace('_fixed_distribution', '') )
+        new_file_name = file_name
+        if 'G3DB' in file_name:
+            object_list = get_grasping_object_name_list()
+            for object_type in object_list:
+                if object_type in file_name:
+                    G3DB_object_type = object_type
+                    new_file_name = file_name.replace(G3DB_object_type, '75mm')
+        ans = get_default_params(new_file_name.replace('_fixed_distribution', '') )
         ans['additional_params'] = '-l CAP --number='
         if('simulator' in ans['output_dir']):
             ans['output_dir'] = ans['output_dir'].replace("simulator","simulator/fixed_distribution")
         else:
             ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty10/fixed_distribution")
         ans['end_index'] = 245
-        
+        if 'G3DB' in file_name:
+            ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)
+            ans['file_name_prefix'] = ans['file_name_prefix'].replace('75mm', G3DB_object_type)
+         
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
         if 'combined_4' in file_name:
             ans['solver'] = 'DESPOTWITHLEARNEDPOLICY'
-        
+    
         #m = re.search('combined_[0-9]+', file_name)
         #switching_version = int(m.group().split('_')[-1])
         #if switching_version > 2:
@@ -174,11 +185,14 @@ def generate_params_file(file_name, problem_type):
     f = open(file_name, 'w')
     f.write(output)
     
-def generate_fixed_distribution_commands():
-    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20']:
+def generate_fixed_distribution_commands(type = 'G3DB'):
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    if type == 'G3DB':
+        object_list = get_grasping_object_name_list()
+    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', 'combined_4']:
         for interface_type in ["vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
-            for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
+            for object_type in object_list:
                   generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
 
 def generate_fixed_distribution_3_commands():
@@ -189,6 +203,108 @@ def generate_fixed_distribution_3_commands():
                   generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
 
 
+def generate_sample_input_command(dir,error_files):
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    command = 'vrep'
+    if 'simulator' in dir:
+        command = 'vrep'
+    command = command + '_model_fixed_distribution'
+    if 'singleObjectType' in dir:
+        command = command + "_9cm"
+    else:
+        command = command + "_multi_object_pattern"
+    command = command + '_low_friction'
+    ans = []
+    for error_file in error_files:
+        o = ''
+        for object_type in object_list:
+            if object_type in error_file:
+                o = object_type
+        trial_no = int(error_file.split('.')[0].split('_')[-1])
+        m = re.search('t([0-9]+)_', dir)
+        learning_version = 'None'
+        if m:
+            t = m.groups(0)[0]
+        else:
+            t = '1'
+            learning_version = 'empty'
+        m = re.search('_n([0-9]+)', dir)
+        if m:
+            n = m.groups(0)[0]
+        else:
+            n = '1'
+        combined_version = 'None'
+        m = re.search('combined_([0-9]+)', dir)
+        if m:
+            combined_version = m.groups(0)[0]
+        m = re.search('_combined_[0-9]+-([0-9]+)', filename)
+        if m:
+            combined_version = combined_version + '-' + m.groups(0)[0]
+        
+        ans = ans.append(' '.join([o , command, t, n, learning_version, combined_version, repr(trial_no), repr(trial_no + 1), '1']))
+    return ans
+
+def generate_run_commands_for_error_files(dir):
+    cur_dir = os.getcwd()
+    os.chdir(dir)
+    file_list = [f for f in os.listdir('.') if os.path.isfile(f)]
+    error_files = []
+    for file_name in file_list:
+        if '.log' in file_name:
+            with open(file_name,'r') as f:
+                all_text = f.read()
+                if 'ERROR' in all_text or 'failed' in all_text or 'Segmentation fault' in all_text:
+                    error_files.append[file_name]
+    os.chdir(cur_dir)
+    command_list = generate_sample_input_command(dir,error_files)
+    return command_list
+
+def generate_fixed_fistribution_sample_input(dir_name = None, output_file = None):
+    dir_iterator = get_dir(dir_name)
+    all_commands = []
+    for dir in dir_iterator:
+        all_commands = all_commands + generate_run_commands_for_error_files(dir)
+    if output_file is None:
+        output_file = 'sample_input.txt'
+    with open(output_file, 'w') as f:
+        f.write('\n'.join(all_commands))
+def correct_fixed_distribution_log_file_numbering(dir_name=None, e = False):
+    dir_iterator = get_dir(dir_name)
+    for dir in dir_iterator:
+        print dir
+        correct_log_file_numbering(dir, e)
+
+def correct_log_file_numbering(dir, e = False):
+    cur_dir = os.getcwd()
+    os.chdir(dir)
+    file_list = [f for f in os.listdir('.') if os.path.isfile(f)]
+    new_file_list = []
+    for file_name in file_list:
+        if '.log' in file_name:
+            trial_no = int((file_name.split('_')[-1]).split('.')[0])
+            if(trial_no < 245):
+                new_trial_no = (trial_no/49)*32 + trial_no;
+            else:
+                new_trial_no = (trial_no - 245) + 49 + (trial_no/32)*81
+            new_file_name = file_name.replace(repr(trial_no), repr(new_trial_no))
+            new_file_name = new_file_name + '_'
+            new_file_list.append(new_file_name)
+    for i in range(0,len(file_list)):
+        command = 'mv ' + file_list[i] + ' ' + new_file_list[i]
+        if e:
+            os.system(command)
+        else:
+            print command
+            
+    for i in range(0,len(file_list)):
+        new_name = new_file_list[i].replace('.log_', '.log')
+        command = 'mv ' + new_file_list[i] + ' ' + new_name
+        if e:
+            os.system(command)
+        else:
+            print command
+    os.chdir(cur_dir)
+        
 def add_learning_pattern(dir, pattern):
     cur_dir = os.getcwd()
     os.chdir(dir)
@@ -235,7 +351,16 @@ def add_learning_pattern(dir, pattern):
     
     
     os.chdir(cur_dir)
+    
 def correct_log_files_percent_learning_calculation(dir_name = None):
+    dir_iterator = get_dir(dir_name)
+    for dir in dir_iterator:
+        for switch_dir in ['combined_1', 'combined_2']:
+            if switch_dir in dir:
+                add_learning_pattern(dir,"22LearningPlanningSolver::Search()")
+            else:
+                add_learning_pattern(dir,"[['$'")
+def get_dir(dir_name = None):
     root_dir = '~/WORK_FOLDER/add something'
     if dir_name is not None:
         root_dir = dir_name
@@ -254,20 +379,23 @@ def correct_log_files_percent_learning_calculation(dir_name = None):
         dir1 = root_dir +"/" + experiment_type + "ObjectType/" + dict1[experiment_type]
         for interface_type in ['data','vrep']:
             dir2 = dir1 + "/" + dict1[interface_type]
-            #for t in [1,5]:
-            #    for n in dict2[experiment_type]:
-            #        dir = dir2 + "/t" + repr(t) + '_n' + repr(n)
-            #        add_learning_pattern(dir,"[['$'")
+            for t in [1,5]:
+                for n in dict2[experiment_type]:
+                    dir = dir2 + "/t" + repr(t) + '_n' + repr(n)
+                    #add_learning_pattern(dir,"[['$'")
+                    yield dir
             dir3 = dir2 + "/" + dict3[experiment_type]
-            add_learning_pattern(dir3,"[['$'")
+            #add_learning_pattern(dir3,"[['$'")
+            yield dir3
             for switch_dir in [ 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
                 for t in [1,5]:
                     for n in dict2[experiment_type]:
                         dir = dir3 +"/" + switch_dir + "/t" + repr(t) + '_n' + repr(n)
-                        if switch_dir in [ 'combined_1', 'combined_2']:
-                            add_learning_pattern(dir,"22LearningPlanningSolver::Search()")
-                        else:
-                            add_learning_pattern(dir,"[['$'")
+                        yield dir
+                        #if switch_dir in [ 'combined_1', 'combined_2']:
+                        #    add_learning_pattern(dir,"22LearningPlanningSolver::Search()")
+                        #else:
+                        #    add_learning_pattern(dir,"[['$'")
 def main():
     global LEARNED_MODEL_NAME
     opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:m:",["dir="])
