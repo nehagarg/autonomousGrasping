@@ -4,7 +4,7 @@ import getopt
 import sys
 #from plot_despot_results import get_list_input
 import subprocess
-
+from generate_grasping_ros_mico_yaml_config_file import get_grasping_object_name_list
     
 initial_ros_port = 11311
 max_ros_port = initial_ros_port + 50
@@ -69,6 +69,8 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     pattern_list = [pattern]
     if pattern == 'all':
         pattern_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    if pattern == 'grasp_objects':    
+        pattern_list = get_grasping_object_name_list()
     
     if command_list_file is None:
         command_prefix = raw_input("Command prefix?")
@@ -140,17 +142,26 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' + roscore_screen_name + ' -d -m  \n')
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + roscore_command +  " ^M' \n")
-                            f.write("sleep 60 \n")
+                            f.write("sleep 10 \n")
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                         
             
-                            vrep_command = 'until rostopic list ; do sleep 1; done ; cd ' + vrep_dir + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder' + p + '.ttt'
+                            vrep_command = 'until rostopic list ; do sleep 1; done ; cd '
+                            vrep_command = vrep_command + vrep_dir 
+                            vrep_command = vrep_command + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h '
+                            if 'G3DB' in p:
+                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4'
+                            else:
+                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder'
+                            vrep_command = vrep_command + p + '.ttt'
+                            
+                                
                             vrep_screen_name = repr(starting_screen_counter)+ '_vrep_' + repr(starting_ros_port)
 
                             f.write('screen -S ' +  vrep_screen_name + ' -d -m \n')
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  " ^M' \n")
-                            f.write("sleep 60 \n")
+                            f.write("sleep 10 \n")
                             
                             actual_command = "until rostopic list | grep vrep ; do sleep 1; done ; " + actual_command
                             vrep_ros_port = vrep_ros_port + 1

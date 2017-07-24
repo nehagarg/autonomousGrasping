@@ -11,6 +11,26 @@ import getopt
 LEARNED_MODEL_NAME = None
 SVM_MODEL_NAME = None
 
+def get_grasping_object_name_list():
+    pattern_list = ['G3DB11_cheese_final-10-mar-2016']
+    pattern_list.append('G3DB39_beerbottle_final-11-mar-2016')
+    pattern_list.append('G3DB40_carafe_final-11-Mar-2016')
+    pattern_list.append('G3DB41_jar_and_lid_final-11-Mar-2016')
+    pattern_list.append('G3DB43_wineglass2_final')
+    pattern_list.append('G3DB48_bottle_and_plug_final')
+    pattern_list.append('G3DB50_carton_final')
+    pattern_list.append('G3DB54_candlestick_final')
+    pattern_list.append('G3DB5_bottle_final-19-jan-2016')
+    pattern_list.append('G3DB65_coffeemaker_final')
+    pattern_list.append('G3DB66_chocolatebox_final')
+    pattern_list.append('G3DB67_jug_final')
+    pattern_list.append('G3DB73_juicebottle_final')
+    pattern_list.append('G3DB84_yogurtcup_final')
+    pattern_list.append('G3DB91_peppershaker_final')
+    pattern_list.append('G3DB94_weight_final')
+    assert(len(pattern_list)==16)
+    return pattern_list
+
 def load_config_from_file(yaml_file):
     ans = None
     with open(yaml_file,'r') as stream:
@@ -123,7 +143,10 @@ def modify_basic_config(filename, ans):
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
-        
+    
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm'];
+    if 'G3DB' in filename:
+        object_list = get_grasping_object_name_list()
     for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
         for interface_type in ["", "Data"]:
             file_prefix = "Vrep" + interface_type + "Interface_low_friction"
@@ -131,7 +154,7 @@ def modify_basic_config(filename, ans):
                 ans = load_config_from_file(file_prefix + ".yaml")
                 ans['svm_model_prefix'] = 'output/vrep/version7/nu_0_1_kernel_rbf_gamma_0_1_'
                 ans['switching_method'] = int(filetype.split('_')[1].split('-')[0])
-            for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
+            for object_type in object_list:
                 file_prefix = "Vrep" + interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 if filename == file_prefix + '_' + filetype + '.yaml':
                     ans = load_config_from_file(file_prefix + '.yaml')
