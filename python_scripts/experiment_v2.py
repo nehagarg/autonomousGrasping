@@ -285,18 +285,22 @@ def correct_log_file_numbering(dir, e = False):
             if(trial_no < 245):
                 new_trial_no = (trial_no/49)*32 + trial_no;
             else:
-                new_trial_no = (trial_no - 245) + 49 + (trial_no/32)*81
+                new_trial_no = (trial_no - 245) + 49 + ((trial_no -245)/32)*81
             new_file_name = file_name.replace(repr(trial_no), repr(new_trial_no))
             new_file_name = new_file_name + '_'
             new_file_list.append(new_file_name)
-    for i in range(0,len(file_list)):
-        command = 'mv ' + file_list[i] + ' ' + new_file_list[i]
-        if e:
-            os.system(command)
         else:
-            print command
+            new_file_list.append(file_name) #To keep same numbering
             
     for i in range(0,len(file_list)):
+        if '.log' in file_list[i]:
+            command = 'mv ' + file_list[i] + ' ' + new_file_list[i]
+            if e:
+                os.system(command)
+            else:
+                print command
+            
+    for i in range(0,len(new_file_list)):
         new_name = new_file_list[i].replace('.log_', '.log')
         command = 'mv ' + new_file_list[i] + ' ' + new_name
         if e:
