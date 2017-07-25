@@ -205,7 +205,7 @@ def generate_fixed_distribution_3_commands():
 
 def generate_sample_input_command(dir,error_files):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
-    command = 'vrep'
+    command = 'data'
     if 'simulator' in dir:
         command = 'vrep'
     command = command + '_model_fixed_distribution'
@@ -237,11 +237,12 @@ def generate_sample_input_command(dir,error_files):
         m = re.search('combined_([0-9]+)', dir)
         if m:
             combined_version = m.groups(0)[0]
-        m = re.search('_combined_[0-9]+-([0-9]+)', filename)
+        m = re.search('_combined_[0-9]+-([0-9]+)', dir)
         if m:
             combined_version = combined_version + '-' + m.groups(0)[0]
         
-        ans = ans.append(' '.join([o , command, t, n, learning_version, combined_version, repr(trial_no), repr(trial_no + 1), '1']))
+        ans.append(' '.join([o , command, t, n, learning_version, combined_version, repr(trial_no), repr(trial_no + 1), '1']))
+    print ans
     return ans
 
 def generate_run_commands_for_error_files(dir):
@@ -254,15 +255,17 @@ def generate_run_commands_for_error_files(dir):
             with open(file_name,'r') as f:
                 all_text = f.read()
                 if 'ERROR' in all_text or 'failed' in all_text or 'Segmentation fault' in all_text:
-                    error_files.append[file_name]
+                    error_files.append(file_name)
     os.chdir(cur_dir)
     command_list = generate_sample_input_command(dir,error_files)
+    print command_list
     return command_list
 
 def generate_fixed_fistribution_sample_input(dir_name = None, output_file = None):
     dir_iterator = get_dir(dir_name)
     all_commands = []
     for dir in dir_iterator:
+	print dir
         all_commands = all_commands + generate_run_commands_for_error_files(dir)
     if output_file is None:
         output_file = 'sample_input.txt'
@@ -271,8 +274,9 @@ def generate_fixed_fistribution_sample_input(dir_name = None, output_file = None
 def correct_fixed_distribution_log_file_numbering(dir_name=None, e = False):
     dir_iterator = get_dir(dir_name)
     for dir in dir_iterator:
-        print dir
-        correct_log_file_numbering(dir, e)
+	if 'combined_3' in dir:
+        	print dir
+        	correct_log_file_numbering(dir, e)
 
 def correct_log_file_numbering(dir, e = False):
     cur_dir = os.getcwd()
@@ -283,9 +287,9 @@ def correct_log_file_numbering(dir, e = False):
         if '.log' in file_name:
             trial_no = int((file_name.split('_')[-1]).split('.')[0])
             if(trial_no < 245):
-                new_trial_no = (trial_no/49)*32 + trial_no;
+                new_trial_no = (trial_no/49)*81 + (trial_no % 49);
             else:
-                new_trial_no = (trial_no - 245) + 49 + ((trial_no -245)/32)*81
+                new_trial_no = ((trial_no - 245)% 32) + 49 + ((trial_no -245)/32)*81
             new_file_name = file_name.replace(repr(trial_no), repr(new_trial_no))
             new_file_name = new_file_name + '_'
             new_file_list.append(new_file_name)
@@ -391,7 +395,7 @@ def get_dir(dir_name = None):
             dir3 = dir2 + "/" + dict3[experiment_type]
             #add_learning_pattern(dir3,"[['$'")
             yield dir3
-            for switch_dir in [ 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20']:
+            for switch_dir in [ 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50']:
                 for t in [1,5]:
                     for n in dict2[experiment_type]:
                         dir = dir3 +"/" + switch_dir + "/t" + repr(t) + '_n' + repr(n)
