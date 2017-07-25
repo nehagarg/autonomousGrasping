@@ -237,12 +237,12 @@ def generate_sample_input_command(dir,error_files):
         m = re.search('combined_([0-9]+)', dir)
         if m:
             combined_version = m.groups(0)[0]
-        m = re.search('_combined_[0-9]+-([0-9]+)', dir)
+        m = re.search('combined_[0-9]+-([0-9]+)', dir)
         if m:
             combined_version = combined_version + '-' + m.groups(0)[0]
         
         ans.append(' '.join([o , command, t, n, learning_version, combined_version, repr(trial_no), repr(trial_no + 1), '1']))
-    print ans
+    #print ans
     return ans
 
 def generate_run_commands_for_error_files(dir):
