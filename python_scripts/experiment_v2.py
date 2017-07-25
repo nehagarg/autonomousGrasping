@@ -274,9 +274,9 @@ def generate_fixed_fistribution_sample_input(dir_name = None, output_file = None
 def correct_fixed_distribution_log_file_numbering(dir_name=None, e = False):
     dir_iterator = get_dir(dir_name)
     for dir in dir_iterator:
-	if 'combined_3' in dir:
-        	print dir
-        	correct_log_file_numbering(dir, e)
+	#if 'combined_3' in dir:
+            print dir
+            correct_log_file_numbering(dir, e)
 
 def correct_log_file_numbering(dir, e = False):
     cur_dir = os.getcwd()
@@ -285,25 +285,40 @@ def correct_log_file_numbering(dir, e = False):
     new_file_list = []
     for file_name in file_list:
         if '.log' in file_name:
+            """ 
             trial_no = int((file_name.split('_')[-1]).split('.')[0])
             if(trial_no < 245):
                 new_trial_no = (trial_no/49)*81 + (trial_no % 49);
             else:
                 new_trial_no = ((trial_no - 245)% 32) + 49 + ((trial_no -245)/32)*81
-            new_file_name = file_name.replace(repr(trial_no), repr(new_trial_no))
+            new_file_name = file_name.replace('_' + repr(trial_no)+'.log', '_' + repr(new_trial_no)+'.log')
             new_file_name = new_file_name + '_'
+            """
+            new_file_name = file_name
+            new_file_name = new_file_name.replace('107mm', '75mm')
+            new_file_name = new_file_name.replace('117mm', '85mm')
+            new_file_name = new_file_name.replace('_n112_', '_n80_')
+            new_file_name = new_file_name.replace('_n192_', '_n160_')
+            new_file_name = new_file_name.replace('_n256_', '_n160_')
+            new_file_name = new_file_name.replace('_n222_', '_n320_')
+            new_file_name = new_file_name.replace('_n960_', '_n640_')
+            new_file_name = new_file_name.replace('_n1920_', '_n1280_')
+            new_file_name = new_file_name.replace('_n12112_', '_n1280_')
+            new_file_name = new_file_name.replace('_n1133_', '_n1280_')
             new_file_list.append(new_file_name)
+            
         else:
             new_file_list.append(file_name) #To keep same numbering
             
+            
     for i in range(0,len(file_list)):
-        if '.log' in file_list[i]:
+        if file_list[i] != new_file_list[i]:
             command = 'mv ' + file_list[i] + ' ' + new_file_list[i]
             if e:
                 os.system(command)
             else:
                 print command
-            
+    """        
     for i in range(0,len(new_file_list)):
         new_name = new_file_list[i].replace('.log_', '.log')
         command = 'mv ' + new_file_list[i] + ' ' + new_name
@@ -311,6 +326,8 @@ def correct_log_file_numbering(dir, e = False):
             os.system(command)
         else:
             print command
+    """
+            
     os.chdir(cur_dir)
         
 def add_learning_pattern(dir, pattern):
