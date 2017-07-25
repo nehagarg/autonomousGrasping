@@ -91,16 +91,18 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
         //initial_state.object_pose.pose.position.y = initial_states[ii].object_pose.pose.position.y ;
         //initial_state = initial_states[i];
     //return  initial_states[ii];
-        if(start_state_index < 245)
+        int start_state_index_mod = start_state_index % 81;
+        
+        if(start_state_index_mod < 49)
         {
-        int i = (start_state_index % 49) / 7;
-        int j = (start_state_index % 49) % 7;
+        int i = (start_state_index_mod % 49) / 7;
+        int j = (start_state_index_mod % 49) % 7;
         initial_state.object_pose.pose.position.y = initial_object_y -0.03 + (j*0.01);
         initial_state.object_pose.pose.position.x = initial_object_x -0.03 + (i*0.01);
         }
         else
         {
-            int actual_index = (start_state_index - 245) % 32;
+            int actual_index = (start_state_index_mod - 49) % 32;
             int i ;
             int j;
             if(actual_index < 8)
