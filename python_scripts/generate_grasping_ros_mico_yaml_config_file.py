@@ -1,10 +1,4 @@
 import sys
-import yaml
-from yaml import dump
-try:
-    from yaml import CDumper as Dumper
-except ImportError:
-    from yaml import Dump
 import re
 import getopt
 
@@ -259,6 +253,12 @@ def main():
         filename = args[0]
     ans = create_basic_config()
     ans = modify_basic_config(filename, ans)
+    import yaml
+    from yaml import dump
+    try:
+        from yaml import CDumper as Dumper
+    except ImportError:
+        from yaml import Dump
     output = dump(ans, Dumper=Dumper)
     f = open(filename, 'w')
     f.write(output)
