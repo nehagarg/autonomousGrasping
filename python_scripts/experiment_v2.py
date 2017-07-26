@@ -254,7 +254,16 @@ def generate_run_commands_for_error_files(dir):
         if '.log' in file_name:
             with open(file_name,'r') as f:
                 all_text = f.read()
-                if 'ERROR' in all_text or 'failed' in all_text or 'Segmentation fault' in all_text:
+                isErrorFile = False
+                if 'ERROR' in all_text:
+                    isErrorFile = True
+                if 'failed' in all_text:
+                    isErrorFile = True
+                if 'Segmentation fault' in all_text:
+                    isErrorFile = True
+                if 'Simulation terminated in' not in all_text:
+                    isErrorFile = True
+                if isErrorFile:
                     error_files.append(file_name)
     os.chdir(cur_dir)
     command_list = generate_sample_input_command(dir,error_files)
