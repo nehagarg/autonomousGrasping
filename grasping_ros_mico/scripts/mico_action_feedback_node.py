@@ -5,15 +5,16 @@ import rospy
 from sensor_msgs.msg import (
     JointState
 )
-import motion_executor
-from motion_executor import Executor
+#import motion_executor
+#from motion_executor import Executor
 
 import kinova_motion_executor_with_touch
 from kinova_motion_executor_with_touch import KinovaExecutorWithTouch
 import time 
+from robot_config import *
 
-motion_executor.THRES_TOUCH_GRASPED = 650.0
-motion_executor.THRES_TOUCH = 15.0
+#motion_executor.THRES_TOUCH_GRASPED = 650.0
+#motion_executor.THRES_TOUCH = 15.0
 
 kinova_motion_executor_with_touch.THRES_TOUCH_GRASPED = 650.0
 kinova_motion_executor_with_touch.THRES_TOUCH = 15.0
@@ -25,14 +26,13 @@ kinova_motion_executor_with_touch.THRES_TOUCH = 15.0
 def joint_state_callback(data, ans):
     global finger
     pose=data.position
-    ans=[pose[6],pose[8]]
+    ans=[pose[6],pose[7]]
     #print ans
     finger=ans
 
 
 def handle_action_request(req):
     global finger
-    global myMotionExecutor
     global myKinovaMotionExecutor
     if req.action == req.ACTION_MOVE:
         myKinovaMotionExecutor.goto_relative_pose_until_touch(req.move_x, req.move_y, req.move_z)
@@ -42,15 +42,16 @@ def handle_action_request(req):
     if req.action == req.ACTION_OPEN:
         myKinovaMotionExecutor.set_gripper_state('open')
     if req.action == req.ACTION_PICK:
-        myMotionExecutor.goto('top_of_books')
-    
+        #myKinovaMotionExecutor.goto('top_of_books')
+        myKinovaMotionExecutor.goto('home_t')
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
-    res.touch_sensor_reading =  myMotionExecutor.detected_pressure
+    res.touch_sensor_reading =  myKinovaMotionExecutor.detected_pressure
     print res.touch_sensor_reading
 
     finger = None
-    rospy.Subscriber("/joint_states", JointState, joint_state_callback, res.finger_joint_state)
+    topic_address = '/' + myKinovaMotionExecutor._prefix + 'driver/out/joint_state'
+    rospy.Subscriber(topic_address, JointState, joint_state_callback, res.finger_joint_state)
     while not finger :
         rospy.sleep(5)
         print "Waiting for joint state"
@@ -99,12 +100,14 @@ if __name__ == '__main__':
     """
     rospy.init_node('mico_action_feedback_server')
     global finger, myMotionExecutor, myKinovaMotionExecutor
-    myKinovaMotionExecutor = KinovaExecutorWithTouch()
-    myMotionExecutor = Executor()
-    myMotionExecutor.open_gripper()
-    myMotionExecutor.goto('home')
+    myKinovaMotionExecutor = KinovaExecutorWithTouch('mico_action_feedback_server')
+    #myMotionExecutor = Executor()
+    #myMotionExecutor.open_gripper()
+    myKinovaMotionExecutor.set_gripper_state('open')
+    myKinovaMotionExecutor.goto('home_t')
     time.sleep(10)
-    myMotionExecutor.goto('table_pre_grasp2')
+    myKinovaMotionExecutor.goto('table_pre_grasp2')
     myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
     myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+    myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
     mico_action_feedback_server()
