@@ -1,15 +1,15 @@
 import sys
 import re
 import getopt
-
+import yaml
 LEARNED_MODEL_NAME = None
 SVM_MODEL_NAME = None
 
 def get_grasping_object_name_list():
     pattern_list = ['G3DB11_cheese_final-10-mar-2016']
     pattern_list.append('G3DB39_beerbottle_final-11-mar-2016')
-    pattern_list.append('G3DB40_carafe_final-11-Mar-2016')
-    pattern_list.append('G3DB41_jar_and_lid_final-11-Mar-2016')
+    pattern_list.append('G3DB40_carafe_final-11-mar-2016')
+    pattern_list.append('G3DB41_jar_and_lid_final-11-mar-2016')
     pattern_list.append('G3DB43_wineglass2_final')
     pattern_list.append('G3DB48_bottle_and_plug_final')
     pattern_list.append('G3DB50_carton_final')
@@ -235,25 +235,9 @@ def modify_basic_config(filename, ans):
     if filename == "RealArmInterface.yaml" :
         ans["interface_type"] = 2
         
-    return ans        
-def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hm:s:")
-    global LEARNED_MODEL_NAME
-    global SVM_MODEL_NAME
-    for opt,arg in opts:
-        if opt == '-m':
-            LEARNED_MODEL_NAME = arg
-        elif opt == '-s':
-            SVM_MODEL_NAME = arg
-        elif opt == '-h':
-            print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
+    return ans 
+def write_config_in_file(filename, ans):
     
-    filename = "VrepInterface.yaml"
-    if len(args) > 0:
-        filename = args[0]
-    ans = create_basic_config()
-    ans = modify_basic_config(filename, ans)
-    import yaml
     from yaml import dump
     try:
         from yaml import CDumper as Dumper
@@ -262,6 +246,36 @@ def main():
     output = dump(ans, Dumper=Dumper)
     f = open(filename, 'w')
     f.write(output)
+    
+def generate_combined_config_files_for_G3DB():
+    object_list = get_grasping_object_name_list()
+    for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
+            for object_type in object_list:
+                file_prefix = "VrepInterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
+                filename = file_prefix + '_' + filetype + '.yaml'
+                ans = create_basic_config()
+                ans = modify_basic_config(filename, ans) 
+                write_config_in_file(filename, ans)
+def main():
+    opts, args = getopt.getopt(sys.argv[1:],"ghm:s:")
+    global LEARNED_MODEL_NAME
+    global SVM_MODEL_NAME
+    for opt,arg in opts:    
+        if opt == '-m':
+            LEARNED_MODEL_NAME = arg
+        elif opt == '-s':
+            SVM_MODEL_NAME = arg
+        elif opt =='-g':
+            generate_combined_config_files_for_G3DB()
+        elif opt == '-h':
+            print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
+    
+    filename = "VrepInterface.yaml"
+    if len(args) > 0:
+        filename = args[0]
+    ans = create_basic_config()
+    ans = modify_basic_config(filename, ans)
+    write_config_in_file(filename, ans)
     
 
 if __name__ == "__main__" :
