@@ -189,7 +189,7 @@ def generate_fixed_distribution_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     if type == 'G3DB':
         object_list = get_grasping_object_name_list()
-    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', 'combined_4']:
+    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
         for interface_type in ["vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:

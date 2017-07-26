@@ -142,7 +142,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' + roscore_screen_name + ' -d -m  \n')
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + roscore_screen_name + " -X stuff '" + roscore_command +  " ^M' \n")
-                            f.write("sleep 10 \n")
+                            f.write("sleep 1 \n")
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                         
             
@@ -161,7 +161,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write('screen -S ' +  vrep_screen_name + ' -d -m \n')
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
                             f.write("screen -S " + vrep_screen_name + " -X stuff '" + vrep_command +  " ^M' \n")
-                            f.write("sleep 10 \n")
+                            f.write("sleep 1 \n")
                             
                             actual_command = "until rostopic list | grep vrep ; do sleep 1; done ; " + actual_command
                             vrep_ros_port = vrep_ros_port + 1
