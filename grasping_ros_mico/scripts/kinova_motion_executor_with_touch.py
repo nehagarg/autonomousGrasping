@@ -31,10 +31,13 @@ class KinovaExecutorWithTouch(KinovaExecutor):
     def cb_touch(self, msg, finger_index):
         print finger_index
         print 'touch=', msg.data
+        print 'initial pressure =' , self.initial_pressure[finger_index]
         self.last_touch[finger_index] = msg.data
 
     def cb_pressure(self, msg, finger_index):
         pressure = msg.data
+        #print finger_index
+        #print 'pressure=', msg.data
         if self.initial_pressure[finger_index] is None:
             self.initial_pressure[finger_index] = pressure
         a = self.initial_pressure[finger_index]

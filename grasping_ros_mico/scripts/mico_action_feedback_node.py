@@ -39,21 +39,27 @@ def handle_action_request(req):
     if req.action == req.ACTION_MOVE:
         myKinovaMotionExecutor.goto_relative_pose_until_touch(req.move_x, req.move_y, req.move_z)
     if req.action == req.ACTION_CLOSE:
-        #print "here"
+        print "close action"
+        myKinovaMotionExecutor.max_pressure = [-1000, -1000]
         myKinovaMotionExecutor.set_gripper_state('close')
     if req.action == req.ACTION_OPEN:
+        print "open action"
+        myKinovaMotionExecutor.max_pressure = [-1000, -1000]
         myKinovaMotionExecutor.set_gripper_state('open')
     if req.action == req.ACTION_PICK:
+        print "pick action"
+        myKinovaMotionExecutor.max_pressure = [-1000, -1000]
         #myKinovaMotionExecutor.goto('top_of_books')
         myKinovaMotionExecutor.goto('home_t')
     if req.action ==req.GET_TOUCH_THRESHOLD:
+        print "Getting threshold"
         res = MicoActionFeedbackResponse()
         res.touch_sensor_reading = [kinova_motion_executor_with_touch.THRES_TOUCH,kinova_motion_executor_with_touch.THRES_TOUCH]
         return res
         
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
-    res.touch_sensor_reading =  myKinovaMotionExecutor.detected_pressure
+    res.touch_sensor_reading =  myKinovaMotionExecutor.max_pressure
     print res.touch_sensor_reading
 
     finger = None

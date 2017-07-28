@@ -187,7 +187,7 @@ void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
      
      if(interfaceType == 2)
      {
-        RealArmInterface* interfacePointer = new RealArmInterface();
+        RealArmInterface* interfacePointer = new RealArmInterface(start_state_index);
     //
         robotInterface = interfacePointer;
      }
