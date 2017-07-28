@@ -46,21 +46,21 @@ public:
     double vrep_finger_joint_min = 0;
     double vrep_finger_joint_max = 1.58;
     double vrep_finger_joint_for_dummy_joint_value_change = 1.5;
-    double vrep_dummy_finger_joint_min = 0;
+    double vrep_dummy_finger_joint_min = 0.0;
     double vrep_dummy_finger_joint_max = 0.4;
-    double real_finger_joint_min = 0; 
+    double real_finger_joint_min = 0.0; 
     double real_finger_joint_max = 1.4; 
     double vrep_touch_value_max = 2.6;
-    double vrep_touch_value_min = 0;
+    double vrep_touch_value_min = 0.0;
     
     double tip_wrt_hand_link_x = 0.127; //(Mico link 7 in vrep)
     
     mutable double real_gripper_offset_x;
     mutable double real_gripper_offset_y;
     mutable double real_gripper_offset_z;
-    mutable double real_touch_threshold;
-    mutable double real_touch_value_min;
-    mutable double real_touch_value_max;
+    mutable double real_touch_threshold; //Fetched from mico action feedback node = 75.0;
+    mutable double real_touch_value_min = 0.0;
+    mutable double real_touch_value_max = 1000.0;
 
 private:
     

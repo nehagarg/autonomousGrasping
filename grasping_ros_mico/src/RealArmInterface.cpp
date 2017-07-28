@@ -115,6 +115,20 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     //Get robot pose and finger joints
     //Calling open gripper functon for that
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
+    micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.GET_TOUCH_THRESHOLD;
+    if(micoActionFeedbackClient.call(micoActionFeedback_srv))
+    {
+        real_touch_threshold = micoActionFeedback_srv.response.touch_sensor_reading[0];
+        real_touch_value_min = 0;
+        double real_touch_value_max_calc = (vrep_touch_value_max/vrep_touch_threshold)*real_touch_threshold;
+        if (real_touch_value_max_calc > real_touch_value_max)
+        {
+            real_touch_value_max = real_touch_value_max_calc;
+        }
+        std::cout << "Touch params: min="<< real_touch_value_min 
+                  << "thresh="<< real_touch_threshold
+                  << "max=" << real_touch_value_max << std::endl;
+    }
     micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_OPEN;
     if(micoActionFeedbackClient.call(micoActionFeedback_srv))
     {

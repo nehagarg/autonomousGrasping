@@ -12,12 +12,14 @@ import kinova_motion_executor_with_touch
 from kinova_motion_executor_with_touch import KinovaExecutorWithTouch
 import time 
 from robot_config import *
+import sys
+import getopt
 
 #motion_executor.THRES_TOUCH_GRASPED = 650.0
 #motion_executor.THRES_TOUCH = 15.0
 
 kinova_motion_executor_with_touch.THRES_TOUCH_GRASPED = 650.0
-kinova_motion_executor_with_touch.THRES_TOUCH = 15.0
+kinova_motion_executor_with_touch.THRES_TOUCH = 75.0
 
 #from stop_when_touch import lift
 #import task_planner.apc_util
@@ -44,6 +46,11 @@ def handle_action_request(req):
     if req.action == req.ACTION_PICK:
         #myKinovaMotionExecutor.goto('top_of_books')
         myKinovaMotionExecutor.goto('home_t')
+    if req.action ==req.GET_TOUCH_THRESHOLD:
+        res = MicoActionFeedbackResponse()
+        res.touch_sensor_reading = [kinova_motion_executor_with_touch.THRES_TOUCH,kinova_motion_executor_with_touch.THRES_TOUCH]
+        return res
+        
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
     res.touch_sensor_reading =  myKinovaMotionExecutor.detected_pressure
@@ -91,6 +98,14 @@ def mico_action_feedback_server():
     rospy.spin()
     
 if __name__ == '__main__':
+    opts, args = getopt.getopt(sys.argv[1:],"ht:")
+    for opt, arg in opts:
+      # print opt
+      if opt == '-h':
+         print 'mico_action_feedback_node.py -t <touch threshold value>'
+         sys.exit()
+      elif opt == '-t':
+         kinova_motion_executor_with_touch.THRES_TOUCH = float(arg)
     """
     global arm
     arm = MoveGroupCommander("arm")
