@@ -110,6 +110,8 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
 
 void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
+    //TODO: Set min and max touch values by closing and opening the gripper
+    //Fetch touch threshold value from mico action feedback node
     //Get robot pose and finger joints
     //Calling open gripper functon for that
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
@@ -177,28 +179,38 @@ void RealArmInterface::AdjustRealFingerJointsToSimulatedJoints(double gripper_jo
 }
 
 void RealArmInterface::AdjustTouchSensorToSimulatedTouchSensor(double gripper_obs_values[]) const {
-    double gripper_obs_values_copy[2];
+
+    //TODO confirm finger order is same
     for(int i = 0; i < 2; i++)
     {
-        gripper_obs_values_copy[i] = gripper_obs_values[i];
+        if(gripper_obs_values[i] < real_touch_value_min)
+        {
+            gripper_obs_values[i] = real_touch_value_min;
+        }
+        if(gripper_obs_values[i] > real_touch_value_max)
+        {
+            gripper_obs_values[i] = real_touch_value_max;
+        }
+        if(gripper_obs_values[i] <= real_touch_threshold)
+        {
+            //Interpolate between vrep min and vrep touch threshold
+            gripper_obs_values[i] = gripper_obs_values[i] - real_touch_value_min;
+            gripper_obs_values[i] = gripper_obs_values[i]*(vrep_touch_threshold - vrep_touch_value_min);
+            gripper_obs_values[i] = gripper_obs_values[i]/(real_touch_threshold - real_touch_value_min);
+            gripper_obs_values[i] = gripper_obs_values[i] + vrep_touch_value_min;
+            
+        }
+        else
+        {
+            //Interpolate between vrep touch threshold and vrep max
+            gripper_obs_values[i] = gripper_obs_values[i] - real_touch_threshold;
+            gripper_obs_values[i] = gripper_obs_values[i]*(vrep_touch_value_max - vrep_touch_threshold);
+            gripper_obs_values[i] = gripper_obs_values[i]/(real_touch_value_max - real_touch_threshold);
+            gripper_obs_values[i] = gripper_obs_values[i] + vrep_touch_threshold;
+
+        }
     }
-    /*for(int i = 0; i < 12 ; i++)
-    {
-        gripper_obs_values[i] = gripper_obs_values_copy[i+12];
-    }
-    for(int i = 12; i < 24 ; i++)
-    {
-        gripper_obs_values[i] = gripper_obs_values_copy[i-12];
-    }
-    for(int i = 24; i < 36 ; i++)
-    {
-        gripper_obs_values[i] = gripper_obs_values_copy[i+12];
-    }
-    for(int i = 36; i < 48 ; i++)
-    {
-        gripper_obs_values[i] = gripper_obs_values_copy[i-12];
-    }*/
-    //TODO : correct this function
+    
 }
 
 

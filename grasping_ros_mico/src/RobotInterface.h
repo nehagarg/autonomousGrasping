@@ -108,7 +108,7 @@ public:
     int initial_gripper_pose_index_y = 7;
  
     
-
+    double vrep_touch_threshold = 0.35;
     double pick_reward = 20;
     double pick_penalty = -100;
     double invalid_state_penalty = -100;

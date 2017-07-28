@@ -18,8 +18,8 @@ def get_plot_value(val):
     deg_val = f_val*180/3.14
     ans = float("{:.2f}".format(deg_val))
     ans = f_val
-    if ans < 0:
-        ans = 0
+    #if ans < 0:
+    #    ans = 0
     return ans
 def plot_finger(command_file, finger, start_index, end_index):
     print finger
@@ -31,11 +31,13 @@ def plot_finger(command_file, finger, start_index, end_index):
             joint_values = line.strip().split(' ')
             actual_value = get_plot_value(joint_values[0+(2*finger)])
             dummy_value = get_plot_value(joint_values[1+(2*finger)])
-            if(actual_value < 10):
+            if(actual_value < 3):
                 actual_joint_values.append(actual_value)
                 dummy_joint_values.append(dummy_value)
-                if(actual_joint_values[-1] >0.3 and dummy_joint_values[-1] < 1 ):
+                if(actual_joint_values[-1] >3 or dummy_joint_values[-1] >3 ):
                     print i
+                    print actual_joint_values[-1]
+                    print dummy_joint_values[-1]
             i = i+1
     #popt, pcov = curve_fit(func, dummy_joint_values,actual_joint_values )
     popt=(1.0, 0.01, -1.0)

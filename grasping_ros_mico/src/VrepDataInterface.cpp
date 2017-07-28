@@ -65,7 +65,7 @@ bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[]
     {
         on_bits[i] = 0;
         //if(current_sensor_values[i] > (touch_sensor_mean[i] + (3*touch_sensor_std[i])))
-        if(current_sensor_values[i] > 0.35)
+        if(current_sensor_values[i] > vrep_touch_threshold)
         {
             touchDetected = true;
             on_bits[i] = 1;
