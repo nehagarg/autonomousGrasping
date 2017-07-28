@@ -472,6 +472,8 @@ void RobotInterface::GenerateGaussianParticleFromState(GraspingStateRealArm& ini
 
             
             break;
+            //Removing redundant code as this is not called after break
+            /*
             if((initial_state.object_pose.pose.position.x < initial_object_x + 0.035) &&
                  (initial_state.object_pose.pose.position.x > initial_object_x - 0.035) &&
                  (initial_state.object_pose.pose.position.y < initial_object_y + 0.035) &&
@@ -479,7 +481,7 @@ void RobotInterface::GenerateGaussianParticleFromState(GraspingStateRealArm& ini
             {
                 break;
             }
-            
+            */
       }
       
 }
