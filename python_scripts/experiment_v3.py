@@ -437,7 +437,9 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
                             print "All nodes busy. Sleeping..."
                             run_command_on_node('sleep 300')
                             nodes = update_nodes(node_file_name)
-                            check_finished_processes(stopped_node_file)
+                            #Will be done by a different process
+                            #check_finished_processes(stopped_node_file)
+                            update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
 
 
                     
@@ -456,7 +458,21 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     #screen -S Jetty -X kill ; echo $?
     #screen -S Jetty -X stuff '^D'
 
-
+def check_finished_processes_standalone(running_node_file, stopped_node_file):
+   #update ports on each node
+    global running_nodes_to_screen 
+    global running_screen_to_nodes 
+    global stopped_nodes_to_screen 
+    global stopped_screen_to_nodes
+    update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
+    update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
+    while(not all_processes_stopped()):
+            print "Sleeping before checking process status..."
+            run_command_on_node('sleep 600')
+            check_finished_processes(stopped_nodes_file)
+            update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
+            #update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
+            
 def generate_error_re_run_commands(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file):
     command = "vrep_model_fixed_distribution_multi_object_pattern_low_friction"
     
@@ -533,11 +549,12 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
             initial_ros_port = initial_ros_port + 1
     
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hegvtd:p:s:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hergvtd:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
     genarate_command_file = False
+    remove_stopped_process = False
     separate_ros_vrep_port = False
     source_tensorflow = False
     starting_screen_counter = 1
@@ -546,12 +563,14 @@ def main():
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'experiment_v3.py -e |-g -v -t  -s starting_screen_counter -p problem_type -d work_folder_dir command_file'
+         print 'experiment_v3.py -e |-g | -r -v -t  -s starting_screen_counter -p problem_type -d work_folder_dir command_file'
          sys.exit()
       elif opt == '-e':
          execute_command_file = True
       elif opt == '-g':
          genarate_command_file = True
+      elif opt == '-r':
+          remove_stopped_process = True
       elif opt == '-v':
          separate_ros_vrep_port = True
       elif opt == '-t':
@@ -574,7 +593,11 @@ def main():
     if genarate_command_file:
         generate_commands_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
         
-    
+    if remove_stopped_process:
+        running_nodes_file = "run_txt_files/running_nodes.txt"
+        stopped_nodes_file = "run_txt_files/stopped_nodes.txt"
+        check_finished_processes_standalone(running_nodes_file, stopped_nodes_file)
+        
     if execute_command_file:
         current_screen_counter_file = "run_txt_files/current_screen_counter.txt"
         current_screen_counter = 0
@@ -602,7 +625,7 @@ def main():
                 else:
                     current_screen_counter = new_screen_counter
                     #TODO automatically merge runnign and stopped nodes files using command
-                    #awk 'NR==FNR{a[$0];next} !($0 in a)' test_stopped_nodes.txt test_running_nodes.txt
+                    #awk 'NR==FNR{a[$0];next} !($0 in a)' stopped_nodes.txt running_nodes.txt
                     #cat run_txt_files/stopped_nodes.txt | cut -d' ' -f2 | cut -d'_' -f1 | sort -n | awk '$1!=p+1{print p+1"-"$1-1}{p=$1}'
         while(not all_processes_stopped()):
             print "Sleeping before checking process status..."
