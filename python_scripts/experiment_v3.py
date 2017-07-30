@@ -469,7 +469,7 @@ def check_finished_processes_standalone(running_node_file, stopped_node_file):
     while(not all_processes_stopped()):
             print "Sleeping before checking process status..."
             run_command_on_node('sleep 600')
-            check_finished_processes(stopped_nodes_file)
+            check_finished_processes(stopped_node_file)
             update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
             #update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
             
