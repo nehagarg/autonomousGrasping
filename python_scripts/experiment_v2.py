@@ -265,6 +265,11 @@ def generate_run_commands_for_error_files(dir):
                     isErrorFile = True
                 if isErrorFile:
                     error_files.append(file_name)
+    os.system("grep 'Simulation terminated in' *.log | grep Binary > binary_files.txt")
+    with open('binary_files.txt', 'r') as f:
+        for line in f:
+            file_name = line.split(' ')[2]
+            error_files.append(file_name)
     os.chdir(cur_dir)
     command_list = generate_sample_input_command(dir,error_files)
     print command_list
