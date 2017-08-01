@@ -6,6 +6,8 @@
  * Modified on 19 dec 2016 for different scene and data gathering for 2 sensors on fingers
  */
 
+#include <unistd.h>
+
 #include "VrepInterface.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float64.h"
@@ -260,10 +262,18 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
     vrep_common::simRosStartSimulation start_srv;
     if(sim_start_client.call(start_srv) )
     {
+        int sim_start_count = 0;
         while(start_srv.response.result != 1)
         {
+            if(sim_start_count >=30)
+            {
+                std::cout << "ERROR: Could not start simulation after setting gripper pose" << std::endl;
+                assert(0==1);
+            }
+            sleep(5);
             std::cout << "Receiving response" << start_srv.response.result << "while starting" << std::endl;
             sim_start_client.call(start_srv);
+            sim_start_count++;           
         }
     }
     else
@@ -1563,7 +1573,8 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
                     }
                     else
                     {
-                        std::cout << "Failed to stop simualtion" << std::endl ;
+                        std::cout << "ERROR: Failed to stop simualtion" << std::endl ;
+                        assert(0==1);
                     }
        /* //Start simulation as starting simulation after setting griiper pose leads to unstable non pure shape
         vrep_common::simRosStartSimulation start_srv;
