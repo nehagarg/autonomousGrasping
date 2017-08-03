@@ -33,6 +33,7 @@ class KinovaExecutorWithTouch(KinovaExecutor):
         print 'touch=', msg.data
         print 'initial pressure =' , self.initial_pressure[finger_index]
         self.last_touch[finger_index] = msg.data
+        self.max_pressure[finger_index] = msg.data
 
     def cb_pressure(self, msg, finger_index):
         pressure = msg.data
@@ -41,7 +42,7 @@ class KinovaExecutorWithTouch(KinovaExecutor):
         if self.initial_pressure[finger_index] is None:
             self.initial_pressure[finger_index] = pressure
         a = self.initial_pressure[finger_index]
-        self.max_pressure[finger_index] = max(self.max_pressure[finger_index] - a, pressure - a)
+        self.max_pressure[finger_index] = max(self.max_pressure[finger_index], pressure - a)
 
     def execute_plan(self, plan, check_need_cancel=None):
         '''

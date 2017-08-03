@@ -55,11 +55,13 @@ def handle_action_request(req):
         print "Getting threshold"
         res = MicoActionFeedbackResponse()
         res.touch_sensor_reading = [kinova_motion_executor_with_touch.THRES_TOUCH,kinova_motion_executor_with_touch.THRES_TOUCH]
+        #print myKinovaMotionExecutor.initial_pressure
         return res
         
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
     res.touch_sensor_reading =  myKinovaMotionExecutor.max_pressure
+    #print myKinovaMotionExecutor.initial_pressure
     print res.touch_sensor_reading
 
     finger = None
@@ -126,7 +128,7 @@ if __name__ == '__main__':
     #myMotionExecutor.open_gripper()
     myKinovaMotionExecutor.set_gripper_state('open')
     myKinovaMotionExecutor.goto('home_t')
-    time.sleep(10)
+    time.sleep(5)
     myKinovaMotionExecutor.goto('table_pre_grasp2')
     myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
     myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)

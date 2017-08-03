@@ -50,7 +50,7 @@ public:
     double vrep_dummy_finger_joint_max = 0.4;
     double real_finger_joint_min = 0.0; 
     double real_finger_joint_max = 1.4; 
-    double vrep_touch_value_max = 2.6;
+    double vrep_touch_value_max = 2.5; //2.6;
     double vrep_touch_value_min = 0.0;
     
     double tip_wrt_hand_link_x = 0.127; //(Mico link 7 in vrep)
