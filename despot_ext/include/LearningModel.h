@@ -40,6 +40,7 @@ public:
     std::string svm_model_prefix = "";
     int switch_threshold = 10;
     std::string problem_name = "vrep";
+    std::vector <int> hand_defined_actions;
     //mutable int next_action = -1; //Obtained from joint model
     mutable bool store_obs_hash = false;
     

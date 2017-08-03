@@ -39,6 +39,16 @@ LearningModel::LearningModel(std::string modelParamFileName, std::string problem
     {
         switch_threshold = config["switching_threshold"].as<int>();
     }
+    if(config["hand_defined_actions"])
+    {
+        std::string hand_defined_action_string  = config["hand_defined_actions"].as<std::string>();
+        std::stringstream stream(hand_defined_action_string);
+        int n;
+        while(stream >> n)
+        {
+            hand_defined_actions.push_back(n);
+        }
+    }
 }
 
 
@@ -98,10 +108,17 @@ double LearningModel::GetUncertaintyValue(Belief* b) const {
 }
 
 ValuedAction LearningModel::GetNextActionFromUser(History h) const {
-    int next_action;
-    std::cout << "Input next action" << std::endl;
-    std::cin >> next_action;
-    return ValuedAction(next_action, 1);
+    if (h.Size() < hand_defined_actions.size())
+    {
+        return ValuedAction(hand_defined_actions[h.Size()],1);
+    }
+    else
+    {
+        int next_action;
+        std::cout << "Input next action" << std::endl;
+        std::cin >> next_action;
+        return ValuedAction(next_action, 1);
+    }
 }
 
 
