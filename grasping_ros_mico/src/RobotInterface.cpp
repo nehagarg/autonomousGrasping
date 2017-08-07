@@ -73,6 +73,26 @@ RobotInterface::RobotInterface(const RobotInterface& orig) {
 RobotInterface::~RobotInterface() {
 }
 
+bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int action) {
+    bool ans = false;
+    if(reward != -1000 && reward != -2000)
+    {
+        ans = true;
+        /*if ((simData.current_object_pose.pose.position.z - default_initial_object_pose_z) 
+                < max_x_o_difference)
+        {
+            ans = true;
+        }
+        else
+        {
+            std::cout << "Data entry invalid because of faulty object pose: " << action << std::endl;
+            simData.PrintSimulationData();
+        }*/
+    }
+    return ans;
+    
+}
+
 void RobotInterface::getSimulationData(int object_id) {
 
    
@@ -96,7 +116,7 @@ void RobotInterface::getSimulationData(int object_id) {
             exit(0);
         }*/
         //std::cout << reward << " " << action << "*";
-        if(reward != -1000 && reward != -2000)
+        if (isDataEntryValid(reward, simData, action))  //(reward != -1000 && reward != -2000)
         {
             if(action!= A_OPEN)
             {
@@ -123,7 +143,7 @@ void RobotInterface::getSimulationData(int object_id) {
         simDataReader.parseSimulationDataLineTableData(simulationDataFile, simData, action, reward);
         
         //std::cout << reward << " ";
-        if(reward != -1000 && reward != -2000)
+        if (isDataEntryValid(reward, simData, action))//(reward != -1000 && reward != -2000)
         {
             
             //TODO also filter the states where the nexxt state and observation is same as given by defulat state

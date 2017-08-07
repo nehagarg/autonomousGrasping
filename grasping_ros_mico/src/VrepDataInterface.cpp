@@ -78,8 +78,12 @@ bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[]
 void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
     GetDefaultStartState(initial_state);
-    
-    
+    if(start_state_index == -2)
+    {//Position that mimics real arm object slipping
+      initial_state.object_pose.pose.position.y = initial_object_y + 0.07 ;
+      initial_state.object_pose.pose.position.x = initial_object_x + 0.03;
+      return;
+    }     
     if (start_state_index >= 0 ) 
     {
         std::cout << "Start_state index is " << start_state_index << std::endl;
@@ -167,7 +171,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
             }
                
             }
-            
+        
       }
     }
     
@@ -277,16 +281,18 @@ bool isValidPick = true;
             
     
     // if target and tip are far from each other set false
-    distance = 0;
+    //Removing this as mico target pose is not updated properly
+    /*distance = 0;
     distance = distance + pow(grasping_state.gripper_pose.pose.position.x - grasping_obs.mico_target_pose.pose.position.x, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_obs.mico_target_pose.pose.position.y, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_obs.mico_target_pose.pose.position.z, 2);
     distance = pow(distance, 0.5);
     if(distance > 0.03)
     {
+        //std::cout << "Pick false because of tip" << std::endl;
         isValidPick = false;
     }
-      
+      */
     
     return isValidPick;
 }
