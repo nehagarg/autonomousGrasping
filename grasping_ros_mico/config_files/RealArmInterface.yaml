@@ -9,3 +9,4 @@ pick_penalty: -100
 pick_reward: 100
 start_state_index: -1
 test_object_id: 0
+learned_model_name: vrep/version6/model.ckpt-846
