@@ -1,7 +1,7 @@
 belief_object_ids: [0, 1, 2]
 interface_type: 0
 invalid_state_penalty: -10
-learned_model_name: vrep/version8/model.ckpt-881
+learned_model_name: vrep/version8/model.ckpt-800
 low_friction_table: true
 num_belief_particles: 1000
 object_initial_pose_z: [1.0998, 1.0998, 1.0998, 1.0998, 1.0998, 1.0871]
