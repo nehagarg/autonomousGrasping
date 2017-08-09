@@ -104,15 +104,26 @@ def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName =='test':
         
-        for i in range(0,20):
+        for i in range(0,200):
             #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/separate_close_reward/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n320_withoutLCAP/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n320_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
-            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n20/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n20_trial_' + repr(i) +'.log'
+            #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n20/Table_scene_low_friction_7cm_cylinder_belief_gaussian_with_state_in_t5_n20_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
+            #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
+            #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
+            t = '1'
+            scenario = '40'
+            object='8cm'
+            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
 
             #print i
+            #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/t1_n40/Table_scene_low_friction_7cm_cylinder_belief_gaussian_with_state_in_t1_n40_trial_' + repr(i) +'.log'
+            
+            #print i
             seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+
             #logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n20_trial_' + repr(i) +'.log'
             #print i
             #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
@@ -127,6 +138,15 @@ def parse(fileName, belief_type = '', isTraining = False):
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
     elif fileName == 'vrep/version8':
+        for i in range(0,500):
+            for t in ['5']:
+                for scenario in ['40', '80', '160']:
+                    for object in ['7cm', '8cm', '9cm']:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            
+    elif fileName == 'vrep/version8_pick_bug':
         for i in range(0,500):
             for t in ['5']:
                 for scenario in ['40', '80', '160']:
@@ -240,24 +260,28 @@ def test_parsing_methods(filename):
     print seqs2
     print seqs1
 
-def test_parser(filename = None):
-    seqs = parse('test', '', True)
+def test_parser(filename = 'test'):
+    seqs = parse(filename, '', False)
     action_seqs = []
     for seq in seqs :
         action_seq = [x[0] for x in seq]
         action_seqs = action_seqs + [action_seq]
     print action_seqs
+    print len(action_seqs)
     
 def main():
     i = 0
+    import sys
     #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/despot/despot-0.2/4_objects_obs_prob_change_particles_as_state/graspingV4_state_' + repr(i) + '_multi_runs_t10_n10_obs_prob_change_particles_as_state_4objects.log'
     #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/'
     
-    filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/TableScene_cylinder_10cm_gaussian_belief_with_state_in_belief_t5_n10_trial_0.log'
-    
+    #filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/TableScene_cylinder_10cm_gaussian_belief_with_state_in_belief_t5_n10_trial_0.log'
+    filename = 'test'
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
     #test_parser(filename)
     #test_parsing_methods(filename)
-    test_parser()
+    test_parser(filename)
 
 if __name__=="__main__":
     main()
