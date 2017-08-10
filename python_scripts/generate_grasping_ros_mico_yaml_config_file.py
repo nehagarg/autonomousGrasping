@@ -43,7 +43,7 @@ def get_low_friction_table_config(ans):
     
 def create_basic_config():
     ans = {}
-    ans["start_state_index"] = -1
+    #ans["start_state_index"] = -1
     ans["num_belief_particles"] = 1000
     ans["interface_type"] = 1
     ans["pick_reward"] = 100
@@ -138,7 +138,7 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
     
-    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm'];
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     if 'G3DB' in filename:
         object_list = get_grasping_object_name_list()
     for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
@@ -247,17 +247,22 @@ def write_config_in_file(filename, ans):
     f = open(filename, 'w')
     f.write(output)
     
-def generate_combined_config_files_for_G3DB():
-    object_list = get_grasping_object_name_list()
-    for filetype in ['combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
+def generate_combined_config_files_for_G3DB(type='G3DB'):
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    interface_types = ["", "Data"]
+    if type=='G3DB':
+        object_list = get_grasping_object_name_list()
+        interface_types = [""]
+    for filetype in ['combined_4']: #, 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
+        for interface_type in interface_types:    
             for object_type in object_list:
-                file_prefix = "VrepInterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
+                file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + '_' + filetype + '.yaml'
                 ans = create_basic_config()
                 ans = modify_basic_config(filename, ans) 
                 write_config_in_file(filename, ans)
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"ghm:s:")
+    opts, args = getopt.getopt(sys.argv[1:],"g:hm:s:")
     global LEARNED_MODEL_NAME
     global SVM_MODEL_NAME
     for opt,arg in opts:    
@@ -266,7 +271,7 @@ def main():
         elif opt == '-s':
             SVM_MODEL_NAME = arg
         elif opt =='-g':
-            generate_combined_config_files_for_G3DB()
+            generate_combined_config_files_for_G3DB(arg)
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
     

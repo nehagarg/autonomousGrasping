@@ -13,7 +13,6 @@ object_min_z: [1.12, 1.12, 1.12, 1.12, 1.12, 1.12, 1.12, 1.12, 1.12]
 pick_penalty: -10
 pick_reward: 100
 separate_close_reward: true
-start_state_index: -1
 svm_model_prefix: ''
 switching_method: 0
 switching_threshold: 10

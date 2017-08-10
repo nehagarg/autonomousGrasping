@@ -169,6 +169,11 @@ def generate_params_file(file_name, problem_type):
     
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
+    if 'baseline' in file_name:
+        ans = get_default_params(file_name.replace('_baseline', '') )
+        ans['output_dir'] = ans['output_dir']+ "/baseline"
+        ans['solver'] = 'USERDEFINED'
+        
         
                 
     if file_name == 'data_model_9cm_combined_automatic.yaml':
@@ -189,14 +194,14 @@ def generate_fixed_distribution_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     if type == 'G3DB':
         object_list = get_grasping_object_name_list()
-    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
+    for filetype in ['_baseline', '_combined_4']: #['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
         for interface_type in ["vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:
                   generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
 
 def generate_fixed_distribution_3_commands():
-    for filetype in ['_combined_3-50']:
+    for filetype in  ['_baseline', '_combined_4']: #['_combined_3-50']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
@@ -489,7 +494,7 @@ def main():
         ans['end_index'] = end_index
     
         
-    if ans['solver'] == 'DEEPLEARNING':
+    if ans['solver'] == 'DEEPLEARNING' or ans['solver'] == 'USERDEFINED':
         ans['file_name'] = ans['file_name_prefix']
     else:
         
