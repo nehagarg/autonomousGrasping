@@ -38,8 +38,10 @@ void DespotWithLearnedDefaultPolicy::CoreSearch(std::vector<State*> particles, R
             deepPolicy->learnedSolver->rnn_state_history.size() << "," 
             << history_.Size() << 
             "," << deepPolicy->learnedSolver->get_history()->Size() << std::endl;
+    ((LearningModel*)model_)->SetStoreObsHash(true);
     root_ = ConstructTree(particles, streams, lower_bound_, upper_bound_,
 		model_, history_, Globals::config.time_per_move, statistics_, deepPolicy, o_helper_);
+    ((LearningModel*)model_)->SetStoreObsHash(false);
     std::cout << "Rnn state history size and history size " << 
             deepPolicy->learnedSolver->rnn_state_history.size() << "," 
             << history_.Size() << 
@@ -98,7 +100,9 @@ void DespotStaticFunctionOverrideHelperExt::InitMultipleLowerBounds(VNode* vnode
     
     //std::cout << "Getting rnn state history and history size "  
     //        << deepPointer->rnn_state_history.size() << "," << history.Size() << std::endl;
+    (((DespotWithLearnedDefaultPolicy*)solver_pointer)->getModel())->SetStoreObsHash(false);
     DESPOT::InitLowerBound(vnode,lower_bound, streams,history);
+    (((DespotWithLearnedDefaultPolicy*)solver_pointer)->getModel())->SetStoreObsHash(true);
     //std::cout << "Returning history size after default bound"  
     //       << deepPointer->rnn_state_history.size() << ","  << history.Size() << std::endl;
    
