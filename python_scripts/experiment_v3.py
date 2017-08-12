@@ -12,6 +12,7 @@ running_nodes_to_screen = {}
 running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
+last_assigned_node = None
 
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
@@ -244,11 +245,17 @@ def assign_node(node_list, screen_name, running_node_file):
     global running_nodes_to_screen 
     global running_screen_to_nodes 
     global stopped_nodes_to_screen 
-    global stopped_screen_to_nodes 
+    global stopped_screen_to_nodes
+    global last_assigned_node
     
     (screen_counter, screen_port) = get_screen_counter_port_from_screen_name(screen_name)
     
-    for node in node_list:
+    node_start_index = 0
+    if last_assigned_node is not None:
+        node_start_index = node_list.index(last_assigned_node)
+        
+    for node_index in range(0,len(node_list)):
+        node = node_list[(node_index +node_start_index) % len(node_list) ]
         #check node ssh
         command = "timeout 5 ssh " + node + " echo 'hello'"
         success = run_command_on_node(command )
@@ -282,6 +289,7 @@ def assign_node(node_list, screen_name, running_node_file):
             f.write(node + " " + screen_name + "\n")
         
         #assign node
+        last_assigned_node = node
         return node
     
     return None   
