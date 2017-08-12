@@ -402,11 +402,13 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
         with open(screen_counter_list_file, 'r') as f:
             all_lines = f.readlines()
             start_screen_counter_list = sorted(set([int(x) for x in all_lines]))
-    if not force_counter:    
-        with open(current_screen_counter_file, 'r') as f:
+        
+    with open(current_screen_counter_file, 'r') as f:
+        existing_screen_counter = int(f.readline() )
+        if not force_counter:
             assert(int(f.readline() ) ==   start_screen_counter)
     
-    existing_screen_counter = start_screen_counter
+    #existing_screen_counter = start_screen_counter
     assigned_node = None
     line_number_found = False
     with open(command_file_name) as f:
