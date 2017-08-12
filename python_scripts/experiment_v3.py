@@ -385,7 +385,7 @@ def all_processes_stopped():
     
     return set(running_screens) == set(stopped_screens)
     
-def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file):    
+def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file, force_counter):    
     nodes = update_nodes(node_file_name)
     
     #update ports on each node
@@ -402,9 +402,9 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
         with open(screen_counter_list_file, 'r') as f:
             all_lines = f.readlines()
             start_screen_counter_list = sorted(set([int(x) for x in all_lines]))
-        
-    with open(current_screen_counter_file, 'r') as f:
-        assert(int(f.readline() ) ==   start_screen_counter)
+    if not force_counter:    
+        with open(current_screen_counter_file, 'r') as f:
+            assert(int(f.readline() ) ==   start_screen_counter)
     
     existing_screen_counter = start_screen_counter
     assigned_node = None
@@ -550,7 +550,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
             initial_ros_port = initial_ros_port + 1
     
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hergvtd:p:s:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hefrgvtd:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
@@ -559,6 +559,7 @@ def main():
     separate_ros_vrep_port = False
     source_tensorflow = False
     starting_screen_counter = 1
+    force_counter = False
 
     problem_type = None
     for opt, arg in opts:
@@ -568,6 +569,8 @@ def main():
          sys.exit()
       elif opt == '-e':
          execute_command_file = True
+      elif opt == '-f' :
+         force_counter = True
       elif opt == '-g':
          genarate_command_file = True
       elif opt == '-r':
@@ -618,7 +621,8 @@ def main():
             
         
         while True:            
-            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file)
+            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file, force_counter)
+            force_counter = False
             with open(current_screen_counter_file, 'r') as f:
                 new_screen_counter = int(f.readline())
                 if new_screen_counter == current_screen_counter:
