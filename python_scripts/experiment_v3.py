@@ -469,11 +469,12 @@ def check_finished_processes_standalone(running_node_file, stopped_node_file):
     update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
     update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
     while(not all_processes_stopped()):
+            run_command_on_node('sleep 10') #To avoid newly started process being stopped
             
             check_finished_processes(stopped_node_file)
             print "Sleeping before checking process status..."
             run_command_on_node('sleep 360')
-            update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
+            update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)          
             #update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
             
 def generate_error_re_run_commands(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file):
