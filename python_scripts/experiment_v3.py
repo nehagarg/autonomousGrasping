@@ -406,7 +406,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     with open(current_screen_counter_file, 'r') as f:
         existing_screen_counter = int(f.readline() )
         if not force_counter:
-            assert(int(f.readline() ) ==   start_screen_counter)
+            assert( existing_screen_counter ==   start_screen_counter)
     
     #existing_screen_counter = start_screen_counter
     assigned_node = None
