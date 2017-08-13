@@ -246,6 +246,22 @@ def write_config_in_file(filename, ans):
     output = dump(ans, Dumper=Dumper)
     f = open(filename, 'w')
     f.write(output)
+
+def generate_config_files_for_penalty100(type='G3DB'):
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    interface_types = ["", "Data"]
+    if type=='G3DB':
+        object_list = get_grasping_object_name_list()
+        interface_types = [""]
+    for filetype in ['', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
+        for interface_type in interface_types:    
+            for object_type in object_list:
+                file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
+                filename = file_prefix + filetype + '.yaml'
+                ans = load_config_from_file(filename)
+                ans["pick_penalty"] = -100
+                ans["invalid_state_penalty"] = -100
+                write_config_in_file(filename.replace('Vrep','VrepPenalty100'), ans)
     
 def generate_combined_config_files_for_G3DB(type='G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
@@ -271,7 +287,8 @@ def main():
         elif opt == '-s':
             SVM_MODEL_NAME = arg
         elif opt =='-g':
-            generate_combined_config_files_for_G3DB(arg)
+            generate_config_files_for_penalty100(arg)
+            #generate_combined_config_files_for_G3DB(arg)
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
     
