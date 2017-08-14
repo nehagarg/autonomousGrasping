@@ -164,7 +164,10 @@ def generate_params_file(file_name, problem_type):
         if('simulator' in ans['output_dir']):
             ans['output_dir'] = ans['output_dir'].replace("simulator","simulator/fixed_distribution")
         else:
-            ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty10/fixed_distribution")
+            if 'penalty100' in ans['output_dir']:
+                ans['output_dir'] = ans['output_dir'].replace("penalty100","penalty100/fixed_distribution")
+            else:
+                ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty10/fixed_distribution")
         ans['end_index'] = 245
         if 'G3DB' in file_name:
             ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)
