@@ -104,7 +104,7 @@ def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName =='test':
         
-        for i in range(0,200):
+        for i in range(0,50):
             #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/separate_close_reward/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n320_withoutLCAP/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n320_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
@@ -112,10 +112,10 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
-            t = '1'
-            scenario = '40'
+            t = '5'
+            scenario = '20'
             object='8cm'
-            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty100/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
 
             #print i
             #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
@@ -137,6 +137,15 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName == 'vrep/version9':
+        for i in range(0,500):
+            for t in ['5']:
+                for scenario in ['40', '80', '160']:
+                    for object in ['7cm', '8cm', '9cm']:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty100/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+
     elif fileName == 'vrep/version8':
         for i in range(0,500):
             for t in ['5']:
