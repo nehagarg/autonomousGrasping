@@ -356,6 +356,19 @@ def update_nodes(node_file_name):
     nodes = [x.strip() for x in nodes]
     return nodes
         
+def kill_roscore(node_file_name):
+    nodes = update_nodes(node_file_name)
+    all_nodes_free = False
+    while(not all_nodes_free):
+        all_nodes_free = True
+        for node in nodes:
+            output = run_command_on_node('screen -S roscore -X select .', node) #check if screen exists
+            if output is not None: #command successful screen exists
+                all_nodes_free = False
+                run_command_on_node("screen -S roscore -X stuff '^C'", node)
+                run_command_on_node("screen -S roscore -X stuff '^D'", node)
+                run_command_on_node("screen -S roscore -X stuff '^D'", node)
+                
 def do_roscore_setup(nodes):
     for node in nodes:    
         output = run_command_on_node('screen -S roscore -X select .', node) #check if screen exists
@@ -561,7 +574,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
             initial_ros_port = initial_ros_port + 1
     
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hefrgvtd:p:s:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hefrgkvtd:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
@@ -571,6 +584,7 @@ def main():
     source_tensorflow = False
     starting_screen_counter = 1
     force_counter = False
+    k_roscore = False
 
     problem_type = None
     for opt, arg in opts:
@@ -586,6 +600,8 @@ def main():
          genarate_command_file = True
       elif opt == '-r':
           remove_stopped_process = True
+      elif opt == '-k':
+          k_roscore = True
       elif opt == '-v':
          separate_ros_vrep_port = True
       elif opt == '-t':
@@ -607,6 +623,9 @@ def main():
     
     if genarate_command_file:
         generate_commands_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
+    
+    if k_roscore:
+        kill_roscore("run_txt_files/node_list.txt")
         
     if remove_stopped_process:
         running_nodes_file = "run_txt_files/running_nodes.txt"
@@ -647,6 +666,7 @@ def main():
             print "Sleeping before checking process status..."
             run_command_on_node('sleep 600')
             check_finished_processes(stopped_nodes_file)
+            
         
 if __name__ == '__main__':
     main()
