@@ -14,7 +14,7 @@ pick_reward: 100
 separate_close_reward: true
 start_state_index: -1
 svm_model_dir: ''
-svm_model_prefix: output/vrep/version8/nu_0_1_kernel_rbf_gamma_0_1_
+svm_model_prefix: output/vrep/version9/nu_0_1_kernel_rbf_gamma_0_1_
 switching_method: 0
 switching_threshold: 20
 test_object_id: 5
