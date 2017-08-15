@@ -146,6 +146,7 @@ def generate_params_file(file_name, problem_type):
                     new_file_name = file_name.replace(G3DB_object_type, '75mm')
         ans = get_default_params(new_file_name.replace('_penalty_100', '') )
         ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty100")
+        ans['output_dir'] = ans['output_dir'].replace("version8","version9")
         ans['config_file'] = ans['config_file'].replace('Vrep','VrepPenalty100')
         if 'G3DB' in file_name:
             ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)

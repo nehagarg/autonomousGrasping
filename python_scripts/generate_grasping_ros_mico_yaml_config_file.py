@@ -261,6 +261,7 @@ def generate_config_files_for_penalty100(type='G3DB'):
                 ans = load_config_from_file(filename)
                 ans["pick_penalty"] = -100
                 ans["invalid_state_penalty"] = -100
+                ans["learned_model_name"] = "vrep/version9/model.ckpt-976"
                 write_config_in_file(filename.replace('Vrep','VrepPenalty100'), ans)
     
 def generate_combined_config_files_for_G3DB(type='G3DB'):
