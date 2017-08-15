@@ -6,17 +6,20 @@ import getopt
 def main():
     delete_files = False
     directory_name = None
-    opts, args = getopt.getopt(sys.argv[1:],"rd:",["dir="])
+    num_days = 5
+    opts, args = getopt.getopt(sys.argv[1:],"rd:t:",["dir="])
     for opt, arg in opts:
         if opt == '-r':
             delete_files = True
         if opt in ("-d", "--dir"):
             directory_name = arg
+        if opt == '-t':
+            num_days = int(arg)
     if directory_name is None:
         print "Please specify directory name"
         return
     
-    days_5 = datetime.timedelta(days = 5)
+    days_5 = datetime.timedelta(days = num_days)
     for root, dir, files in os.walk(directory_name):
         #print "Root " + root
         for file in files:
