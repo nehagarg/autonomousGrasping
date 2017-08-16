@@ -144,10 +144,16 @@ def generate_params_file(file_name, problem_type):
                 if object_type in file_name:
                     G3DB_object_type = object_type
                     new_file_name = file_name.replace(G3DB_object_type, '75mm')
-        ans = get_default_params(new_file_name.replace('_penalty_100', '') )
-        ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty100")
-        ans['output_dir'] = ans['output_dir'].replace("version8","version9")
-        ans['config_file'] = ans['config_file'].replace('Vrep','VrepPenalty100')
+        if 'v8' in file_name:
+            ans = get_default_params(new_file_name.replace('_penalty_100_v8', '') )
+            ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty100")
+            #ans['output_dir'] = ans['output_dir'].replace("version8","version9")
+            ans['config_file'] = ans['config_file'].replace('Vrep','VrepPenalty100V8')
+        else:
+            ans = get_default_params(new_file_name.replace('_penalty_100', '') )
+            ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty100")
+            ans['output_dir'] = ans['output_dir'].replace("version8","version9")
+            ans['config_file'] = ans['config_file'].replace('Vrep','VrepPenalty100')
         if 'G3DB' in file_name:
             ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)
             ans['file_name_prefix'] = ans['file_name_prefix'].replace('75mm', G3DB_object_type)
@@ -207,6 +213,16 @@ def generate_params_file(file_name, problem_type):
     output = yaml.dump(ans, Dumper = Dumper)
     f = open(file_name, 'w')
     f.write(output)
+
+def generate_penalty_100_v8_commands(type = 'G3DB'):
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    if type == 'G3DB':
+        object_list = get_grasping_object_name_list()
+    for filetype in ['', '_learning', '_combined_0', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4', '_baseline']:
+        for interface_type in ["vrep_model_penalty_100_v8", "data_model_penalty_100_v8", "vrep_model_penalty_100_v8_fixed_distribution", "data_model_penalty_100_v8_fixed_distribution"]:
+            #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
+            for object_type in object_list:
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
 
 def generate_penalty_100_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
