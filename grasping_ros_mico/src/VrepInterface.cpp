@@ -1054,6 +1054,7 @@ void VrepInterface::GatherData(int object_id) const {
     filename = "data_low_friction_table_exp/SASOData_Cylinder_";
     filename = filename +std::to_string(object_id/10);
     filename = filename + "cm_";
+    //filename = 'dummy_';
     bool allActions = true;
     int k_loop_min_value = 0;
     int k_look_max_value = A_CLOSE+1;
@@ -1626,6 +1627,10 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         
         //std::cout << "Getting initial state" << std::endl;
         GetStateFromVrep(initial_state);
+        if(!IsValidState(initial_state))
+        {
+            std::cout << "ERROR failed Invalid initial state" << std::endl;
+        }
         //std::cout<< "Got initial state" << std::endl;
         
 }

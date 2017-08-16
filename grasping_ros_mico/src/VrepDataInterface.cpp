@@ -270,9 +270,10 @@ bool isValidPick = true;
     
     //if object and tip are far from each other set false
     double distance = 0;
+    double z_diff_from_cylinder = initial_object_pose_z[grasping_state.object_id] - initial_object_pose_z[0];
     distance = distance + pow(grasping_state.gripper_pose.pose.position.x - grasping_state.object_pose.pose.position.x, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_state.object_pose.pose.position.y, 2);
-    distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_state.object_pose.pose.position.z, 2);
+    distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_state.object_pose.pose.position.z + z_diff_from_cylinder, 2);
     distance = pow(distance, 0.5);
     if(distance > 0.08)
     {
