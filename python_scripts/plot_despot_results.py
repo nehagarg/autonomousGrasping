@@ -617,6 +617,8 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
             sampled_scenarios = inputs[3].split(',')
             learning_versions =  inputs[4].split(',')
             combined_policy_versions = inputs[5].split(',')
+            if '' in combined_policy_versions:
+                combined_policy_versions.remove('')
             begin_index_input = inputs[6]
             end_index_input = inputs[7]
             index_step_input = inputs[8]
