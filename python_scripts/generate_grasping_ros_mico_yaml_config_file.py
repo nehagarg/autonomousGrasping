@@ -5,7 +5,7 @@ import yaml
 LEARNED_MODEL_NAME = None
 SVM_MODEL_NAME = None
 
-def get_grasping_object_name_list():
+def get_grasping_object_name_list(type='used'):
     pattern_list = ['G3DB11_cheese_final-10-mar-2016']
     pattern_list.append('G3DB39_beerbottle_final-11-mar-2016')
     pattern_list.append('G3DB40_carafe_final-11-mar-2016')
@@ -23,6 +23,8 @@ def get_grasping_object_name_list():
     pattern_list.append('G3DB91_peppershaker_final')
     pattern_list.append('G3DB94_weight_final')
     assert(len(pattern_list)==16)
+    if type=='used':
+        pattern_list.remove('G3DB11_cheese_final-10-mar-2016') #cheese falls at initial state creation
     return pattern_list
 
 def load_config_from_file(yaml_file):
@@ -247,6 +249,25 @@ def write_config_in_file(filename, ans):
     f = open(filename, 'w')
     f.write(output)
 
+def generate_config_files_for_penalty100_v10(type='G3DB'):
+    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    interface_types = ["", "Data"]
+    if type=='G3DB':
+        object_list = get_grasping_object_name_list()
+        interface_types = [""]
+    for filetype in ['', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
+        for interface_type in interface_types:    
+            for object_type in object_list:
+                file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
+                filename = file_prefix + filetype + '.yaml'
+                ans = load_config_from_file(filename)
+                ans["pick_penalty"] = -100
+                ans["invalid_state_penalty"] = -100
+                if 'svm_model_prefix' in ans.keys():
+                    ans["svm_model_prefix"] = ans["svm_model_prefix"].replace('version8', 'version10')
+                ans["learned_model_name"] = "vrep/version10/model.ckpt-826"
+                write_config_in_file(filename.replace('Vrep','VrepPenalty100V10'), ans)
+                
 def generate_config_files_for_penalty100_v8(type='G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     interface_types = ["", "Data"]
@@ -309,7 +330,7 @@ def main():
         elif opt == '-s':
             SVM_MODEL_NAME = arg
         elif opt =='-g':
-            generate_config_files_for_penalty100_v8(arg)
+            generate_config_files_for_penalty100_v10(arg)
             #generate_combined_config_files_for_G3DB(arg)
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
