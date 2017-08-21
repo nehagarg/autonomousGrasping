@@ -752,8 +752,11 @@ def main():
     input_file = None
     if len(args) > 0:
         input_file = args[0]
+        start_i = 0
+        if length(args) > 1:
+            start_i = int(args[1])
         with open(input_file, 'r') as ff:
-            a =  ff.readlines()
+            a =  ff.readlines()[start_i:]
             for line in a:
                 if line is not None:
                     inputs = line.split(' ')
