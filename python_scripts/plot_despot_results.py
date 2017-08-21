@@ -753,7 +753,7 @@ def main():
     if len(args) > 0:
         input_file = args[0]
         start_i = 0
-        if length(args) > 1:
+        if len(args) > 1:
             start_i = int(args[1])
         with open(input_file, 'r') as ff:
             a =  ff.readlines()[start_i:]
