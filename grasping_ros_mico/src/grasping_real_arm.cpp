@@ -527,14 +527,14 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     {
         for(int k = 0; k < belief_object_ids.size(); k++)
         {
-            GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
-            grasping_state->object_id = belief_object_ids[k];
-            robotInterface->GetDefaultStartState(*grasping_state);
+           
             for(int i = 0; i < 17; i++)
             {
                 for(int j = 0; j < 17; j++)
                 {
-                
+                    GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+                    grasping_state->object_id = belief_object_ids[k];
+                    robotInterface->GetDefaultStartState(*grasping_state);
                     grasping_state->object_pose.pose.position.y = robotInterface->initial_object_y -0.04 + (j*0.005);
                     grasping_state->object_pose.pose.position.x = robotInterface->initial_object_x -0.04 + (i*0.005);
                     particles.push_back(grasping_state);
