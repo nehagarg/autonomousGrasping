@@ -523,7 +523,29 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
         }
     }
     
-    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN" || type == "DEFAULT" )
+    if (type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN")
+    {
+        for(int k = 0; k < belief_object_ids.size(); k++)
+        {
+            GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+            grasping_state->object_id = belief_object_ids[k];
+            robotInterface->GetDefaultStartState(*grasping_state);
+            for(int i = 0; i < 17; i++)
+            {
+                for(int j = 0; j < 17; j++)
+                {
+                
+                    grasping_state->object_pose.pose.position.y = robotInterface->initial_object_y -0.04 + (j*0.005);
+                    grasping_state->object_pose.pose.position.x = robotInterface->initial_object_x -0.04 + (i*0.005);
+                    particles.push_back(grasping_state);
+                    num_particles = num_particles + 1;
+                }
+            }
+        } 
+    }
+    
+    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN"
+            || type == "DEFAULT" || type ==  "UNIFORM_WITH_STATE_IN" )
     {
     //Single Particle Belief  
         GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
