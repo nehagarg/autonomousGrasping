@@ -1084,6 +1084,10 @@ void VrepInterface::GatherData(int object_id) const {
     if(initial_state.object_id == -1)
     {
         initial_state.object_id = 0;
+        if(object_id > 1000)// G3DB object
+        {
+           initial_state.object_id = 1; 
+        }
         
     }
     GraspingStateRealArm* grasping_state = &initial_state;

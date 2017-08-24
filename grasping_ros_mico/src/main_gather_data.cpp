@@ -2,7 +2,25 @@
 #include "ros/ros.h"
 #include "log_file_reader.h"
 
-
+class G3DB_z_values
+{
+    double get_min_z_o(int id)
+    {
+        double ans = get_initial_object_pose_z(id) -0.0048;
+        return ans;
+    }
+    double get_initial_object_pose_z(int id)
+    {
+        if(id==84)
+        {
+           return  1.1406;
+        }
+        if(id==1)
+        {
+            return 1.0899;
+        }
+    }
+}
 
 
 
@@ -15,6 +33,13 @@ void GatherSimulationData(int val)
     VrepInterface* vrepInterfacePointer = new VrepInterface();
     vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
     vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
+    if (val > 1000)
+    {
+        G3DB_z_values z_values;
+        int g3db_object_id = val -1000;
+        vrepInterfacePointer->min_z_o.push_back(z_values.get_min_z_o(g3db_object_id));
+        vrepInterfacePointer->initial_object_pose_z.push_back(z_values.get_initial_object_pose_z(g3db_object_id));
+    }
     
     std::cout<< "Gathering data" << std::endl;
     vrepInterfacePointer->GatherData(val);

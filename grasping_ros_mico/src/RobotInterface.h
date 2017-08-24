@@ -94,8 +94,8 @@ public:
     double default_initial_object_pose_z = 1.1248; // for objects on high friction table //1.7066; //for amazon shelf
     double max_x_o_difference = 0.01;
     
-    double pick_z_diff = 0.06; 
-    double pick_x_val = 0.3079;
+    double pick_z_diff = 0.12; 
+    double pick_x_val = 0.2879;
     double pick_y_val = 0.1516;
     
     
