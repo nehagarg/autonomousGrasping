@@ -4,6 +4,7 @@
 
 class G3DB_z_values
 {
+public:
     double get_min_z_o(int id)
     {
         double ans = get_initial_object_pose_z(id) -0.0048;
@@ -20,8 +21,7 @@ class G3DB_z_values
             return 1.0899;
         }
     }
-}
-
+};
 
 
 
