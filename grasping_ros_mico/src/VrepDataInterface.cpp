@@ -282,8 +282,8 @@ bool isValidPick = true;
             
     
     // if target and tip are far from each other set false
-    //Removing this as mico target pose is not updated properly
-    /*distance = 0;
+    //Useful while gathering data and in experiment with vrep simulator
+    distance = 0;
     distance = distance + pow(grasping_state.gripper_pose.pose.position.x - grasping_obs.mico_target_pose.pose.position.x, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_obs.mico_target_pose.pose.position.y, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_obs.mico_target_pose.pose.position.z, 2);
@@ -293,7 +293,7 @@ bool isValidPick = true;
         //std::cout << "Pick false because of tip" << std::endl;
         isValidPick = false;
     }
-      */
+     
     
     return isValidPick;
 }

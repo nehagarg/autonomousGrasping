@@ -36,7 +36,7 @@ void GatherSimulationData(int val)
     if (val > 1000)
     {
         G3DB_z_values z_values;
-        int g3db_object_id = val -1000;
+        int g3db_object_id = (val/10) -1000;
         vrepInterfacePointer->min_z_o.push_back(z_values.get_min_z_o(g3db_object_id));
         vrepInterfacePointer->initial_object_pose_z.push_back(z_values.get_initial_object_pose_z(g3db_object_id));
     }

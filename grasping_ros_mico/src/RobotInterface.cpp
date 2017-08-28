@@ -1066,20 +1066,31 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             
             
             
+        if(action != A_PICK)
+        {
+            grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x + tempData.next_gripper_pose.pose.position.x - tempData.current_gripper_pose.pose.position.x;
+            grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y + tempData.next_gripper_pose.pose.position.y - tempData.current_gripper_pose.pose.position.y;
+        
+        
+            grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + tempData.next_object_pose.pose.position.x - (tempData.next_gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x );
+            grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + tempData.next_object_pose.pose.position.y - (tempData.next_gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y );
+        }
+        else //Move to absolute position for PICK action
+        {
+            grasping_state.gripper_pose.pose.position.x = tempData.next_gripper_pose.pose.position.x;
+            grasping_state.gripper_pose.pose.position.y = tempData.next_gripper_pose.pose.position.y;
             
-        grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x + tempData.next_gripper_pose.pose.position.x - tempData.current_gripper_pose.pose.position.x;
-        grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y + tempData.next_gripper_pose.pose.position.y - tempData.current_gripper_pose.pose.position.y;
-        
-        
-        grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + tempData.next_object_pose.pose.position.x - (tempData.next_gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x );
-        grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + tempData.next_object_pose.pose.position.y - (tempData.next_gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y );
+            grasping_state.object_pose.pose.position.x = tempData.next_object_pose.pose.position.x;
+            grasping_state.object_pose.pose.position.y = tempData.next_object_pose.pose.position.y;
+            
+        }
         
         CheckAndUpdateGripperBounds(grasping_state, action);
            
            
         //Update next observation
         grasping_obs.gripper_pose = grasping_state.gripper_pose;
-        grasping_obs.mico_target_pose = tempData.mico_target_pose; //No need
+        grasping_obs.mico_target_pose = tempData.mico_target_pose; //Needed to check if pick is valid
         for(int i = 0; i < 4; i++)
         {
             grasping_state.finger_joint_state[i] = tempData.next_finger_joint_state[i];
