@@ -506,6 +506,16 @@ void RobotInterface::GenerateGaussianParticleFromState(GraspingStateRealArm& ini
       
 }
 
+void RobotInterface::GenerateUniformParticleFromState(GraspingStateRealArm& initial_state, std::string type) const {
+// the engine for generator samples from a distribution
+            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::default_random_engine generator(seed);
+            initial_state.object_pose.pose.position.x = initial_state.object_pose.pose.position.x + Uniform_Distribution(generator,-0.04, 0.04);
+            initial_state.object_pose.pose.position.y = initial_state.object_pose.pose.position.y + Uniform_Distribution(generator,-0.04, 0.04 );
+
+}
+
+
 void RobotInterface::GetDefaultStartState(GraspingStateRealArm& initial_state) const {
     int i = initial_gripper_pose_index_x;
     int j = initial_gripper_pose_index_y;

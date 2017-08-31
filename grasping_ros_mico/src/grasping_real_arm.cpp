@@ -493,7 +493,8 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     int num_particles = 0;
     
     //Gaussian belief for gaussian start state
-    if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN")
+    if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" ||
+           type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN" )
     {
         
         for(int i = 0; i < num_belief_particles; i++)
@@ -508,8 +509,14 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                     
                     while(true)
                     {
-                        robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
-                        
+                        if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" )
+                        {
+                            robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
+                        }
+                        if (type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN")
+                        {
+                            robotInterface->GenerateUniformParticleFromState(*grasping_state, type);
+                        }
                         
                         if (robotInterface->IsValidState(*grasping_state))
                         {
@@ -523,8 +530,11 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
         }
     }
     
-    if (type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN")
+    /*if (type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN")
     {
+       
+        
+        
         for(int k = 0; k < belief_object_ids.size(); k++)
         {
            
@@ -542,7 +552,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                 }
             }
         } 
-    }
+    }*/
     
     if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN"
             || type == "DEFAULT" || type ==  "UNIFORM_WITH_STATE_IN" )

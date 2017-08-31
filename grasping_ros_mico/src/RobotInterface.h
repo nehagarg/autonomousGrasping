@@ -36,6 +36,8 @@ public:
     virtual bool IsValidState(GraspingStateRealArm grasping_state) const = 0;
     
     void GenerateGaussianParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
+    void GenerateUniformParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
+    
     void GetDefaultStartState(GraspingStateRealArm& initial_state) const;
     double abs(double x) const{
         if (x < 0) 
@@ -159,5 +161,10 @@ inline double Gaussian_Distribution(std::default_random_engine& generator, doubl
 	return distrbution(generator);
 }
 
+inline double Uniform_Distribution(std::default_random_engine& generator, double a, double b)
+{
+    std::uniform_real_distribution<double> distribution(a,b+0.0001);
+    return distribution(generator);
+}
 #endif	/* ROBOTINTERFACE_H */
 

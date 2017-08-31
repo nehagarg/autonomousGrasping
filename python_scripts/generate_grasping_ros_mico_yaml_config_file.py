@@ -25,6 +25,9 @@ def get_grasping_object_name_list(type='used'):
     assert(len(pattern_list)==16)
     if type=='used':
         pattern_list.remove('G3DB11_cheese_final-10-mar-2016') #cheese falls at initial state creation
+    if type=='coffee_yogurt_cup':
+        pattern_list = ['G3DB1_Coffeecup_final-20-dec-2015']
+        pattern_list.append('G3DB84_yogurtcup_final')
     return pattern_list
 
 def load_config_from_file(yaml_file):
@@ -32,7 +35,33 @@ def load_config_from_file(yaml_file):
     with open(yaml_file,'r') as stream:
             ans = yaml.load(stream)
     return ans
-            
+
+    
+def get_initial_object_pose_z(id):
+    
+    if id==84:
+       return  1.1406
+    if id==1 :
+       return 1.0899;import sys
+
+
+    
+def get_min_z_o(id):
+    
+    ans = get_initial_object_pose_z(id) -0.0048;
+    return ans;
+    
+
+
+
+def get_g3db_belief_low_friction_table_config(ans):
+    ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_1001cm_"]
+    ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_1084cm_")
+    ans["object_min_z"] = [get_min_z_o(1), get_min_z_o(84)]
+    ans["object_initial_pose_z"] = [get_initial_object_pose_z(1), get_initial_object_pose_z(84)]
+    ans["low_friction_table"] = True
+    ans["belief_object_ids"] = [0,1]
+    
 def get_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_9cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_8cm_")
@@ -43,8 +72,8 @@ def get_low_friction_table_config(ans):
     ans["object_initial_pose_z"] = [1.0998]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     ans["low_friction_table"] = True
     
-def create_basic_config():
-    ans = {}
+def create_basic_config(filename):
+    ans = get_learning_config(filename, 'vrep')
     #ans["start_state_index"] = -1
     ans["num_belief_particles"] = 1000
     ans["interface_type"] = 1
@@ -134,6 +163,9 @@ def modify_basic_config(filename, ans):
         return get_pocman_config(filename)
     
     
+    if 'Multi1001-84' in filename:
+        get_g3db_belief_low_friction_table_config(ans)
+        return ans
     
     
     if filename == "VrepDataInterface.yaml" :
@@ -320,6 +352,23 @@ def generate_combined_config_files_for_G3DB(type='G3DB'):
                 ans = create_basic_config()
                 ans = modify_basic_config(filename, ans) 
                 write_config_in_file(filename, ans)
+
+def generate_G3DB_belief_files():
+    object_list = get_grasping_object_name_list('coffee_yogurt_cup')
+    interface_types = ["", "Data"]
+    for filetype in ['']:
+       for interface_type in interface_types:
+           for object_type in object_list:
+                file_prefix = "Vrep" +interface_type + "InterfaceMulti1001-84Test" + object_type + "_low_friction_table"
+                filename = file_prefix + filetype + '.yaml'
+                ans = create_basic_config(filename)
+                ans = modify_basic_config(filename, ans)
+                ans["interface_type"] = 0
+                if interface_type == 'Data':
+                    ans["interface_type"] = 1
+                ans["test_object_id"] = object_list.index(object_type)
+                write_config_in_file(filename, ans)
+    
 def main():
     opts, args = getopt.getopt(sys.argv[1:],"g:hm:s:")
     global LEARNED_MODEL_NAME
@@ -330,15 +379,16 @@ def main():
         elif opt == '-s':
             SVM_MODEL_NAME = arg
         elif opt =='-g':
-            generate_config_files_for_penalty100_v10(arg)
+            #generate_config_files_for_penalty100_v10(arg)
             #generate_combined_config_files_for_G3DB(arg)
+            generate_G3DB_belief_files()
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
     
     filename = "VrepInterface.yaml"
     if len(args) > 0:
         filename = args[0]
-    ans = create_basic_config()
+    ans = create_basic_config(filename)
     ans = modify_basic_config(filename, ans)
     write_config_in_file(filename, ans)
     

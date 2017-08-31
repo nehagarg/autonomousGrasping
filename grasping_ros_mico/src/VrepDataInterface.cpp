@@ -78,7 +78,7 @@ bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[]
 void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
     GetDefaultStartState(initial_state);
-    if(start_state_index == -2)
+    if(start_state_index == -3)
     {//Position that mimics real arm object slipping
       initial_state.object_pose.pose.position.y = initial_object_y + 0.07 ;
       initial_state.object_pose.pose.position.x = initial_object_x + 0.03;
@@ -136,8 +136,31 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     else
     {
        while(true){
+           if(start_state_index == -1)
+           {
+            GenerateGaussianParticleFromState(initial_state, type);
             
-          GenerateGaussianParticleFromState(initial_state, type);
+             if(IsValidState(initial_state))
+            {
+               if((initial_state.object_pose.pose.position.x <= initial_object_x + 0.03) &&
+                 (initial_state.object_pose.pose.position.x >= initial_object_x - 0.03) &&
+                 (initial_state.object_pose.pose.position.y <= initial_object_y + 0.03) &&
+                 (initial_state.object_pose.pose.position.y >= initial_object_y - 0.03))
+            {
+                break;
+            }
+               
+            }
+           }
+           if(start_state_index == -2)
+           {
+               GenerateUniformParticleFromState(initial_state, type);
+               if(IsValidState(initial_state))
+               {
+                   break;
+               }
+               
+           }
           // initial_state.object_pose.pose.position.y = initial_object_y ;
           // initial_state.object_pose.pose.position.x = initial_object_x ;
            //Setting for which learned policy shows wierd transition in data model
@@ -160,17 +183,7 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
             */
            
            
-           if(IsValidState(initial_state))
-            {
-               if((initial_state.object_pose.pose.position.x <= initial_object_x + 0.03) &&
-                 (initial_state.object_pose.pose.position.x >= initial_object_x - 0.03) &&
-                 (initial_state.object_pose.pose.position.y <= initial_object_y + 0.03) &&
-                 (initial_state.object_pose.pose.position.y >= initial_object_y - 0.03))
-            {
-                break;
-            }
-               
-            }
+          
         
       }
     }
