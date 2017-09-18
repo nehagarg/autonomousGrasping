@@ -622,8 +622,14 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
             index_step_input = raw_input("Index step(default 1000):")
         else:
             time_steps = inputs[2].split(',')
+            if '' in time_steps:
+                time_steps.remove('')
             sampled_scenarios = inputs[3].split(',')
+            if '' in sampled_scenarios:
+                sampled_scenarios.remove('')
             learning_versions =  inputs[4].split(',')
+            if '' in learning_versions:
+                learning_versions.remove('')
             combined_policy_versions = inputs[5].split(',')
             if '' in combined_policy_versions:
                 combined_policy_versions.remove('')
