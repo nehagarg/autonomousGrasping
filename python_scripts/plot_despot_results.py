@@ -256,6 +256,7 @@ def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, c
   
     if colors is None:
         colors = ['blue', 'red', 'yellow', 'teal', 'magenta', 'cyan', 'hotpink', 'lightblue', 'pink']
+        colors = ['blue', 'red', 'yellow', 'green', 'magenta', 'cyan', 'black']
     N = len(means[0])   # number of data entries
 
     ind = np.arange(N)
@@ -459,7 +460,14 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
                 
                 for csv_file in csv_files: 
                     csv_file.write("\n")
-                
+    if 'baseline' in dir_name:
+        for csv_file in csv_files: 
+            csv_file.write("Baseline")
+        new_dir_name = dir_name
+        write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
+        for csv_file in csv_files: 
+            csv_file.write("\n")
+ 
    
 def generate_latex_table(means,stds, legend, xlabels, csv_file):
     latex_table_file_name = csv_file.split('.')[0] + '.tex'
@@ -515,10 +523,10 @@ def plot_graph_from_csv(csv_file, plt_error):
         plt_title = line[0]
         xlabels = line[1:]
         for line in f:
-            if ('T5S' in line) or ('T10S' in line):
+            if ('S0-' in line) or ('S1' in line) or ('T5S' in line) or ('T10S' in line):
                 continue
             data = line.rstrip('\n').split(",")
-            legend.append(data[0])
+            legend.append(data[0].replace('S3-50', 'S3'))
             means.append([])
             stds.append([])
             for value in data[1:]:
@@ -662,6 +670,8 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     max_y_o = 0.2295; #range for object location
     max_reward = 100
     min_reward = -10
+    if 'penalty100' in dir_name:
+        min_reward = -10
     
     time_step = raw_input('Time step?')
     
