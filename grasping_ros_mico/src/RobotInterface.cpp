@@ -12,6 +12,7 @@
 std::vector <int> RobotInterface::objects_to_be_loaded;
 std::vector<std::string> RobotInterface::object_id_to_filename;
 bool RobotInterface::low_friction_table;
+bool RobotInterface::version5;
 
 
 RobotInterface::RobotInterface() {

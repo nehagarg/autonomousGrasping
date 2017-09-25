@@ -23,6 +23,10 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
     {
          joint_file_name = "data_low_friction_table_exp/jointData.txt";
     }
+    if(RobotInterface::version5)
+    {
+         joint_file_name = "data_low_friction_table_exp_ver5/jointData.txt";
+    }
     std::ifstream infile1(joint_file_name);
     int x_i, x_j;
     while (infile1 >> x_i >> x_j)
@@ -379,7 +383,8 @@ void VrepInterface::OpenCloseGripperInVrep(int action_offset, GraspingStateRealA
     }
     
     WaitForStability("closeGripper","/vrep/checkGripper",  action_offset - A_CLOSE + 1, 0);
-    
+    //Adding this as opening closing gripper takes longer now
+    sleep(5);
     /*vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     set_integer_signal_srv.request.signalName = "closeGripper";
     set_integer_signal_srv.request.signalValue = action_offset - A_CLOSE + 1;
@@ -906,8 +911,9 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
 void VrepInterface::GatherJointData(int object_id) const {
     std::ofstream myfile;
     //myfile.open ("data_table_exp/jointData_0.txt");
-    myfile.open ("data_low_friction_table_exp/jointData_0.txt");
-
+    //myfile.open ("data_low_friction_table_exp/jointData_0.txt");
+    myfile.open ("data_low_friction_table_exp_ver5/jointData_0.txt");
+    
     
     //Get Current Pose of mico target
     geometry_msgs::PoseStamped mico_target_pose;
@@ -1051,7 +1057,14 @@ void VrepInterface::GatherData(int object_id) const {
 
     std::ofstream myfile;
     std::string filename;
-    filename = "data_low_friction_table_exp/SASOData_Cylinder_";
+    if(version5)
+    {
+        filename = "data_low_friction_table_exp_ver5/SASOData_Cylinder_";
+    }
+    else
+    {
+        filename = "data_low_friction_table_exp/SASOData_Cylinder_";
+    }
     filename = filename +std::to_string(object_id/10);
     filename = filename + "cm_";
     //filename = 'dummy_';

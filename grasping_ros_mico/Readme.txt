@@ -15,9 +15,12 @@ micoWithSensorsMutliObjectTrialWithDespotIKCuboidVer2.ttt(Cuboid object too heav
 micoWithSensorsMutliObjectTrialWithDespotIKYCBObjectsVer3.ttt
 
 micoWithSensorsMutliObjectTrialWithDespotIKVer4.ttt : (Object closer to real arm and gripper behaviour close to real arm behaviour around object)
-table friction material : floor material in vrep
+table friction material : floor material in vrepsc
 objecct height : 10cm
 object weight : 0.3027 kg
+
+micoWithSensorsMutliObjectTrialWithDespotIKVer5.ttt : (Difference from Ver4 : Gripper closing behaviour closer to real gripper closing behaviour. Gripper palm can detect collisions. Robot position shifted as previous position resulted in instability during pick at far x locations.
+To change the scene from Ver4 to Ver 5 : change the force of MicoHand_finger12_motor1 to 4. Change the maximum angles on MicoHand_joint1_finger1/3 to 90, Divide the velocity in Cup script for j1 by 4.0 and Decimate the MicoHand shape by 90% so that it becomes a smple shape from multishape. Set Mico positon to 0.07,0.01
 
 
 

@@ -75,6 +75,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::low_friction_table = false;
     }
     
+    if(config["version5"])
+    {
+        RobotInterface::version5 = config["version5"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::version5 = false;
+    }
+    
     
  
     
