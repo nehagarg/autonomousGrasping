@@ -53,7 +53,14 @@ def get_min_z_o(id):
     
 
 
-
+def get_g3db_belief_ver5_low_friction_table_config(ans):
+    ans["object_mapping"] = ["data_low_friction_table_exp_ver5/SASOData_Cylinder_1001cm_"]
+    ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_1084cm_")
+    ans["object_min_z"] = [get_min_z_o(1), get_min_z_o(84)]
+    ans["object_initial_pose_z"] = [get_initial_object_pose_z(1), get_initial_object_pose_z(84)]
+    ans["low_friction_table"] = True
+    ans["belief_object_ids"] = [0,1]
+    
 def get_g3db_belief_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_1001cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_1084cm_")
@@ -164,7 +171,10 @@ def modify_basic_config(filename, ans):
     
     
     if 'Multi1001-84' in filename:
-        get_g3db_belief_low_friction_table_config(ans)
+        if 'Ver5' in filename:
+            get_g3db_belief_ver5_low_friction_table_config(ans)
+        else:
+            get_g3db_belief_low_friction_table_config(ans)
         return ans
     
     
