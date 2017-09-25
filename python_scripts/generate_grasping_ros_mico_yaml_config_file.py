@@ -366,7 +366,24 @@ def generate_G3DB_belief_files():
                 ans["interface_type"] = 0
                 if interface_type == 'Data':
                     ans["interface_type"] = 1
+                ans["test_object_id"] = object_list.index(object_type)                
+                write_config_in_file(filename, ans)
+                
+def generate_G3DB_ver5_belief_files():
+    object_list = get_grasping_object_name_list('coffee_yogurt_cup')
+    interface_types = ["", "Data"]
+    for filetype in ['']:
+       for interface_type in interface_types:
+           for object_type in object_list:
+                file_prefix = "Vrep" +interface_type + "InterfaceVer5Multi1001-84Test" + object_type + "_low_friction_table"
+                filename = file_prefix + filetype + '.yaml'
+                ans = create_basic_config(filename)
+                ans = modify_basic_config(filename, ans)
+                ans["interface_type"] = 0
+                if interface_type == 'Data':
+                    ans["interface_type"] = 1
                 ans["test_object_id"] = object_list.index(object_type)
+                ans["version5"] = True
                 write_config_in_file(filename, ans)
     
 def main():
@@ -381,7 +398,8 @@ def main():
         elif opt =='-g':
             #generate_config_files_for_penalty100_v10(arg)
             #generate_combined_config_files_for_G3DB(arg)
-            generate_G3DB_belief_files()
+            #generate_G3DB_belief_files()
+            generate_G3DB_ver5_belief_files()
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
     

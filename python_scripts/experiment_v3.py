@@ -13,6 +13,7 @@ running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
 last_assigned_node = None
+vrep_scene_version = "5"
 
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
@@ -49,6 +50,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     f = open(file_name, 'w')    
     global initial_ros_port
     global max_ros_port 
+    global vrep_scene_version
     starting_ros_port = initial_ros_port 
     vrep_ros_port = initial_ros_port + 1
     
@@ -153,9 +155,9 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             vrep_command = vrep_command + vrep_dir 
                             vrep_command = vrep_command + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h '
                             if 'G3DB' in p:
-                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4'
+                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version
                             else:
-                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder'
+                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version + 'Cylinder'
                             vrep_command = vrep_command + p + '.ttt'
                             
                                 

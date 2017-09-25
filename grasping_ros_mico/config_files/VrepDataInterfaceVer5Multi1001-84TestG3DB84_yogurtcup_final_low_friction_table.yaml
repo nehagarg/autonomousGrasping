@@ -1,5 +1,5 @@
 belief_object_ids: [0, 1]
-interface_type: 0
+interface_type: 1
 invalid_state_penalty: -10
 learned_model_name: ''
 low_friction_table: true

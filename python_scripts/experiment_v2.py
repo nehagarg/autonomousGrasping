@@ -233,18 +233,20 @@ def generate_params_file(file_name, problem_type):
     f = open(file_name, 'w')
     f.write(output)
 
-def generate_g3db_belief_despot_commands():
+def generate_g3db_belief_despot_commands(ver=""):
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     for filetype in ['']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
+            if ver == 'Ver5':
+                interface_type = interface_type + "_ver5"
             interface_type_ = "" if 'vrep' in interface_type  else "Data"
             dir_extenstion = "/simulator" if 'vrep' in interface_type  else ""
             for object_type in object_list:
                  ans = get_default_params()
                  ans['output_dir'] = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_1_84_reward100_penalty10' + dir_extenstion
                  ans['file_name_prefix'] = 'Table_scene_' + object_type 
-                 ans['config_file'] = 'config_files/'+ "Vrep" +interface_type_ + "InterfaceMulti1001-84Test" + object_type + "_low_friction_table.yaml"
+                 ans['config_file'] = 'config_files/'+ "Vrep" +interface_type_ + "Interface" + ver + "Multi1001-84Test" + object_type + "_low_friction_table.yaml"
                  ans['additional_params'] = '--number=-2 -l CAP'
                  ans['belief_type'] = 'UNIFORM_WITH_STATE_IN'
                  file_name = interface_type + "_multi_object_coffee_yogurt_" + object_type + "_low_friction" + filetype + ".yaml"
@@ -254,6 +256,8 @@ def generate_g3db_belief_despot_commands():
                  output = yaml.dump(ans, Dumper = Dumper)
                  f = open(file_name, 'w')
                  f.write(output)
+
+
 
 def generate_penalty_100_v10_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
