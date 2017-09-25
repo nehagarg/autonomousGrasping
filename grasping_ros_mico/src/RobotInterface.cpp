@@ -16,39 +16,51 @@ bool RobotInterface::version5;
 
 
 RobotInterface::RobotInterface() {
-    std::ifstream infile;
-    infile.open("data/sensor_mean_std_max.txt");
-    double sensor_mean, sensor_std , sensor_max;
-    int count = 0;
-    while (infile >> sensor_mean >> sensor_std >> sensor_max)
+    if(version5)
     {
-        touch_sensor_mean[count] = sensor_mean;
-        touch_sensor_std[count] = sensor_std;
-        touch_sensor_max[count] = sensor_max;
-       // std::cout << count << ": "<< touch_sensor_mean[count] << " " << touch_sensor_std[count] << std::endl;
-        count++;
+        touch_sensor_mean_ver5[0] = 0.11;
+        touch_sensor_mean_ver5[1] = 0.12;
+        touch_sensor_mean_closed_with_object_ver5[0] = 1.58;
+        touch_sensor_mean_closed_with_object_ver5[1] = 1.73;
+        touch_sensor_mean_closed_without_object_ver5[0] = 0.91;
+        touch_sensor_mean_closed_without_object_ver5[1] = 1.01;
+    }
+    else
+    {
+        std::ifstream infile;
+        infile.open("data/sensor_mean_std_max.txt");
+        double sensor_mean, sensor_std , sensor_max;
+        int count = 0;
+        while (infile >> sensor_mean >> sensor_std >> sensor_max)
+        {
+            touch_sensor_mean[count] = sensor_mean;
+            touch_sensor_std[count] = sensor_std;
+            touch_sensor_max[count] = sensor_max;
+           // std::cout << count << ": "<< touch_sensor_mean[count] << " " << touch_sensor_std[count] << std::endl;
+            count++;
 
-    }
-    infile.close();
+        }
+        infile.close();
+
+        //Read touch sensor reading when gripper closed
+        infile.open("data/gripper_closed_without_object_touch_values.txt");
+        for(int i = 0; i < 48; i++)
+        //for(int i = 0; i < 2; i++)
+        {
+            infile >> touch_sensor_mean_closed_without_object[i];
+        }
+        infile.close();
+
+        //Read touch sensor reading when gripper closed with
+        infile.open("data/gripper_closed_with_object_touch_values.txt");
+        for(int i = 0; i < 48; i++)
+        //for(int i = 0; i < 2; i++)
+        {
+            infile >> touch_sensor_mean_closed_with_object[i];
+        }
+        infile.close();
     
-    //Read touch sensor reading when gripper closed
-    infile.open("data/gripper_closed_without_object_touch_values.txt");
-    for(int i = 0; i < 48; i++)
-    //for(int i = 0; i < 2; i++)
-    {
-        infile >> touch_sensor_mean_closed_without_object[i];
     }
-    infile.close();
-    
-    //Read touch sensor reading when gripper closed with
-    infile.open("data/gripper_closed_with_object_touch_values.txt");
-    for(int i = 0; i < 48; i++)
-    //for(int i = 0; i < 2; i++)
-    {
-        infile >> touch_sensor_mean_closed_with_object[i];
-    }
-    infile.close();
-    
     if(low_friction_table)
     {
         min_x_o = min_x_o_low_friction_table;
@@ -297,11 +309,16 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     double tau = finger_weight + sensor_weight + gripper_position_weight + gripper_orientation_weight;
     
     double finger_distance = 0;
-    for(int i = 0; i < 4; i++)
+    int inc = 1;
+    if (version5)
+    {
+        inc = 2;
+    }
+    for(int i = 0; i < 4; i=i+inc)
     {
         finger_distance = finger_distance + abs(grasping_obs.finger_joint_state[i] - grasping_obs_expected.finger_joint_state[i]);
     }
-    finger_distance = finger_distance/4.0;
+    finger_distance = finger_distance/(4.0/inc);
     
     double sensor_distance = 0;
     for(int i = 0; i < 2; i++)
@@ -808,30 +825,49 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
 //Return value 1 if closed without object inside it
 //Return value 2 if closed with object inside it
 int RobotInterface::GetGripperStatus(double finger_joint_state[]) const {
-double degree_readings[4];
+    double degree_readings[4];
     for(int i = 0; i < 4; i++)
     {
         degree_readings[i] = finger_joint_state[i]*180/3.14;
     }
     
-    if(degree_readings[0] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
-       degree_readings[1] > 85 &&
-       degree_readings[2] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
-       degree_readings[3] > 85)
-    {//joint1 > 20 joint2 > 85 
-        return 1;
+    if(version5)
+    {
+        if(degree_readings[0] > 56 && degree_readings[2] > 56)
+        {
+            return 1;
+        }
+        
+         if(degree_readings[0] > 10 && degree_readings[2] > 10)
+        {
+            return 2;
+        }
+        
+        return 0;
+        
     }
-   
-    if(//degree_readings[0] > 2 &&
-       degree_readings[1] > 25 && //Changed from 45 to 25 looking at data
-       //degree_readings[2] > 2 &&
-       degree_readings[3] > 25)  //Changed from 45 to 25 looking at data
-    {//joint1 > 2 joint2 > 45 return 2
-        return 2;
+    else
+    {
+        if(degree_readings[0] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
+           degree_readings[1] > 85 &&
+           degree_readings[2] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
+           degree_readings[3] > 85)
+        {//joint1 > 20 joint2 > 85 
+            return 1;
+        }
+
+        if(//degree_readings[0] > 2 &&
+           degree_readings[1] > 25 && //Changed from 45 to 25 looking at data
+           //degree_readings[2] > 2 &&
+           degree_readings[3] > 25)  //Changed from 45 to 25 looking at data
+        {//joint1 > 2 joint2 > 45 return 2
+            return 2;
+        }
+
+
+        return 0;
     }
-    
-    
-    return 0;
+
 }
 
 void RobotInterface::UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const {
@@ -1156,10 +1192,21 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     }
     else if (action == A_CLOSE)
     {
-        grasping_state.finger_joint_state[0] = 22.5*3.14/180;
-        grasping_state.finger_joint_state[1] = 90*3.14/180;
-        grasping_state.finger_joint_state[2] = 22.5*3.14/180;
-        grasping_state.finger_joint_state[3] = 90*3.14/180;
+        if(version5)
+        {
+            grasping_state.finger_joint_state[0] = 61.15*3.14/180;
+            grasping_state.finger_joint_state[1] = 0*3.14/180;
+            grasping_state.finger_joint_state[2] = 61.15*3.14/180;
+            grasping_state.finger_joint_state[3] = 0*3.14/180; 
+        }
+        else
+        {
+            grasping_state.finger_joint_state[0] = 22.5*3.14/180;
+            grasping_state.finger_joint_state[1] = 90*3.14/180;
+            grasping_state.finger_joint_state[2] = 22.5*3.14/180;
+            grasping_state.finger_joint_state[3] = 90*3.14/180; 
+        }
+       
     }
     else if (action == A_OPEN)
     {
@@ -1200,23 +1247,44 @@ void RobotInterface::GetObsUsingDefaultFunction(GraspingStateRealArm grasping_st
     
     int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
     
-    double touch_sensor_reading[48];
-    for(int i = 0; i < 48; i++)
+    if(version5)
+    {
+        for(int i = 0; i < 2; i++)
         {
-        if(gripper_status == 0)
+           if(gripper_status == 0)
+            {
+                grasping_obs.touch_sensor_reading[i] = touch_sensor_mean_ver5[i];
+            }
+            if(gripper_status == 1)
+            {
+                grasping_obs.touch_sensor_reading[i] = touch_sensor_mean_closed_without_object_ver5[i];
+            }
+            if(gripper_status == 2)
+            {
+                grasping_obs.touch_sensor_reading[i] = touch_sensor_mean_closed_with_object_ver5[i];
+            } 
+        }
+    }
+    else
+    {
+        double touch_sensor_reading[48];
+        for(int i = 0; i < 48; i++)
+        {
+            if(gripper_status == 0)
             {
                 touch_sensor_reading[i] = touch_sensor_mean[i];
             }
-        if(gripper_status == 1)
+            if(gripper_status == 1)
             {
                 touch_sensor_reading[i] = touch_sensor_mean_closed_without_object[i];
             }
-        if(gripper_status == 2)
+            if(gripper_status == 2)
             {
                 touch_sensor_reading[i] = touch_sensor_mean_closed_with_object[i];
             }
         }
-    ConvertObs48ToObs2(touch_sensor_reading, grasping_obs.touch_sensor_reading);
+        ConvertObs48ToObs2(touch_sensor_reading, grasping_obs.touch_sensor_reading);
+    }
 }
 
 void RobotInterface::GetReward(GraspingStateRealArm initial_grasping_state, GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, int action, double& reward) const {

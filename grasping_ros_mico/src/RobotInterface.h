@@ -129,6 +129,11 @@ public:
     double touch_sensor_max[48];
     double touch_sensor_mean_closed_without_object[48];
     double touch_sensor_mean_closed_with_object[48];
+    
+    double touch_sensor_mean_ver5[2];
+    double touch_sensor_mean_closed_without_object_ver5[2];
+    double touch_sensor_mean_closed_with_object_ver5[2];
+    
     mutable std::vector<SimulationData> simulationDataCollectionWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     mutable std::vector<int> simulationDataIndexWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[A_PICK+1];
