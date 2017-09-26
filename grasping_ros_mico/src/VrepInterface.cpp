@@ -1149,6 +1149,7 @@ void VrepInterface::GatherData(int object_id) const {
             for(int j = j_loop_min; j < j_loop_max; j++) //loop over y 
             {
                 //Set mico joint positions
+                /* Removing joint position setting as this leads to collisions with g3DB objects
                 vrep_common::simRosSetJointPosition joint_state_srv;
                 for(int ii = 0; ii < 4; ii++)
                 {
@@ -1173,12 +1174,12 @@ void VrepInterface::GatherData(int object_id) const {
                     }
 
                 }
-                
+                */
 
                 //SetMicoTargetPose(mico_target_pose);
                 //For some wierd reason this should be set after setting joints
                 //Otherwise it gets reset
-                mico_target_pose.pose.position.x = min_x_i + 0.01*i;
+                /*mico_target_pose.pose.position.x = min_x_i + 0.01*i;
                 mico_target_pose.pose.position.y = min_y_i + 0.01*j;
 
 
@@ -1190,8 +1191,8 @@ void VrepInterface::GatherData(int object_id) const {
                 {
                     std::cout << "Call to set mico target pose failed " << std::endl;
                     assert(0==1);
-                }
- 
+                }                 */
+               
                
                for(int k = k_loop_min; k < k_loop_max; k++) //loop over actions
                 {
@@ -1211,11 +1212,11 @@ void VrepInterface::GatherData(int object_id) const {
                     }
                 
                     //Wait for arm to stabilize
-                    WaitForArmToStabilize();
+                    //WaitForArmToStabilize();
                     
-                    //mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-                    //mico_target_pose.pose.position.y = min_y_i + 0.01*j;
-                    //SetMicoTargetPose(mico_target_pose);
+                    mico_target_pose.pose.position.x = min_x_i + 0.01*i;
+                    mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+                    SetMicoTargetPose(mico_target_pose);
                     //loop_rate.sleep();
                     //loop_rate.sleep();
                 
