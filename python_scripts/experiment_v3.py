@@ -29,7 +29,17 @@ def get_list_input(sampled_scenarios, command):
     return sampled_scenarios  
 
 
+def get_gather_data_number(pattern, t):
+    if 'G3DB' in pattern:
+        num = int(pattern.split('_')[0][4:])
+        return ((1000+num)*10) + int(t)
+    else:
+        return (int(filter(str.isdigit, pattern))*10) + int(t)
+    
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
+    if(problem_type == 'gather_data'):
+        num = get_gather_data_number(pattern, t)
+        return './bin/gather_data ' + repr(num)
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
     actual_command = actual_command + ' -c ' + repr(end_index)
