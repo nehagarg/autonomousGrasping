@@ -37,7 +37,7 @@ def get_gather_data_number(pattern, t):
         return (int(filter(str.isdigit, pattern))*10) + int(t)
     
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
-    if(problem_type == 'gather_data'):
+    if(pattern == 'gather_data'):
         num = get_gather_data_number(pattern, t)
         return './bin/gather_data ' + repr(num)
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
