@@ -220,6 +220,14 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
                if(debug) {
                 std::cout << "Moving gripper back by 1 cm to let it open" << std::endl;
                }
+               if (grasping_state.gripper_pose.pose.position.x < min_x_i + 0.005)
+                {
+                    grasping_state.gripper_pose.pose.position.x = min_x_i - 0.01;
+                    if(debug) {
+                    std::cout << "Moving to an invalid state as gripper cannot move further back" << std::endl;
+                    }
+                    break;
+                }
                grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - 0.01;
                GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
                new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
@@ -833,12 +841,12 @@ int RobotInterface::GetGripperStatus(double finger_joint_state[]) const {
     
     if(version5)
     {
-        if(degree_readings[0] > 56 && degree_readings[2] > 56)
+        if(degree_readings[0] > 57 && degree_readings[2] > 57)
         {
             return 1;
         }
         
-         if(degree_readings[0] > 10 && degree_readings[2] > 10)
+         if(degree_readings[0] > 1 && degree_readings[2] > 1)
         {
             return 2;
         }

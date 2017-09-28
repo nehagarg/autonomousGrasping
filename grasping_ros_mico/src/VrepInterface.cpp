@@ -1067,7 +1067,7 @@ void VrepInterface::GatherData(int object_id) const {
     }
     filename = filename +std::to_string(object_id/10);
     filename = filename + "cm_";
-    //filename = 'dummy_';
+    //filename = "dummy_";
     bool allActions = true;
     int k_loop_min_value = 0;
     int k_look_max_value = A_CLOSE+1;
@@ -1149,7 +1149,8 @@ void VrepInterface::GatherData(int object_id) const {
             for(int j = j_loop_min; j < j_loop_max; j++) //loop over y 
             {
                 //Set mico joint positions
-                /* Removing joint position setting as this leads to collisions with g3DB objects
+                 //Removing joint position setting as this leads to collisions with g3DB objects
+                //Again adding as setting position after simulation leads to displacement of object
                 vrep_common::simRosSetJointPosition joint_state_srv;
                 for(int ii = 0; ii < 4; ii++)
                 {
@@ -1174,12 +1175,12 @@ void VrepInterface::GatherData(int object_id) const {
                     }
 
                 }
-                */
+                
 
                 //SetMicoTargetPose(mico_target_pose);
                 //For some wierd reason this should be set after setting joints
                 //Otherwise it gets reset
-                /*mico_target_pose.pose.position.x = min_x_i + 0.01*i;
+                mico_target_pose.pose.position.x = min_x_i + 0.01*i;
                 mico_target_pose.pose.position.y = min_y_i + 0.01*j;
 
 
@@ -1191,7 +1192,7 @@ void VrepInterface::GatherData(int object_id) const {
                 {
                     std::cout << "Call to set mico target pose failed " << std::endl;
                     assert(0==1);
-                }                 */
+                }                 
                
                
                for(int k = k_loop_min; k < k_loop_max; k++) //loop over actions
@@ -1212,11 +1213,11 @@ void VrepInterface::GatherData(int object_id) const {
                     }
                 
                     //Wait for arm to stabilize
-                    //WaitForArmToStabilize();
+                    WaitForArmToStabilize();
                     
-                    mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-                    mico_target_pose.pose.position.y = min_y_i + 0.01*j;
-                    SetMicoTargetPose(mico_target_pose);
+                    //mico_target_pose.pose.position.x = min_x_i + 0.01*i;
+                    //mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+                    //SetMicoTargetPose(mico_target_pose);
                     //loop_rate.sleep();
                     //loop_rate.sleep();
                 
@@ -1552,6 +1553,11 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
             int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
             while(new_gripper_status > 0)
             {
+                if (grasping_state.gripper_pose.pose.position.x < min_x_i + 0.005)
+                {
+                    grasping_state.gripper_pose.pose.position.x = min_x_i - 0.01;
+                    break;
+                }
                 TakeStepInVrep(A_DECREASE_X, 1, touching, grasping_state, grasping_obs, reward);                 
                 OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
                 new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
