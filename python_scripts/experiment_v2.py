@@ -318,15 +318,16 @@ def generate_fixed_distribution_3_commands():
 
 
 def generate_sample_input_command(dir,error_files):
-    object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    #object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
+    object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     command = 'data'
     if 'simulator' in dir:
         command = 'vrep'
-    command = command + '_model_fixed_distribution'
+    command = command + '_model_fixed_distribution' +'_ver5'
     if 'singleObjectType' in dir:
         command = command + "_9cm"
     else:
-        command = command + "_multi_object_pattern"
+        command = command + "_multi_object_" +"coffee_yogurt_" + "pattern"
     command = command + '_low_friction'
     ans = []
     for error_file in error_files:
@@ -394,7 +395,8 @@ def generate_fixed_fistribution_sample_input(dir_name = None, output_file = None
     all_commands = []
     for dir in dir_iterator:
 	print dir
-        all_commands = all_commands + generate_run_commands_for_error_files(dir)
+        if os.path.exists(dir):
+            all_commands = all_commands + generate_run_commands_for_error_files(dir)
     if output_file is None:
         output_file = 'sample_input.txt'
     with open(output_file, 'w') as f:
@@ -519,7 +521,7 @@ def get_dir(dir_name = None):
         root_dir = dir_name
     dict1 = {}
     dict1['single'] = 'cylinder_9cm_reward100_penalty10'
-    dict1['multi'] = 'belief_cylinder_7_8_9_reward100_penalty10'
+    dict1['multi'] = 'belief_uniform_g3db_1_84_reward100_penalty10' #'belief_cylinder_7_8_9_reward100_penalty10'
     dict1['data'] = 'fixed_distribution'
     dict1['vrep'] =  'simulator/fixed_distribution'
     dict2 = {}
