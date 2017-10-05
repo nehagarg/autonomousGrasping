@@ -730,6 +730,7 @@ void GraspingRealArm::DisplayBeliefs(ParticleBelief* belief,
              msg.belief.push_back(grasping_state.object_pose.pose.position.x);
              msg.belief.push_back(grasping_state.object_pose.pose.position.y);
              msg.belief.push_back(grasping_state.weight);
+             msg.belief.push_back(grasping_state.object_id);
         }
 
     }

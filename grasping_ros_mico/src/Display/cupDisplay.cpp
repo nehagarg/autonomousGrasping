@@ -64,10 +64,11 @@ void CUPDISPLAY::ObjectPoseCallback(const grasping_ros_mico::Belief::ConstPtr& m
 {
 	object_pose_bel.clear();
 	
-	for(int i = 0; i < msg->numPars * 3; i += 3)
+	for(int i = 0; i < msg->numPars * 4; i += 4)
 	{
 		object_pose_bel.push_back(std::pair<double, double> (msg->belief[i], msg->belief[i + 1]));
                 object_pose_bel_weight.push_back(msg->belief[i+2]);
+                object_pose_id.push_back(msg->belief[i+3]);
 	}
 }
 
@@ -129,7 +130,14 @@ void CUPDISPLAY::DrawRviz()
 			marker.scale.y = 0.02;
 			marker.scale.z = 0.02;
 			// Set the color -- be sure to set alpha to something non-zero!
-			marker.color.r = 0.0f;
+                        if(object_pose_id[i] == 0)
+                        {
+                            marker.color.r = 1.0f;
+                        }
+                        else
+                        {
+                            marker.color.r = 0.0f;
+                        }
 			marker.color.g = 1.0f;
 			marker.color.b = 0.0f;
 			marker.color.a = 0.2 + 0.8*(object_pose_bel_weight[i] );

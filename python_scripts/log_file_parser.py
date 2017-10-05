@@ -151,6 +151,9 @@ class ParseLogFile:
             belief = {}
             belief['weight'] = values[0]
             belief['state'] = VrepGripperState(values[1:])
+            if(len(values)> 19):
+                #print values
+                belief['object_id'] = int(values[19])
             beliefArray['belief'].append(belief)
         else:
             if self.stateStarted:

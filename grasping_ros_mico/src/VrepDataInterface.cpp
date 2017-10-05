@@ -78,6 +78,15 @@ bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[]
 void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
     GetDefaultStartState(initial_state);
+    
+    if(start_state_index == -4) //Debug positions
+    {
+        initial_state.gripper_pose.pose.position.x = 0.467808;
+        initial_state.gripper_pose.pose.position.y = 0.231405;
+        initial_state.object_pose.pose.position.x =0.542288;
+        initial_state.object_pose.pose.position.y = 0.198496;
+        return;
+    }
     if(start_state_index == -3)
     {//Position that mimics real arm object slipping
       initial_state.object_pose.pose.position.y = initial_object_y + 0.07 ;
