@@ -253,7 +253,11 @@ def generate_g3db_belief_despot_commands(ver="", belief='Multi'):
                  ans['config_file'] = 'config_files/'+ "Vrep" +interface_type_ + "Interface" + ver + belief + "1001-84Test" + object_type + "_low_friction_table.yaml"
                  ans['additional_params'] = '--number=-2 -l CAP'
                  ans['belief_type'] = 'UNIFORM_WITH_STATE_IN'
-                 file_name = interface_type + "_multi_object_coffee_yogurt_" + object_type + "_low_friction" + filetype + ".yaml"
+                 if belief == 'Multi':
+                    file_name = interface_type + "_multi_object_coffee_yogurt_" + object_type + "_low_friction" + filetype + ".yaml"
+                 else:
+                    file_name = interface_type + "_single_object_coffee_yogurt_" + object_type + "_low_friction" + filetype + ".yaml"
+                  
                  if 'fixed_distribution' in file_name:
                     ans['additional_params'] = '-l CAP --number='
                     ans['output_dir'] = ans['output_dir']  + "/fixed_distribution"
