@@ -916,12 +916,12 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
                 {
                     std::cout << "Pushing particle with difference(" << abs(x1-x2) << ", " << abs(y1-y2) << ")" << std::endl;
                     std::cout << "x1 = " << x1 << " x2 = " << x2 << " y1 = " << y1 << " y2 = " << y2 << std::endl;
-                    simulationDataCollectionWithObject[action][i].PrintSimulationData();
+                    simulationDataCollectionWithObject[object_id][action][i].PrintSimulationData();
                     PrintState(current_grasping_state);
                 }*/
                 tempDataVector.push_back(simulationDataCollectionWithObject[object_id][action][i]);
             }
-        }
+        } 
        
     }
     //sort(simulationDataCollectionWithObject[action].begin(), simulationDataCollectionWithObject[action].end(), sort_by_object_relative_pose_initial_state_x);

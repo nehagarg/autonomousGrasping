@@ -29,9 +29,15 @@ public:
 
     void Update(int action, OBS_TYPE obs){
         history_.Add(action, obs);
+        belief_->Update(action, obs); //Useful for debuggin
     }
     
+    void belief(Belief* b) {
 
+	belief_ = b;
+	history_.Truncate(0);
+
+    }
 
 };
 

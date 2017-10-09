@@ -56,10 +56,18 @@ def get_min_z_o(id):
 def get_g3db_belief_ver5_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp_ver5/SASOData_Cylinder_1001cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_1084cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_9cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_8cm_")
+    #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_7cm_")
+    #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_75mm_")
+    #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_85mm_")
     ans["object_min_z"] = [get_min_z_o(1), get_min_z_o(84)]
+    ans["object_min_z"] = ans["object_min_z"] + [1.0950]*(len(ans["object_mapping"]) -2 + 1) 
     ans["object_initial_pose_z"] = [get_initial_object_pose_z(1), get_initial_object_pose_z(84)]
+    ans["object_initial_pose_z"] =ans["object_initial_pose_z"]+ [1.0998]*(len(ans["object_mapping"])-2 + 1)
     ans["low_friction_table"] = True
     ans["belief_object_ids"] = [0,1]
+    ans["version5"] = True
     
 def get_g3db_belief_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_1001cm_"]
@@ -169,7 +177,10 @@ def modify_basic_config(filename, ans):
     if 'pocman' in filename:
         return get_pocman_config(filename)
     
-    
+    if 'Ver5' in filename:
+            get_g3db_belief_ver5_low_friction_table_config(ans)
+            return ans
+        
     if '1001-84' in filename:
         if 'Ver5' in filename:
             get_g3db_belief_ver5_low_friction_table_config(ans)
@@ -411,8 +422,47 @@ def generate_G3DB_ver5_single_belief_files():
                     ans["interface_type"] = 1
                 ans["test_object_id"] = object_list.index(object_type)
                 ans["belief_object_ids"] = [object_list.index(object_type)]
-                ans["version5"] = True
+                
                 write_config_in_file(filename, ans)
+
+def generate_G3DB_ver5_cylinder_belief_files():
+    object_list = get_grasping_object_name_list('coffee_yogurt_cup')
+    object_list = object_list+['9cm', '8cm']
+    interface_types = ["", "Data"]
+    for filetype in ['']:
+       for interface_type in interface_types:
+           for object_type in object_list:
+                file_prefix = "Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
+                filename = file_prefix + filetype + '.yaml'
+                ans = create_basic_config(filename)
+                ans = modify_basic_config(filename, ans)
+                ans["interface_type"] = 0
+                if interface_type == 'Data':
+                    ans["interface_type"] = 1
+                ans["test_object_id"] = object_list.index(object_type)
+                ans["belief_object_ids"] = [2,3]
+                
+                write_config_in_file(filename, ans)
+
+def generate_G3DB_ver5_cylinder_cup_belief_files():
+    object_list = get_grasping_object_name_list('coffee_yogurt_cup')
+    object_list = object_list+['9cm', '8cm']
+    interface_types = ["", "Data"]
+    for filetype in ['']:
+       for interface_type in interface_types:
+           for object_type in object_list:
+                file_prefix = "Vrep" +interface_type + "InterfaceVer5MultiCylinder-1001Test" + object_type + "_low_friction_table"
+                filename = file_prefix + filetype + '.yaml'
+                ans = create_basic_config(filename)
+                ans = modify_basic_config(filename, ans)
+                ans["interface_type"] = 0
+                if interface_type == 'Data':
+                    ans["interface_type"] = 1
+                ans["test_object_id"] = object_list.index(object_type)
+                ans["belief_object_ids"] = [0,2,3]
+                
+                write_config_in_file(filename, ans)
+    
     
 def main():
     opts, args = getopt.getopt(sys.argv[1:],"g:hm:s:")
@@ -428,7 +478,9 @@ def main():
             #generate_combined_config_files_for_G3DB(arg)
             #generate_G3DB_belief_files()
             #generate_G3DB_ver5_belief_files()
-            generate_G3DB_ver5_single_belief_files()
+            #generate_G3DB_ver5_single_belief_files()
+            #generate_G3DB_ver5_cylinder_belief_files()
+            generate_G3DB_ver5_cylinder_cup_belief_files()
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
     

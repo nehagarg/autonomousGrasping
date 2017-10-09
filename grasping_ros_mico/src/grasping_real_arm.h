@@ -23,6 +23,7 @@
 #include "RealArmInterface.h"
 #include "GraspingStateRealArm.h"
 #include "GraspingObservation.h"
+#include "VrepLogFileInterface.h"
 
 
 
@@ -157,6 +158,7 @@ public:
     mutable GraspingStateRealArm initial_state;
     std::vector<int> belief_object_ids;
     int test_object_id;
+    bool logFileInterface;
     
     //vector<HistoryWithReward*> LearningData() const;
     //ObservationClass GetInitialObs() const;
@@ -212,7 +214,17 @@ public:
             }
         oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " ;
     }
-        
+       
+    ValuedAction GetNextActionFromUser(History h) const {
+        if (logFileInterface)
+        {
+           return ((VrepLogFileInterface*)robotInterface)->NextAction(h);
+        }
+        else
+        {
+            return LearningModel::GetNextActionFromUser(h);
+        }
+    }
 };
 
 

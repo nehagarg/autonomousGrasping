@@ -58,6 +58,11 @@ class VrepGripperState:
         self.fj2 = float(values[15])
         self.fj3 = float(values[16])
         self.fj4 = float(values[17])
+        
+        self.g_xx = float(values[3])
+        self.g_yy = float(values[4])
+        self.g_zz = float(values[5])
+        self.g_w = float(values[6])
 
 class VrepGripperObs:
     

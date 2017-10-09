@@ -18,7 +18,8 @@
 
 
 #include <string>
-#include "boost/bind.hpp"  
+#include "boost/bind.hpp"
+#include "VrepLogFileInterface.h"  
 
 GraspingRealArm::GraspingRealArm(int start_state_index_, int interfaceType) {
  
@@ -177,7 +178,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
 
 void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
    
-  
+    logFileInterface = false;
     if(interfaceType == 0)
      {
         VrepInterface* vrepInterfacePointer = new VrepInterface(start_state_index);
@@ -200,6 +201,13 @@ void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
     //
         robotInterface = interfacePointer;
      }
+    
+    if(interfaceType == 3)
+    {
+        VrepLogFileInterface* interfacePointer = new VrepLogFileInterface(start_state_index);
+        robotInterface = interfacePointer;
+        logFileInterface = true;
+    }
     
      // Display the belief partilces
     pub_gripper = grasping_display_n.advertise<grasping_ros_mico::State>("gripper_pose", 10);

@@ -51,6 +51,36 @@ def createActionHash(state_type = 'toy'):
         action_string_hash['-Action=ActionisPICK'] = 10
     return action_string_hash
 
+#for cpp
+def get_log_file_parser(log_filename):
+    lfp =  ParseLogFile(log_filename, 'vrep', 0, 'vrep')
+    return lfp
+def get_next_step_from_log(lfp,step):
+    action_string_hash = createActionHash('vrep')
+    state_value = lfp.stepInfo_[step]['state']
+    touch_0 = lfp.stepInfo_[step]['obs'].sensor_obs[0]
+    touch_1 = lfp.stepInfo_[step]['obs'].sensor_obs[1]
+    values = [state_value.g_x, state_value.g_y, state_value.g_z]
+    values.append(state_value.g_xx)
+    values.append(state_value.g_yy)
+    values.append(state_value.g_zz)
+    values.append(state_value.g_w)
+    values.append(state_value.o_x)
+    values.append(state_value.o_y)
+    values.append(state_value.o_z)
+    values.append(state_value.fj1)
+    values.append(state_value.fj2)
+    values.append(state_value.fj3)
+    values.append(state_value.fj4)
+    values.append(touch_0)
+    values.append(touch_1)
+    values.append(action_string_hash[("").join(lfp.stepInfo_[step]['action'][:-1].split(" "))])
+    values.append(lfp.stepInfo_[step]['reward'])
+    
+    return ' '.join([str(x) for x in values])
+    
+
+
 def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
     action_string_hash = createActionHash(state_type)
     max_steps = 49
@@ -104,7 +134,7 @@ def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName =='test':
         
-        for i in range(0,50):
+        for i in range(0,81):
             #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/separate_close_reward/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n320_withoutLCAP/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n320_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
@@ -113,9 +143,14 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             t = '5'
-            scenario = '20'
-            object='8cm'
-            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty100/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_gaussian_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+            scenario = '40'
+            
+            #object='G3DB84_yogurtcup_final'
+            object = 'G3DB1_Coffeecup_final-20-dec-2015'
+            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_single_reward100_penalty10/simulator/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+
+            #object='8cm'
+            #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty100/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_uniform_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
 
             #print i
             #seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
