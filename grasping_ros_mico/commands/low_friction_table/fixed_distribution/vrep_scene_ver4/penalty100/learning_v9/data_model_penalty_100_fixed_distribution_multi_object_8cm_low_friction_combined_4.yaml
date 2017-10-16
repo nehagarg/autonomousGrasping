@@ -1,0 +1,5 @@
+{additional_params: -l CAP --number=, begin_index: 0, belief_type: GAUSSIAN_WITH_STATE_IN,
+  config_file: config_files/VrepPenalty100DataInterfaceMultiCylinderObjectTest8cm_low_friction_table_combined_4.yaml,
+  end_index: 245, file_name_prefix: Table_scene_low_friction_8cm_cylinder_v8, horizon: 50,
+  number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty100/fixed_distribution/learning/version9/combined_4,
+  planning_time: 1, solver: DESPOTWITHLEARNEDPOLICY}

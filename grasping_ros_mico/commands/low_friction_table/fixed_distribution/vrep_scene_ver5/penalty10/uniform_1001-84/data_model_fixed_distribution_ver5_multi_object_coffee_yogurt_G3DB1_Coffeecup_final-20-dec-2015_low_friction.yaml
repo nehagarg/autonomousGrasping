@@ -1,0 +1,5 @@
+{additional_params: -l CAP --number=, begin_index: 0, belief_type: UNIFORM_WITH_STATE_IN,
+  config_file: config_files/VrepDataInterfaceVer5Multi1001-84TestG3DB1_Coffeecup_final-20-dec-2015_low_friction_table.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_G3DB1_Coffeecup_final-20-dec-2015,
+  horizon: 50, number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_1_84_reward100_penalty10/fixed_distribution,
+  planning_time: 1, solver: DESPOT}
