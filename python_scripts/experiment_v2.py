@@ -239,34 +239,40 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = 'cylinder'):
     belief_type = 'UNIFORM_WITH_STATE_IN'
     if type=='cylinder':
         config_file_name = 'Ver5MultiCylinderObject'
-        dir_name = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_8_9_reward100_penalty10'
-        belief_name = 'multi_object_cylinder_8_9'
+        config_file_prefix = 'cylinder'
+        dir_name = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty10'
+        belief_name = 'cylinder_7_8_9'
+        object_list = ['9cm', '8cm', '7cm', '75mm', '85mm']
+        
     if type=='cylinder_1001':
         config_file_name = 'Ver5MultiCylinder-1001'
+        config_file_prefix = 'cylinderCup'
         dir_name = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_8_9_1001_reward100_penalty10'
-        belief_name = 'multi_object_cylinder_8_9_1001'
-    generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name)
+        belief_name = 'cylinder_8_9_1001'
+    generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix)
     
-def generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name):
+def generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix):
     for filetype in ['']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             if 'Ver5' in config_file_name:
                 interface_type = interface_type + "_ver5"
+                filename_prefix = 'low_friction_table/vrep_scene_ver5/penalty10/uniform_' + belief_name
             interface_type_ = "" if 'vrep' in interface_type  else "Data"
             dir_extenstion = "/simulator" if 'vrep' in interface_type  else ""
             for object_type in object_list:
                  ans = get_default_params()
                  ans['output_dir'] = dir_name + dir_extenstion              
                  ans['file_name_prefix'] = 'Table_scene_' + object_type 
-                 ans['config_file'] = 'config_files/'+ "Vrep" +interface_type_ + "Interface" + config_file_name +"Test"+ object_type + "_low_friction_table.yaml"
+                 ans['config_file'] = 'config_files/low_friction_table/vrep_scene_ver5/penalty10/'+ config_file_prefix + "/Vrep" +interface_type_ + "Interface" + config_file_name +"Test"+ object_type + "_low_friction_table.yaml"
                  ans['additional_params'] = '--number=-2 -l CAP'
                  ans['belief_type'] = belief_type
-                 file_name = interface_type + "_" + belief_name + "_" + object_type + "_low_friction" + filetype + ".yaml"
+                 file_name = filename_prefix + "/" + interface_type + "_multi_object_" + belief_name + "_" + object_type + "_low_friction" + filetype + ".yaml"
                                    
                  if 'fixed_distribution' in file_name:
                     ans['additional_params'] = '-l CAP --number='
                     ans['output_dir'] = ans['output_dir']  + "/fixed_distribution"
+                    file_name = file_name.replace('low_friction_table/', 'low_friction_table/fixed_distribution/')
                  output = yaml.dump(ans, Dumper = Dumper)
                  f = open(file_name, 'w')
                  f.write(output)

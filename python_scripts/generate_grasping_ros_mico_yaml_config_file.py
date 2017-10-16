@@ -58,6 +58,10 @@ def get_g3db_belief_ver5_low_friction_table_config(ans):
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_1084cm_")
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_9cm_")
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_8cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_7cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_75cm_")
+    ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_85cm_")
+    
     #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_7cm_")
     #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_75mm_")
     #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_85mm_")
@@ -427,12 +431,12 @@ def generate_G3DB_ver5_single_belief_files():
 
 def generate_G3DB_ver5_cylinder_belief_files():
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
-    object_list = object_list+['9cm', '8cm']
+    object_list = object_list+['9cm', '8cm', '7cm', '75mm', '85mm']
     interface_types = ["", "Data"]
     for filetype in ['']:
        for interface_type in interface_types:
            for object_type in object_list:
-                file_prefix = "Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
+                file_prefix = "low_friction_table/vrep_scene_ver5/penalty10/cylinder/Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + filetype + '.yaml'
                 ans = create_basic_config(filename)
                 ans = modify_basic_config(filename, ans)
@@ -440,7 +444,7 @@ def generate_G3DB_ver5_cylinder_belief_files():
                 if interface_type == 'Data':
                     ans["interface_type"] = 1
                 ans["test_object_id"] = object_list.index(object_type)
-                ans["belief_object_ids"] = [2,3]
+                ans["belief_object_ids"] = [2,3,4]
                 
                 write_config_in_file(filename, ans)
 
@@ -479,8 +483,9 @@ def main():
             #generate_G3DB_belief_files()
             #generate_G3DB_ver5_belief_files()
             #generate_G3DB_ver5_single_belief_files()
-            #generate_G3DB_ver5_cylinder_belief_files()
-            generate_G3DB_ver5_cylinder_cup_belief_files()
+            generate_G3DB_ver5_cylinder_belief_files()
+            #generate_G3DB_ver5_cylinder_cup_belief_files()
+            return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
     
