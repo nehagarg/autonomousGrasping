@@ -32,6 +32,7 @@ void GatherSimulationData(int val)
     RobotInterface::low_friction_table = true;
     RobotInterface::version5 = true;
     VrepInterface* vrepInterfacePointer = new VrepInterface();
+    vrepInterfacePointer->epsilon = 0.005;
     vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
     vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
     if (val > 1000)

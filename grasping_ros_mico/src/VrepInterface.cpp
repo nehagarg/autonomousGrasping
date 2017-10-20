@@ -1059,7 +1059,13 @@ void VrepInterface::GatherData(int object_id) const {
     std::string filename;
     if(version5)
     {
+        if (epsilon == 0.01)
+        {
         filename = "data_low_friction_table_exp_ver5/SASOData_Cylinder_";
+        }
+        else{
+           filename = "data_low_friction_table_exp_ver5/SASOData_0-005_Cylinder_"; 
+        }
     }
     else
     {

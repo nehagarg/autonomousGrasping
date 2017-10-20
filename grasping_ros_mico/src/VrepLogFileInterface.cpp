@@ -81,6 +81,11 @@ VrepLogFileInterface::~VrepLogFileInterface() {
 }
 
 bool VrepLogFileInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
+    GraspingStateRealArm initial_grasping_state = state;
+    //For debugging
+    VrepDataInterface::Step(state, random_num, action, reward, obs, true);
+    
+    //Get actual state from log file
     std::istringstream inputString(next_step_values);
     
     inputString >> state.gripper_pose.pose.position.x;
