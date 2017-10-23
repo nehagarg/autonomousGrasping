@@ -143,12 +143,14 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             t = '5'
-            scenario = '40'
+            scenario = '80'
             
             #object='G3DB84_yogurtcup_final'
-            object = 'G3DB1_Coffeecup_final-20-dec-2015'
-            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_single_reward100_penalty10/simulator/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
-
+            #object = 'G3DB1_Coffeecup_final-20-dec-2015'
+            object = '9cm'
+            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/'
+            #logfileName = logfileName + 'belief_uniform_g3db_single_reward100_penalty10/simulator/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+            logfileName = logfileName + 'belief_uniform_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
             #object='8cm'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty100/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_low_friction_'+ object + '_cylinder_belief_uniform_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
 
@@ -172,6 +174,16 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName == 'vrep/version11':
+        for i in range(0,4000):
+            for t in ['5']:
+                for scenario in ['320']:
+                   for object in ['7cm', '8cm', '9cm']:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty10/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep') 
+                        
     elif fileName in ['vrep/version9', 'vrep/version10']:
         for i in range(0,500):
             for t in ['5']:
