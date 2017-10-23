@@ -66,7 +66,7 @@ private:
     int finger_joint_handles[4];
     int arm_joint_handles[6];
     
-    double joint_angles_initial_position[20][16][10];
+    double joint_angles_initial_position[39][31][10];
     
 
     

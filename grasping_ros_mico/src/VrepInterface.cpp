@@ -25,7 +25,14 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
     }
     if(RobotInterface::version5)
     {
+        if (start_state_index_ == -10000) //gathering data with epsiln 0.005
+        {
+            joint_file_name = "data_low_friction_table_exp_ver5/jointData_0_0-005.txt";
+        }
+        else
+        {
          joint_file_name = "data_low_friction_table_exp_ver5/jointData.txt";
+        }
     }
     std::ifstream infile1(joint_file_name);
     int x_i, x_j;
@@ -912,7 +919,8 @@ void VrepInterface::GatherJointData(int object_id) const {
     std::ofstream myfile;
     //myfile.open ("data_table_exp/jointData_0.txt");
     //myfile.open ("data_low_friction_table_exp/jointData_0.txt");
-    myfile.open ("data_low_friction_table_exp_ver5/jointData_0.txt");
+    //myfile.open ("data_low_friction_table_exp_ver5/jointData_0.txt");
+    myfile.open ("data_low_friction_table_exp_ver5/jointData_0_0-005.txt");
     
     
     //Get Current Pose of mico target
@@ -985,8 +993,8 @@ void VrepInterface::GatherJointData(int object_id) const {
                 mico_target_pose.pose.position.y = min_y_i + 0.01*(j+2);
                 SetMicoTargetPose(mico_target_pose);
             }*/
-            mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-            mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+            mico_target_pose.pose.position.x = min_x_i + epsilon*i;
+            mico_target_pose.pose.position.y = min_y_i + epsilon*j;
             SetMicoTargetPose(mico_target_pose);
 
             WaitForArmToStabilize();
@@ -1186,8 +1194,8 @@ void VrepInterface::GatherData(int object_id) const {
                 //SetMicoTargetPose(mico_target_pose);
                 //For some wierd reason this should be set after setting joints
                 //Otherwise it gets reset
-                mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-                mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+                mico_target_pose.pose.position.x = min_x_i + epsilon*i;
+                mico_target_pose.pose.position.y = min_y_i + epsilon*j;
 
 
                 vrep_common::simRosSetObjectPose set_object_pose_srv;

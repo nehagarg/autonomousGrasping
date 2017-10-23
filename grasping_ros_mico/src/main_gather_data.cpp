@@ -31,7 +31,7 @@ void GatherSimulationData(int val)
     //GraspingRealArm* model = new GraspingRealArm(-1);
     RobotInterface::low_friction_table = true;
     RobotInterface::version5 = true;
-    VrepInterface* vrepInterfacePointer = new VrepInterface();
+    VrepInterface* vrepInterfacePointer = new VrepInterface(-10000);
     vrepInterfacePointer->epsilon = 0.005;
     vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
     vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
