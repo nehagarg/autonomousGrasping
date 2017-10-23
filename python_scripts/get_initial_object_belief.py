@@ -1,0 +1,288 @@
+import rospy
+import getopt
+import perception as perception
+from perception import PointToPlaneICPSolver, PointToPlaneFeatureMatcher
+import rospkg
+from autolab_core import YamlConfig
+from sensor_msgs.msg import Image, CameraInfo
+from cv_bridge import CvBridge, CvBridgeError
+import tf
+from autolab_core import Box
+import signal
+from autolab_core import RigidTransform
+import numpy as np
+import copy
+from gqcnn import Visualizer as vis
+import logging
+from generate_grasping_ros_mico_yaml_config_file import get_grasping_object_name_list
+
+class KinectSensor:
+    def __init__(self, COLOR_TOPIC,DEPTH_TOPIC, CAMINFO_TOPIC):
+        print CAMINFO_TOPIC
+        self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
+        self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
+        self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback) 
+        self.rgb = None
+        self.depth = None
+        self.cam_info = None
+        self.bridge = CvBridge()
+        self.freeze = False
+        self.tl = tf.TransformListener()
+
+    def color_callback(self, data):
+        if not self.freeze:
+            self.rgb = data
+
+    def depth_callback(self, data):
+        if not self.freeze:
+            self.depth = data
+
+    def caminfo_callback(self, data):
+        if not self.freeze:
+            self.cam_info = data
+
+    def get_color_im(self):
+        while self.rgb is None:
+            print "Waiting for color"
+            rospy.sleep(2)
+        raw_color = self.bridge.imgmsg_to_cv2(self.rgb, 'bgr8')
+        #print raw_color.shape
+        color_arr = np.fliplr(np.flipud(copy.copy(raw_color)))
+        color_arr[:,:,[0,2]] = color_arr[:,:,[2,0]] # convert BGR to RGB
+        #color_arr[:,:,0] = np.fliplr(color_arr[:,:,0])
+        #color_arr[:,:,1] = np.fliplr(color_arr[:,:,1])
+        #color_arr[:,:,2] = np.fliplr(color_arr[:,:,2])
+        #color_arr[:,:,3] = np.fliplr(color_arr[:,:,3])
+        color_image = perception.ColorImage(color_arr[:,:,:3], self.cam_info.header.frame_id) 
+        #color_image = perception.ColorImage(self.bridge.imgmsg_to_cv2(raw_color, "rgb8"), frame=self.cam_info.header.frame_id)
+        return color_image
+
+    def get_depth_im(self):
+        while self.depth is None:
+            print "Waiting for depth"
+            rospy.sleep(2)
+        raw_depth = self.bridge.imgmsg_to_cv2(self.depth, 'passthrough')
+        depth_arr = np.flipud(copy.copy(raw_depth))
+        depth_arr = np.fliplr(copy.copy(depth_arr))
+        #depth_arr = copy.copy(raw_depth)
+        depth_arr = depth_arr * 0.001
+        depth_image = perception.DepthImage(depth_arr, self.cam_info.header.frame_id)
+
+        #depth_image = perception.DepthImage((self.bridge.imgmsg_to_cv2(raw_depth, desired_encoding = "passthrough")).astype('float'), frame=self.cam_info.header.frame_id)
+        return depth_image
+
+    def get_cam_intrinsic(self):
+        while self.cam_info is None:
+            print "Waiting for cam_info"
+            rospy.sleep(2)
+        raw_camera_info = self.cam_info
+        camera_intrinsics = perception.CameraIntrinsics(raw_camera_info.header.frame_id, raw_camera_info.K[0], raw_camera_info.K[4], raw_camera_info.K[2], raw_camera_info.K[5], raw_camera_info.K[1], raw_camera_info.height, raw_camera_info.width)
+        return camera_intrinsics
+
+    def freeze(self):
+        self.freeze = True
+
+    def free(self):
+        self.freeze = False
+
+    def get_T_cam_world(self, from_frame, to_frame):
+        """ get transformation from camera frame to world frame"""
+
+        time = 0
+        trans = None
+        qat = None
+        while not rospy.is_shutdown():
+            try:
+                time = self.tl.getLatestCommonTime(to_frame, from_frame)
+                (trans, qat) = self.tl.lookupTransform(to_frame, from_frame, time)
+                break
+            except (tf.Exception,tf.LookupException,tf.ConnectivityException, tf.ExtrapolationException):
+                print 'try again'
+                continue
+        RT = RigidTransform()
+
+        print qat
+        qat_wxyz = [qat[-1], qat[0], qat[1], qat[2]]
+
+        #rot = RT.rotation_from_quaternion(qat_wxyz) 
+        #print trans
+        #print rot
+
+        #return RigidTransform(rot, trans, from_frame, to_frame)
+        return RigidTransform(translation=trans, rotation=qat_wxyz, from_frame=from_frame, to_frame=to_frame)
+
+class GetInitialObjectBelief():
+    def __init__(self, obj_filenames = None):
+        COLOR_TOPIC = '/kinect2/sd/image_color_rect'
+        DEPTH_TOPIC = '/kinect2/sd/image_depth_rect'
+        CAMINFO_TOPIC = '/kinect2/sd/camera_info'
+        self.CAM_FRAME = 'kinect2_ir_optical_frame'
+        self.WORLD_FRAME = 'world'
+
+        rospack = rospkg.RosPack()
+        gqcnn_path = rospack.get_path('gqcnn')
+        self.config = YamlConfig(gqcnn_path + '/cfg/ros_nodes/mico_control_node.yaml')
+
+
+
+        if self.config['kinect_sensor_cfg']['color_topic']:
+            COLOR_TOPIC = self.config['kinect_sensor_cfg']['color_topic']
+        if self.config['kinect_sensor_cfg']['depth_topic']:
+            DEPTH_TOPIC = self.config['kinect_sensor_cfg']['depth_topic']
+        if self.config['kinect_sensor_cfg']['camera_info_topic']:
+            CAMINFO_TOPIC = self.config['kinect_sensor_cfg']['camera_info_topic']
+        if self.config['kinect_sensor_cfg']['cam_frame']:
+            self.CAM_FRAME = self.config['kinect_sensor_cfg']['cam_frame']
+
+        self.detector_cfg = self.config['detector']
+
+        # create rgbd sensor
+        self.sensor = None
+        print "Creating sensor"
+        rospy.loginfo('Creating RGBD Sensor')
+        self.sensor = KinectSensor(COLOR_TOPIC, DEPTH_TOPIC, CAMINFO_TOPIC )
+        rospy.loginfo('Sensor Running')
+        print "Sensor running"
+        
+        if obj_filenames is not None:
+            self.obj_filenames = obj_filenames
+            self.load_object_point_clouds()
+    
+    def get_object_point_cloud_from_sensor(self):
+        #sensor = self.sensor
+        camera_intrinsics = self.sensor.get_cam_intrinsic()
+        #T_camera_world = RigidTransform.load('data/calib/primesense_overhead/kinect2_to_world.tf')
+        T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME)
+
+        depth_image = self.sensor.get_depth_im()
+        inpainted_depth_image = depth_image.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
+        print camera_intrinsics.rosmsg
+        depth_im = inpainted_depth_image
+        camera_intr = camera_intrinsics
+        # read params
+        cfg = self.detector_cfg     
+        min_pt_box = np.array(cfg['min_pt'])
+        max_pt_box = np.array(cfg['max_pt'])
+
+
+
+        box = Box(min_pt_box, max_pt_box, 'world')
+        print min_pt_box
+        print max_pt_box
+
+        print T_camera_world.translation
+        print T_camera_world.rotation
+        # project into 3D
+        point_cloud_cam = camera_intr.deproject(depth_im)
+        point_cloud_world = T_camera_world * point_cloud_cam
+
+        ch, num = point_cloud_world.data.shape
+
+        print num
+
+        A = point_cloud_world.data
+        count = 0
+        for i in range(num):
+            if min_pt_box[0] < A[0][i] < max_pt_box[0] and \
+               min_pt_box[1] < A[1][i] < max_pt_box[1] and \
+               min_pt_box[2] < A[2][i] < max_pt_box[2]:
+                   count += 1
+
+        print count
+
+
+        seg_point_cloud_world, _ = point_cloud_world.box_mask(box)
+        seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
+        depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
+        #camera_intr._frame = 'world'
+        #depth_im_seg = camera_intr.project_to_image(seg_point_cloud_world)
+        return(depth_im_seg, camera_intr)
+
+
+    def save_point_cloud(self, filename_prefix, depth_im_seg, camera_intr):
+
+        vis.figure()
+        vis.subplot(1,1,1)
+        vis.imshow(depth_im_seg)
+        vis.show()
+        depth_im_seg.save(filename_prefix + '.npy')
+        camera_intr.save(filename_prefix  + '.intr')
+
+
+    def load_saved_point_cloud(self, filename_prefix):
+        camera_intr = perception.CameraIntrinsics.load(filename_prefix  + '.intr')
+        camera_intr._frame = camera_intr.frame + "_target"
+        depth_im = perception.DepthImage.open(filename_prefix + '.npy', frame=camera_intr.frame)
+        
+        return (depth_im, camera_intr)
+
+
+    def register_point_cloud(self):
+        registration_result_array = []
+        p2pis = PointToPlaneICPSolver()
+        p2pfm = PointToPlaneFeatureMatcher
+        depth_im_seg, camera_intr = giob.get_object_point_cloud_from_sensor(sensor)
+        source_point_cloud = camera_intr.deproject(depth_im_seg)
+        source_normal_cloud = depth_im_seg.point_normal_cloud(camera_intr)
+        
+        for (target_depth_im, target_camera_intr) in self.database_objects:
+            target_point_cloud = target_camera_intr.deproject(target_depth_im)
+            target_normal_cloud = target_depth_im.point_normal_cloud(target_camera_intr)
+            registration_result = p2pis.register(self, source_point_cloud, target_point_cloud,
+                 source_normal_cloud, target_normal_cloud, p2pfm)
+            registration_result_array.append(registration_result)
+        return registration_result_array
+    
+    def get_object_probabilities(self):
+        registration_result_array = self.register_point_cloud()
+        #For now only looking at cost. Not checking the translation
+        probs_unnormalized = [1.0/x for (_,x) in registration_result_array]
+        z = sum(probs_unnormalized)
+        probs = [x/z for x in probs_unnormalized]
+        return probs
+        
+    
+    def load_object_point_clouds(self, obj_filenames = None):
+        if obj_filenames is None:
+            obj_filenames = self.obj_filenames
+        ans = []
+        for filename in obj_filenames:
+            depth_im, camera_intr = self.load_saved_point_cloud(filename)
+            ans.append((depth_im, camera_intr))
+        self.database_objects = ans
+        return ans
+    
+def save_object_file(obj_file_name):
+    giob = GetInitialObjectBelief()
+    (d,c) = giob.get_object_point_cloud_from_sensor()
+    giob.save_point_cloud(obj_file_name, d, c)
+        
+def get_belief_for_objects(object_group_name, object_file_dir):
+    object_list = get_grasping_object_name_list(object_group_name)
+    obj_filenames = [object_file_dir + "/" + x for x in object_list]
+    giob = GetInitialObjectBelief(obj_filenames)
+    return giob.get_object_probabilities
+
+if __name__ == '__main__':
+    object_file_name = None
+    object_group_name = None
+    opts, args = getopt.getopt(sys.argv[1:],"g:hs:")
+    for opt,arg in opts:    
+        if opt == '-s':
+            object_file_name = arg
+        elif opt =='-g':
+            object_group_name = arg
+        elif opt == '-h':
+            print "python get_initial_object_belief.py -s object_name |-g object_group_name object_file_dir"
+
+    object_file_dir = args[0]
+    rospy.init_node('Object_belief_node')
+    
+    if object_file_name is not None:
+        save_object_file(object_file_dir + "/" + obj_file_name)
+    if object_group_name is not None:
+        get_belief_for_objects(object_group_name, object_file_dir)
+    rospy.spin()
+    
+    
+
