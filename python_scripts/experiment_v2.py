@@ -66,7 +66,23 @@ def get_config_file_name_from_experiment_file(file_name):
     elif 'vrep-model' in file_name:
         config_file_name = config_file_name + 'VrepInterface_'
     
+def modify_params_file_for_learning(file_name, problem_type, ans):
+    learning_version, model_name = get_learning_version_from_filename(file_name)
     
+    if 'combined' in file_name:
+        ans['solver'] = 'LEARNINGPLANNING'
+        if 'output_dir' in ans:
+            m = re.search('combined_[0-9]+', file_name)
+            switching_threshold = get_switching_threshold(file_name)
+            switching_threshold_string = ""
+            if switching_threshold != 10:
+                switching_threshold_string = "-" + repr(switching_threshold)
+            ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group() + switching_threshold_string
+    if 'learning' in file_name:
+        ans['solver'] = 'DEEPLEARNING'
+        if 'output_dir' in ans:
+            ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
+    return ans
 def generate_params_file(file_name, problem_type):
     ans = {}
     ans['solver'] = 'DESPOT'
@@ -105,21 +121,7 @@ def generate_params_file(file_name, problem_type):
         ans['file_name_prefix'] = 'full_pocman_'
     
     
-    learning_version, model_name = get_learning_version_from_filename(file_name)
-    
-    if 'combined' in file_name:
-        ans['solver'] = 'LEARNINGPLANNING'
-        if 'output_dir' in ans:
-            m = re.search('combined_[0-9]+', file_name)
-            switching_threshold = get_switching_threshold(file_name)
-            switching_threshold_string = ""
-            if switching_threshold != 10:
-                switching_threshold_string = "-" + repr(switching_threshold)
-            ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version + '/'+ m.group() + switching_threshold_string
-    if 'learning' in file_name:
-        ans['solver'] = 'DEEPLEARNING'
-        if 'output_dir' in ans:
-            ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
+    ans = modify_params_file_for_learning(file_name, problem_type, ans)
     
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm'];
     for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
@@ -252,7 +254,7 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = 'cylinder'):
     generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix)
     
 def generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix):
-    for filetype in ['']:
+    for filetype in ['','_v11_learning', '_v11_combined_0']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             if 'Ver5' in config_file_name:
@@ -264,14 +266,28 @@ def generate_grasping_params_file(object_list, config_file_name, dir_name, belie
                  ans = get_default_params()
                  ans['output_dir'] = dir_name + dir_extenstion              
                  ans['file_name_prefix'] = 'Table_scene_' + object_type 
-                 ans['config_file'] = 'config_files/low_friction_table/vrep_scene_ver5/penalty10/'+ config_file_prefix + "/Vrep" +interface_type_ + "Interface" + config_file_name +"Test"+ object_type + "_low_friction_table.yaml"
+                 ans['config_file'] = 'config_files/low_friction_table/vrep_scene_ver5/penalty10/'
+                 ans['config_file'] = ans['config_file']+ config_file_prefix + "/Vrep" +interface_type_ 
+                 ans['config_file'] = ans['config_file']+ "Interface" + config_file_name +"Test"
+                 ans['config_file'] = ans['config_file']+ object_type + "_low_friction_table" + filetype + ".yaml"
+                 ans['config_file'] = ans['config_file'].replace('learning', 'combined_0')
                  ans['additional_params'] = '--number=-2 -l CAP'
                  ans['belief_type'] = belief_type
                  file_name = filename_prefix + "/" + interface_type + "_multi_object_" + belief_name + "_" + object_type + "_low_friction" + filetype + ".yaml"
-                                   
+                 
+                 ans = modify_params_file_for_learning(file_name, 'despot_without_display', ans)
+                 
                  if 'fixed_distribution' in file_name:
                     ans['additional_params'] = '-l CAP --number='
-                    ans['output_dir'] = ans['output_dir']  + "/fixed_distribution"
+                    if('simulator' in ans['output_dir']):
+                        ans['output_dir'] = ans['output_dir'].replace("simulator","simulator/fixed_distribution")
+                    else:
+                        if 'penalty100' in ans['output_dir']:
+                            ans['output_dir'] = ans['output_dir'].replace("penalty100","penalty100/fixed_distribution")
+                        else:
+                            ans['output_dir'] = ans['output_dir'].replace("penalty10","penalty10/fixed_distribution")
+
+                    #ans['output_dir'] = ans['output_dir']  + "/fixed_distribution"
                     file_name = file_name.replace('low_friction_table/', 'low_friction_table/fixed_distribution/')
                  output = yaml.dump(ans, Dumper = Dumper)
                  f = open(file_name, 'w')

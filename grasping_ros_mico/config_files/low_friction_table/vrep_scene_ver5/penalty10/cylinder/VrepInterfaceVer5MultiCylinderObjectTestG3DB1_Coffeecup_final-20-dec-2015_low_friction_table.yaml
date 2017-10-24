@@ -1,7 +1,6 @@
 belief_object_ids: [2, 3, 4]
 interface_type: 0
 invalid_state_penalty: -10
-learned_model_name: ''
 low_friction_table: true
 num_belief_particles: 1000
 object_initial_pose_z: [1.0899, 1.1406, 1.0998, 1.0998, 1.0998, 1.0998, 1.0998, 1.0998]
@@ -14,8 +13,5 @@ object_min_z: [1.0851000000000002, 1.1358000000000001, 1.095, 1.095, 1.095, 1.09
 pick_penalty: -10
 pick_reward: 100
 separate_close_reward: true
-svm_model_prefix: ''
-switching_method: 0
-switching_threshold: 10
 test_object_id: 0
 version5: true

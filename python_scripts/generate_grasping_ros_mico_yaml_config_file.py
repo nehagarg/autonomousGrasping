@@ -112,10 +112,10 @@ def create_basic_config(filename):
     ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
     ans["separate_close_reward"] = True
-    ans["switching_method"] = 0 #0 for threshold based switching 1 for automatic one class svm based switching
-    ans["svm_model_prefix"] = ""
-    ans["learned_model_name"] = ""
-    ans["switching_threshold"] = 10
+    #ans["switching_method"] = 0 #0 for threshold based switching 1 for automatic one class svm based switching
+    #ans["svm_model_prefix"] = ""
+    #ans["learned_model_name"] = ""
+    #ans["switching_threshold"] = 10
         
     return ans
 
@@ -128,6 +128,7 @@ def get_toy_config(filename):
 
 
 def get_learning_version_from_filename(filename):
+    global LEARNED_MODEL_NAME
     ans1 = '1'
     m = re.search('_v([0-9]+)', filename)
     if m:
@@ -430,10 +431,12 @@ def generate_G3DB_ver5_single_belief_files():
                 write_config_in_file(filename, ans)
 
 def generate_G3DB_ver5_cylinder_belief_files():
+    global LEARNED_MODEL_NAME
+    LEARNED_MODEL_NAME = 'model.ckpt-693'
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     object_list = object_list+['9cm', '8cm', '7cm', '75mm', '85mm']
     interface_types = ["", "Data"]
-    for filetype in ['']:
+    for filetype in ['', '_v11_combined_0']:
        for interface_type in interface_types:
            for object_type in object_list:
                 file_prefix = "low_friction_table/vrep_scene_ver5/penalty10/cylinder/Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
