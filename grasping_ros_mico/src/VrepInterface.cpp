@@ -1561,12 +1561,19 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
         //TODO Test : Add decrease x action to make sure gripper is always open on open action
         //Do not do it while gathering data or may be do it as it will lead to open action always resulting in open gripper
+                int i = 0;
         if(action == A_OPEN)
         {
             bool touching = true;
             int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
             while(new_gripper_status > 0)
-            {
+            {    
+                i = i+1;
+                if (i > 5)
+                {
+                    //Sometimes this gets stuck in a loop as gripper doesnt open fully. So try only 5 times
+                    break;
+                }
                 if (grasping_state.gripper_pose.pose.position.x < min_x_i + 0.005)
                 {
                     grasping_state.gripper_pose.pose.position.x = min_x_i - 0.01;
@@ -1637,6 +1644,7 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         
         std::cout << "Creating Start state" << std::endl;
         //Set gripper pose in front of bin
+        //Simulation started with this command
         SetGripperPose(i,j);
         std::cout << "Gripper pose set" << std::endl;
         
@@ -1644,7 +1652,7 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         VrepDataInterface::CreateStartState(initial_state, type);
         
         //Get object pose from vrep and update its x and y coordnates from initial state
-         double object_x = initial_state.object_pose.pose.position.x;
+        double object_x = initial_state.object_pose.pose.position.x;
         double object_y = initial_state.object_pose.pose.position.y;
       
          vrep_common::simRosGetObjectPose object_pose_srv;
