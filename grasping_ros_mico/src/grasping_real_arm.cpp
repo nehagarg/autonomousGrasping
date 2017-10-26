@@ -84,6 +84,22 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
         RobotInterface::version5 = false;
     }
+    if(config["use_data_step"])
+    {
+        RobotInterface::use_data_step = config["use_data_step"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_data_step = false;
+    }
+    if(config["get_object_belief"])
+    {
+        RobotInterface::get_object_belief = config["get_object_belief"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::get_object_belief = false;
+    }
     
     
  
