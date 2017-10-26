@@ -17,7 +17,7 @@ VrepLogFileInterface::VrepLogFileInterface(int start_state_index_) : VrepDataInt
     
     //char ** argv;
     //std::cout << "Initialized python 1" << std::endl;
-    //PySys_SetArgv(0, argv);
+    //PySys_SetArgv(0, argv); //required when pyton script imprt rospy
     std::cout << "Initialized python 2" << std::endl;
     //PyRun_SimpleString("print sys.argv[0]");
     //std::cout << "Initialized python 3" << std::endl;

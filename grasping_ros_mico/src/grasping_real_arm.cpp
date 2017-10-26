@@ -508,7 +508,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     //std::cout << "In initial belief" << std::endl;
     std::vector<State*> particles;
     int num_particles = 0;
-    
+    std::vector<double> belief_object_weights = robotInterface->GetBeliefObjectProbability(belief_object_ids);
     //Gaussian belief for gaussian start state
     if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" ||
            type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN" )
@@ -541,6 +541,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                         }
                     }
                     
+                    grasping_state->weight = belief_object_weights[grasping_state->object_id];
                     particles.push_back(grasping_state);
                     num_particles = num_particles + 1;
             }
@@ -588,6 +589,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
             grasping_state->object_pose.pose.position.x = object_x;
             grasping_state->object_pose.pose.position.y = object_y;
         }
+        grasping_state->weight = belief_object_weights[grasping_state->object_id];
         particles.push_back(grasping_state);
         num_particles = num_particles + 1;
     }
@@ -650,9 +652,10 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     }
     */
     std::cout << "Num particles : " << num_particles << std::endl;
+    double total_weight = State::Weight(particles);
     for(int i = 0; i < num_particles; i++)
     {
-        particles[i]->weight = 1.0/num_particles;
+        particles[i]->weight = particles[i]->weight/total_weight;
     }
     //std::cout << "Num particles : " << num_particles << std::endl;
     return particles;

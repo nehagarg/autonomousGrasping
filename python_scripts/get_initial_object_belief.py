@@ -1,5 +1,7 @@
 import rospy
 import getopt
+import sys
+
 import perception as perception
 from perception import PointToPlaneICPSolver, PointToPlaneFeatureMatcher
 import rospkg
@@ -7,7 +9,7 @@ from autolab_core import YamlConfig
 from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 import tf
-from autolab_core import Box
+from autolab_core import Box, PointCloud, NormalCloud
 import signal
 from autolab_core import RigidTransform
 import numpy as np
@@ -18,15 +20,16 @@ from generate_grasping_ros_mico_yaml_config_file import get_grasping_object_name
 
 class KinectSensor:
     def __init__(self, COLOR_TOPIC,DEPTH_TOPIC, CAMINFO_TOPIC):
-        print CAMINFO_TOPIC
-        self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
-        self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
-        self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback) 
+        print CAMINFO_TOPIC 
         self.rgb = None
         self.depth = None
         self.cam_info = None
         self.bridge = CvBridge()
         self.freeze = False
+        rospy.init_node('listener', anonymous=True)
+        self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
+        self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
+        self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback)
         self.tl = tf.TransformListener()
 
     def color_callback(self, data):
@@ -112,16 +115,16 @@ class KinectSensor:
         return RigidTransform(translation=trans, rotation=qat_wxyz, from_frame=from_frame, to_frame=to_frame)
 
 class GetInitialObjectBelief():
-    def __init__(self, obj_filenames = None):
+    def __init__(self, obj_filenames = None, debug = False):
         COLOR_TOPIC = '/kinect2/sd/image_color_rect'
         DEPTH_TOPIC = '/kinect2/sd/image_depth_rect'
         CAMINFO_TOPIC = '/kinect2/sd/camera_info'
         self.CAM_FRAME = 'kinect2_ir_optical_frame'
         self.WORLD_FRAME = 'world'
-
+        self.debug = debug
         rospack = rospkg.RosPack()
-        gqcnn_path = rospack.get_path('gqcnn')
-        self.config = YamlConfig(gqcnn_path + '/cfg/ros_nodes/mico_control_node.yaml')
+        gqcnn_path = rospack.get_path('grasping_ros_mico')
+        self.config = YamlConfig(gqcnn_path + '/config_files/dexnet_config/mico_control_node.yaml')
 
 
 
@@ -193,6 +196,7 @@ class GetInitialObjectBelief():
 
         seg_point_cloud_world, _ = point_cloud_world.box_mask(box)
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
+        print seg_point_cloud_cam.shape
         depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
         #camera_intr._frame = 'world'
         #depth_im_seg = camera_intr.project_to_image(seg_point_cloud_world)
@@ -200,11 +204,11 @@ class GetInitialObjectBelief():
 
 
     def save_point_cloud(self, filename_prefix, depth_im_seg, camera_intr):
-
-        vis.figure()
-        vis.subplot(1,1,1)
-        vis.imshow(depth_im_seg)
-        vis.show()
+        if self.debug:
+            vis.figure()
+            vis.subplot(1,1,1)
+            vis.imshow(depth_im_seg)
+            vis.show()
         depth_im_seg.save(filename_prefix + '.npy')
         camera_intr.save(filename_prefix  + '.intr')
 
@@ -216,27 +220,53 @@ class GetInitialObjectBelief():
         
         return (depth_im, camera_intr)
 
-
+    
+    def get_point_normal_cloud(self, depth_im_seg, camera_intr):
+        source_point_normal_cloud = depth_im_seg.point_normal_cloud(camera_intr)
+        source_point_cloud = source_point_normal_cloud.points
+        source_normal_cloud = source_point_normal_cloud.normals
+        if self.debug:
+            print source_point_cloud.shape
+            print source_normal_cloud.shape
+        points_of_interest = np.where(source_point_cloud.z_coords != 0.0)[0]
+        source_point_cloud._data = source_point_cloud.data[:, points_of_interest]
+        source_normal_cloud._data = source_normal_cloud.data[:, points_of_interest]
+        if self.debug:
+            print source_point_cloud.shape
+            print source_normal_cloud.shape
+        return (source_point_cloud, source_normal_cloud)
+                        
+                
+        
     def register_point_cloud(self):
         registration_result_array = []
-        p2pis = PointToPlaneICPSolver()
-        p2pfm = PointToPlaneFeatureMatcher
-        depth_im_seg, camera_intr = giob.get_object_point_cloud_from_sensor(sensor)
-        source_point_cloud = camera_intr.deproject(depth_im_seg)
-        source_normal_cloud = depth_im_seg.point_normal_cloud(camera_intr)
-        
+        depth_im_seg, camera_intr = self.get_object_point_cloud_from_sensor() #self.database_objects[1]# 
+        source_point_cloud, source_normal_cloud = self.get_point_normal_cloud(depth_im_seg, camera_intr)
+        source_sample_size = int(source_point_cloud.shape[1])
+        if self.debug:
+            print source_sample_size
+        p2pis = PointToPlaneICPSolver(sample_size=source_sample_size)
+        p2pfm = PointToPlaneFeatureMatcher()
         for (target_depth_im, target_camera_intr) in self.database_objects:
-            target_point_cloud = target_camera_intr.deproject(target_depth_im)
-            target_normal_cloud = target_depth_im.point_normal_cloud(target_camera_intr)
-            registration_result = p2pis.register(self, source_point_cloud, target_point_cloud,
-                 source_normal_cloud, target_normal_cloud, p2pfm)
+            if self.debug:
+                vis.figure()
+                vis.subplot(1,1,1)
+                vis.imshow(target_depth_im)
+                vis.show()
+            target_point_cloud, target_normal_cloud = self.get_point_normal_cloud(target_depth_im, target_camera_intr)
+            registration_result = p2pis.register( source_point_cloud, target_point_cloud,
+                 source_normal_cloud, target_normal_cloud, p2pfm, num_iterations=1)
             registration_result_array.append(registration_result)
         return registration_result_array
     
     def get_object_probabilities(self):
         registration_result_array = self.register_point_cloud()
+        if self.debug:
+            for x in registration_result_array:
+                print x.cost
+                print x.T_source_target
         #For now only looking at cost. Not checking the translation
-        probs_unnormalized = [1.0/x for (_,x) in registration_result_array]
+        probs_unnormalized = [np.exp(1.0/x.cost) for x in registration_result_array]
         z = sum(probs_unnormalized)
         probs = [x/z for x in probs_unnormalized]
         return probs
@@ -247,26 +277,49 @@ class GetInitialObjectBelief():
             obj_filenames = self.obj_filenames
         ans = []
         for filename in obj_filenames:
+            print "Loading " + filename
             depth_im, camera_intr = self.load_saved_point_cloud(filename)
             ans.append((depth_im, camera_intr))
         self.database_objects = ans
         return ans
     
-def save_object_file(obj_file_name):
-    giob = GetInitialObjectBelief()
+def save_object_file(obj_file_name, debug = False):
+    giob = GetInitialObjectBelief(debug)
     (d,c) = giob.get_object_point_cloud_from_sensor()
     giob.save_point_cloud(obj_file_name, d, c)
-        
-def get_belief_for_objects(object_group_name, object_file_dir):
-    object_list = get_grasping_object_name_list(object_group_name)
+
+def get_object_name(object_file):
+    object_file_parts = object_file.split('_')
+    for object_file_part in object_file_parts:
+        if 'cm' in object_file_part:
+            object_number = int(filter(str.isdigit, object_file_part))
+            if object_number < 10:
+                return "Cylinder" + repr(object_number) + 'cm'
+            elif object_number < 100:
+                return "Cylinder" + repr(object_number) + 'mm'
+            elif object_number > 1000:
+                g3db_objects = get_grasping_object_name_list('all_g3db')
+                g3dbPattern = 'G3DB'+repr(object_number - 1000) + '_'
+                for g3db_object in g3db_objects:
+                    if g3dbPattern in g3db_object:
+                        return g3db_object
+                    
+def get_belief_for_objects(object_group_name, object_file_dir, debug = False):
+    if type(object_group_name) is str:
+        object_list = get_grasping_object_name_list(object_group_name)
+    else:
+        object_list = [get_object_name(x) for x in object_group_name]
     obj_filenames = [object_file_dir + "/" + x for x in object_list]
-    giob = GetInitialObjectBelief(obj_filenames)
-    return giob.get_object_probabilities
+    giob = GetInitialObjectBelief(obj_filenames, debug)
+    ans = giob.get_object_probabilities()
+    print "<Object Probabilities>" + repr(ans)
+    return ans
 
 if __name__ == '__main__':
     object_file_name = None
     object_group_name = None
-    opts, args = getopt.getopt(sys.argv[1:],"g:hs:")
+    debug = False
+    opts, args = getopt.getopt(sys.argv[1:],"g:hs:d")
     for opt,arg in opts:    
         if opt == '-s':
             object_file_name = arg
@@ -274,15 +327,16 @@ if __name__ == '__main__':
             object_group_name = arg
         elif opt == '-h':
             print "python get_initial_object_belief.py -s object_name |-g object_group_name object_file_dir"
-
+        elif opt == '-d':
+            debug = True
     object_file_dir = args[0]
     rospy.init_node('Object_belief_node')
     
     if object_file_name is not None:
-        save_object_file(object_file_dir + "/" + obj_file_name)
+        save_object_file(object_file_dir + "/" + object_file_name, debug)
     if object_group_name is not None:
-        get_belief_for_objects(object_group_name, object_file_dir)
-    rospy.spin()
+        get_belief_for_objects(object_group_name, object_file_dir, debug)
+    #rospy.spin()
     
     
 

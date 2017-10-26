@@ -13,6 +13,8 @@ std::vector <int> RobotInterface::objects_to_be_loaded;
 std::vector<std::string> RobotInterface::object_id_to_filename;
 bool RobotInterface::low_friction_table;
 bool RobotInterface::version5;
+bool RobotInterface::get_object_belief;
+bool RobotInterface::use_data_step;
 
 
 RobotInterface::RobotInterface() {
@@ -567,6 +569,14 @@ void RobotInterface::GetDefaultStartState(GraspingStateRealArm& initial_state) c
     initial_state.finger_joint_state[3] = -0.00118446 ;
 }
 
+std::vector<double> RobotInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+    std::vector<double> ans ;
+    for(int i = 0; i < belief_object_ids.size(); i++)
+    {
+        ans.push_back(1.0);
+    }
+    return ans;
+}
 
 
 double RobotInterface::get_action_range(int action, int action_type) const {

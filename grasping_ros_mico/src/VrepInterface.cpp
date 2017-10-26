@@ -12,6 +12,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float64.h"
 #include "Display/parameters.h"
+#include "Python.h"
 
 VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_state_index_) {
    
@@ -1536,6 +1537,10 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
 }
 */
 bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double random_num, int action, double& reward, GraspingObservation& grasping_obs) const {
+    if(RobotInterface::use_data_step)
+    {
+        return VrepDataInterface::StepActual(grasping_state, random_num, action, reward, grasping_obs);
+    }
     GraspingStateRealArm initial_grasping_state = grasping_state;
     std::cout << "Action is " << action ;
     if (action < A_CLOSE) { 
@@ -1697,7 +1702,6 @@ bool VrepInterface::IsReachableState(GraspingStateRealArm grasping_state, geomet
     
     return isReachable;
 }
-
 /*void VrepInterface::GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const {
     double pick_reward;
     Step(grasping_state,Random::RANDOM.NextDouble(), A_PICK, pick_reward, grasping_obs);
@@ -1710,7 +1714,86 @@ bool VrepInterface::IsReachableState(GraspingStateRealArm grasping_state, geomet
         reward = -1.5;
     }
 }
-*/
+ */
+
+
+std::vector<double> VrepInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+    if(!RobotInterface::get_object_belief)
+    {
+        return VrepDataInterface::GetBeliefObjectProbability(belief_object_ids);
+    }
+    std::vector<double> belief_object_weights;
+    
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('python_scripts')");
+    
+    char ** argv;
+    //std::cout << "Initialized python 1" << std::endl;
+    PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
+    std::cout << "Initialized python 2" << std::endl;
+    //PyRun_SimpleString("print sys.argv[0]");
+    //std::cout << "Initialized python 3" << std::endl;
+    //PyRun_SimpleString("import tensorflow as tf");
+    
+    //std::cout << "Initialized python" << std::endl;
+    PyObject *pName;
+    pName = PyString_FromString("get_initial_object_belief");
+    PyObject *pModule = PyImport_Import(pName);
+    if(pModule == NULL)
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"get_initial_object_belief\"\n");
+        assert(0==1);
+    }
+    Py_DECREF(pName);
+    
+    
+    PyObject *load_function = PyObject_GetAttrString(pModule, "get_belief_for_objects");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"get_belief_for_objects\"\n");
+    }
+    
+    PyObject *pArgs, *pValue;
+    pArgs = PyTuple_New(2);
+    PyObject* object_list = PyList_New(belief_object_ids.size());
+    for(int i =0;i < belief_object_ids.size(); i++)
+    {
+        PyList_SetItem(object_list, i, PyString_FromString(object_id_to_filename[belief_object_ids[i]].c_str()));
+    }
+    
+    PyTuple_SetItem(pArgs, 0, object_list);
+    pValue = PyString_FromString("point_clouds");
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, 1, pValue);
+
+    PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(pArgs);
+    Py_DECREF(load_function);
+    
+    if (belief_probs != NULL) {
+        std::cout << "Call to get belief probs succeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to get belief probs failed\n");
+        assert(0==1);
+    }
+
+    for(int i = 0; i < belief_object_ids.size(); i++)
+    {
+        PyObject* tmpObj = PyList_GetItem(belief_probs, i);
+        belief_object_weights.push_back(PyFloat_AsDouble(tmpObj));
+    }
+    
+    return belief_object_weights;
+    
+}
+
 
 VrepInterface::VrepInterface(const VrepInterface& orig) {
 }

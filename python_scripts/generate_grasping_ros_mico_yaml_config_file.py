@@ -28,6 +28,8 @@ def get_grasping_object_name_list(type='used'):
     if type=='coffee_yogurt_cup':
         pattern_list = ['G3DB1_Coffeecup_final-20-dec-2015']
         pattern_list.append('G3DB84_yogurtcup_final')
+    if type=='all_g3db':
+        pattern_list.append('G3DB1_Coffeecup_final-20-dec-2015')
     return pattern_list
 
 def load_config_from_file(yaml_file):
@@ -42,7 +44,7 @@ def get_initial_object_pose_z(id):
     if id==84:
        return  1.1406
     if id==1 :
-       return 1.0899;import sys
+       return 1.0899;
 
 
     

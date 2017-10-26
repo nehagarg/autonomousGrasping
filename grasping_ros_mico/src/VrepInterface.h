@@ -42,6 +42,9 @@ public:
     void CreateStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
     //bool IsValidState(GraspingStateRealArm grasping_state) const;
     
+    std::vector<double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
+    
+    
 
     
 private:
