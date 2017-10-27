@@ -17,6 +17,12 @@ def get_problem_config(problem_name):
         ans['output_length'] = 11
         ans['input_data_type'] = tf.float32
         ans['input_data_type_np'] = np.float32
+    if problem_name == 'vrep/ver5' :
+        ans = get_problem_config('vrep')
+        ans['input_length'] = 6
+    if 'vrep/ver5/weighted_' in problem_name:
+        ans = get_problem_config('vrep/ver5')
+        ans['input_length'] = ans['input_length'] + int(problem_name.split('_')[-1])
     if problem_name == 'toy' :
         ans['max_sequence_length'] = 90
         ans['input_length'] = 26

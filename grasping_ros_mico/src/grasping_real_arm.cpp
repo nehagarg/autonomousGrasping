@@ -79,6 +79,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     if(config["version5"])
     {
         RobotInterface::version5 = config["version5"].as<bool>();
+        LearningModel::problem_name  = "vrep/ver5";
     }
     else
     {
@@ -119,6 +120,11 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     else
     {
         belief_object_ids.push_back(test_object_id);
+    }
+    
+    if(RobotInterface::get_object_belief)
+    {
+        LearningModel::problem_name  = "vrep/ver5/weighted_" + to_string(belief_object_ids.size());
     }
     
    

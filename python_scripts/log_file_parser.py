@@ -77,14 +77,16 @@ class VrepGripperObs:
         self.fj4 = float(values[17])
         self.sensor_obs = [float(values[18]), float(values[19])]
     
-    def convert_to_array(self): #used for generating deep learning data
+    def convert_to_array(self, state_type='vrep'): #used for generating deep learning data
         obs = self.sensor_obs[:]
         obs.append(self.g_x - VrepConstants.reference_g_x) #subtract reference so that it can be used with real arm also
         obs.append(self.g_y - VrepConstants.reference_g_y )  #subtract reference so that it can be used with real arm also
         obs.append(self.fj1)
-        obs.append(self.fj2)
+        if 'vrep/ver5' not in state_type:
+            obs.append(self.fj2)
         obs.append(self.fj3)
-        obs.append(self.fj4)
+        if 'vrep/ver5' not in state_type:
+            obs.append(self.fj4)
         return obs
         
         
@@ -108,8 +110,8 @@ class ParseLogFile:
         if method == 2:
             if state_type == 'toy':
                 self.parseToyLogFile(logFileName,belief_type,round_no)
-            if state_type == 'vrep':
-                self.parseVrepLogFile(logFileName,belief_type,round_no)
+            if state_type.split('/')[0] == 'vrep':
+                self.parseVrepLogFile(logFileName,belief_type,round_no, state_type)
     
     def getFullDataWithoutBelief(self):
         stepInfoWithoutBelief = []
@@ -240,6 +242,14 @@ class ParseLogFile:
                 if round_no < 0:
                     step_info = {}
                     step_info['belief'] = []
+                    
+            if 'vrep/ver5/weighted' in state_type:
+                object_prob_expression = '<Object Probabilities>'
+                objectProbStart = re.match(object_prob_expression, line)
+                values = ParseLogFile.rx.findall(line)
+                step_info = {}
+                step_info['initial_object_probs'] = values
+                yield stepNo, roundNo, step_info
                 
             regular_expression = 'Round (\d+) Step (\d+)'
             step_re_id = 2
@@ -261,7 +271,7 @@ class ParseLogFile:
                 values = ParseLogFile.rx.findall(f.readline())
                 if state_type == 'toy':
                     step_info['initial_state'] = GripperState(values[0], values[1], values[6], values[7], values[2], values[3], values[4])
-                elif state_type == 'vrep':
+                elif state_type.split('/')[0] == 'vrep':
                     step_info['initial_state'] = VrepGripperState(values)
                 else:
                     assert 0 == 1
@@ -326,6 +336,8 @@ class ParseLogFile:
             roundInfo['round'] = roundNo
             if 'initial_state' in step_info:
                 roundInfo['state'] = step_info['initial_state']
+            elif 'initial_object_probs' in step_info:
+                roundInfo['initial_object_probs'] = step_info['initial_object_probs']
             else:
                 stepInfo.append(step_info.copy())
             assert len(stepInfo) == (stepNo + 1)
@@ -333,8 +345,8 @@ class ParseLogFile:
         self.roundInfo_ = roundInfo
         self.stepInfo_ = stepInfo
 
-    def parseVrepLogFile(self, logFileName = None, belief_type = 'vrep', round_no = 0):
-        stepInfoIter = self.parseLogFileIter(logFileName, belief_type, round_no, 'vrep')
+    def parseVrepLogFile(self, logFileName = None, belief_type = 'vrep', round_no = 0, state_type = 'vrep'):
+        stepInfoIter = self.parseLogFileIter(logFileName, belief_type, round_no, state_type)
         self.parseLogFileUsingIter(stepInfoIter,round_no)
         
                 

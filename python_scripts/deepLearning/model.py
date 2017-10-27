@@ -49,10 +49,10 @@ class Encoder(object):
             trans_x[-1] = 1
         else:
             act = x[0]
-            if PROBLEM_NAME in ['vrep', 'toy']:
+            if PROBLEM_NAME.split('/')[0] in ['vrep', 'toy']:
                 obs = x[1]
                 trans_x[0:self.len_obs] = obs
-            if PROBLEM_NAME in ['pocman']:
+            if PROBLEM_NAME.split('/')[0] in ['pocman']:
                 obs = int(x[1][0])
                 index_obs = [i for i, c in enumerate(reversed('{0:b}'.format(obs))) if c=='1']
                 trans_x[index_obs] = 1
@@ -424,7 +424,7 @@ class Seq2SeqModel(object):
 
 def parse_data(fileName, my_seq_length):
     if(fileName is None) or (fileName.endswith('log')) or (',' not in fileName):
-        if PROBLEM_NAME in ['pocman']:
+        if PROBLEM_NAME.split('/')[0] in ['pocman']:
             import pocman_data_generator as traces
         else:
             import deepLearning_data_generator as traces

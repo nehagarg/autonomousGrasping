@@ -82,7 +82,7 @@ def get_next_step_from_log(lfp,step):
 
 
 def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
-    action_string_hash = createActionHash(state_type)
+    action_string_hash = createActionHash(state_type.split('/')[0])
     max_steps = 49
     max_reward = 100
     if state_type == 'toy':
@@ -110,13 +110,15 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
             if 'action' in fullData['stepInfo'][j]:
                 act = action_string_hash[("").join(fullData['stepInfo'][j]['action'][:-1].split(" "))]
             if 'obs' in fullData['stepInfo'][j]:
-                obs = fullData['stepInfo'][j]['obs'].convert_to_array()
+                obs = fullData['stepInfo'][j]['obs'].convert_to_array(state_type)
                 #obs = fullData['stepInfo'][j]['obs'].sensor_obs
                 #obs.append(fullData['stepInfo'][j]['obs'].gripper_l_obs)
                 #obs.append(fullData['stepInfo'][j]['obs'].gripper_r_obs)
                 #obs.append(fullData['stepInfo'][j]['obs'].x_w_obs)
                 #obs.append(fullData['stepInfo'][j]['obs'].y_w_obs)
             seq.append((act,obs))
+        if 'vrep/ver5/weighted' in state_type:
+            seq = [(-1,fullData['roundInfo']['initial_object_probs'])] + seq
         if not isTraining:
             seq.append((num_actions,None))
         seqs.append(seq)
@@ -174,6 +176,15 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName == 'vrep/version12':
+        for i in range(0,4000):
+            for t in ['5']:
+                for scenario in ['320']:
+                   for object in ['7cm', '8cm', '9cm']:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty10/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver5') 
     elif fileName == 'vrep/version11':
         for i in range(0,4000):
             for t in ['5']:
