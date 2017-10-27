@@ -297,18 +297,18 @@ class ParseLogFile:
                 if re.search('- State:', line):
                     if not step_info.has_key('state'):
                         values = ParseLogFile.rx.findall(f.readline())
-                        if state_type == 'toy':
+                        if state_type.split('/')[0] == 'toy':
                             step_info['state'] = GripperState(values[0], values[1], values[6], values[7], values[2], values[3], values[4])
-                        elif state_type == 'vrep':
+                        elif state_type.split('/')[0] == 'vrep':
                             step_info['state'] = VrepGripperState(values)
                         else:
                             assert 0 == 1
                 if re.search('- Observation = ', line):
                     values = ParseLogFile.rx.findall(line)
-                    if state_type == 'toy':
+                    if state_type.split('/')[0] == 'toy':
                         values = ParseLogFile.rx.findall(f.readline())
                         step_info['obs'] = GripperObservation(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7])
-                    elif state_type == 'vrep' :
+                    elif state_type.split('/')[0] == 'vrep' :
                         step_info['obs'] = VrepGripperObs(values)
                     else:
                             assert 0 == 1
