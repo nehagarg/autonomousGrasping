@@ -330,7 +330,7 @@ if __name__ == '__main__':
         elif opt == '-d':
             debug = True
     object_file_dir = args[0]
-    rospy.init_node('Object_belief_node')
+    #rospy.init_node('Object_belief_node')
     
     if object_file_name is not None:
         save_object_file(object_file_dir + "/" + object_file_name, debug)
