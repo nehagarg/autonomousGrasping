@@ -420,11 +420,12 @@ def generate_G3DB_ver5_single_belief_files():
 
 def generate_G3DB_ver5_cylinder_belief_files():
     global LEARNED_MODEL_NAME
-    LEARNED_MODEL_NAME = 'model.ckpt-693'
+    #LEARNED_MODEL_NAME = 'model.ckpt-693' #for version 11
+    LEARNED_MODEL_NAME = 'model.ckpt-965' #for version 12
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     object_list = object_list+['9cm', '8cm', '7cm', '75mm', '85mm']
     interface_types = ["", "Data"]
-    for filetype in ['', '_v11_combined_0']:
+    for filetype in ['_v12_combined_0']: #['', '_v11_combined_0']:
        for interface_type in interface_types:
            for object_type in object_list:
                 file_prefix = "low_friction_table/vrep_scene_ver5/penalty10/cylinder/Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
@@ -472,9 +473,9 @@ def main():
             #generate_config_files_for_penalty100_v10(arg)
             #generate_combined_config_files_for_G3DB(arg)
             #generate_G3DB_belief_files()
-            generate_G3DB_ver5_belief_files(arg)
+            #generate_G3DB_ver5_belief_files(arg)
             #generate_G3DB_ver5_single_belief_files()
-            #generate_G3DB_ver5_cylinder_belief_files()
+            generate_G3DB_ver5_cylinder_belief_files()
             #generate_G3DB_ver5_cylinder_cup_belief_files()
             return
         elif opt == '-h':
