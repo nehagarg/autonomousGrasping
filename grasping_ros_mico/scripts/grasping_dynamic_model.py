@@ -1,9 +1,13 @@
 import sys
 import getopt
+import os
 
 import rospkg
 
 from sklearn import linear_model
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+
 import numpy as np
 
 PICK_ACTION_ID = 10
@@ -34,10 +38,13 @@ def get_data_from_line(line):
     return ans
 
 
-def load_data_file(object_name, data_dir):  
-    
-    object_file_name1 = data_dir + "/SASOData_Cylinder_" + object_name + "_allActions.txt"
-    object_file_name2 = data_dir + "/SASOData_Cylinder_" + object_name + "_openAction.txt"
+def load_data_file(object_name, data_dir):
+    saso_string = "/SASOData_Cylinder_"
+    if 'SASO' in object_name:
+        saso_string = ""
+        
+    object_file_name1 = data_dir + saso_string + object_name + "_allActions.txt"
+    object_file_name2 = data_dir + saso_string + object_name + "_openAction.txt"
     print "Loading files" + object_file_name1 + object_file_name2
     ans={}
     with open(object_file_name1, 'r') as f:
@@ -81,8 +88,8 @@ train_type: 1. Pick probability,
             5. next action touch values
 """
 
-def train(object_name, data_dir, train_type):
-    
+def train(object_name, data_dir, train_type, classifier_type,learned_model = None, debug = False):
+    ans = None
     saso_data = load_data_file(object_name, data_dir)
     if train_type == 'pick_success_probability':
         x=[]
@@ -97,27 +104,40 @@ def train(object_name, data_dir, train_type):
                 y.append(1)
             else:
                 y.append(0)
-        logistic = linear_model.LogisticRegression(max_iter = 400, C = 1.0)
-        logistic.fit(x,y)
+        if learned_model is not None:
+            logistic = learned_model
+        else:
+            print classifier_type
+            if classifier_type == 'DTC':
+                logistic = DecisionTreeClassifier()
+            else:
+                logistic = linear_model.LogisticRegression(max_iter = 400, C = 1.0)
+            logistic.fit(x,y)
+        ans = logistic
         print logistic.score(x,y)
         print logistic.get_params()
-        print logistic.coef_
-        print logistic.intercept_
-        for i in range(0,len(x)):
-            y_bar = logistic.predict([x[i]])
-            if y_bar != y[i]:
-                print x_index[i]
-                print x[i] 
-                print y[i]
-                print logistic.predict_proba([x[i]])
-                print logistic.decision_function([x[i]])
-                prob  = (np.dot(logistic.coef_[0], x[i]) + logistic.intercept_[0])
-                print prob
-                prob *= -1
-                prob = np.exp(prob)
-                prob += 1
-                prob = np.reciprocal(prob)
-                print prob
+        if classifier_type != 'DTC':
+            print logistic.coef_
+            print logistic.intercept_
+        else:
+            print logistic.feature_importances_
+        if debug:
+            for i in range(0,len(x)):
+                y_bar = logistic.predict([x[i]])
+                if y_bar != y[i]:
+                    print x_index[i]
+                    print x[i] 
+                    print y[i]
+                    print logistic.predict_proba([x[i]])
+                    if classifier_type != 'DTC':
+                        print logistic.decision_function([x[i]])
+                        prob  = (np.dot(logistic.coef_[0], x[i]) + logistic.intercept_[0])
+                        print prob
+                        prob *= -1
+                        prob = np.exp(prob)
+                        prob += 1
+                        prob = np.reciprocal(prob)
+                        print prob
     if 'next_state' in train_type:
         actions = range(10)
          
@@ -132,7 +152,7 @@ def train(object_name, data_dir, train_type):
                 actions = s.split('-')[1:]
             if 'pred' in s:
                 predictions = s.split('-')[1:]
-        
+        ans = {}
         for action_ in actions:
             action = int(action_)
             x = []
@@ -145,35 +165,56 @@ def train(object_name, data_dir, train_type):
             for sasor in saso_data[action]: 
                 if sasor['reward'] > -999: #discard invalid states
                     x_entry = sasor['init_joint_values'] 
-                    x_entry =  x_entry + sasor['init_gripper'] + sasor['init_object']
+                    x_entry =  x_entry + sasor['init_gripper'][0:7] + sasor['init_object'][0:7]
                     x.append(x_entry)
                     x_index.append(sasor['index'])
                     for p_ in predictions:
                         p = int(p_)
                         y[p].append(get_prediction_value(sasor,p))
-                    
+            print len(x)
+            ans[action] = {}
             for p_ in predictions:
                 p = int(p_)
-                l_reg[p] = linear_model.LinearRegression()
-                l_reg[p].fit(x,y[p])
+                if learned_model is not None:
+                    l_reg[p] = learned_model[action][p]
+                else:
+                    if classifier_type == 'ridge':
+                        l_reg[p] = linear_model.Ridge(alpha = 0.5, normalize = True)
+                    elif classifier_type == 'SVR':
+                        l_reg[p] = SVR( epsilon = 0.2) 
+                    elif classifier_type == 'DTR':
+                         l_reg[p] = DecisionTreeRegressor()
+                    else:
+                        l_reg[p] = linear_model.LinearRegression()
+                    l_reg[p].fit(x,y[p])
+                ans[action][p] = l_reg[p]
                 print repr(action) + " " + repr(p) + " " + repr(l_reg[p].score(x,y[p]))
                 print l_reg[p].get_params()
-                print l_reg[p].coef_
-                print l_reg[p].intercept_
-                for i in range(0,len(x)):
-                    y_bar = l_reg[p].predict([x[i]])
-                    if y_bar - y[p][i] > 0.01 or y_bar - y[p][i] < -0.01:
-                        print x_index[i]
-                        print x[i] 
-                        print repr(y[p][i]) + ' Prediction ' + repr(y_bar)
+                if classifier_type not in [ 'SVR', 'DTR']:
+                    print l_reg[p].coef_
+                if classifier_type not in ['DTR']:
+                    print l_reg[p].intercept_
+                if classifier_type == 'DTR':
+                    print l_reg[p].feature_importances_
+                
+                if debug:
+                    for i in range(0,len(x)):
+                        y_bar = l_reg[p].predict([x[i]])
+                        error_val = 0.01
+                        if p >15:
+                            error_val = .05
+                        if p > 13:
+                            error_val = 2*3.14/180.0
+
+                        if y_bar - y[p][i] > error_val or y_bar - y[p][i] < -1*error_val:
+                            print x_index[i]
+                            print x[i] 
+                            print repr(y[p][i]) + ' Prediction ' + repr(y_bar)
                         
+    return ans    
         
         
-        
-        
-def test(model_name, svm_model_prefix, model_input, rnn_state, action = 'test'):
-    
-   pass
+
             
 
            
@@ -182,7 +223,8 @@ def test(model_name, svm_model_prefix, model_input, rnn_state, action = 'test'):
 #Status on 23rd october
 #linear regression not learning a good function to predict next state
 #Will try again with more data.
-#Till then will put model learning on hole
+#Till then will put model learning on hold
+#DTR gives promising result
 def main():
     # running parameters
     #batch_size = 1
@@ -192,6 +234,7 @@ def main():
     object_name = '9cm'
     rospack = rospkg.RosPack()
     grasping_ros_mico_path = rospack.get_path('grasping_ros_mico')
+    classifier_type = 'linear'
     
     data_dir = grasping_ros_mico_path + "/data_low_friction_table_exp_ver5"
     train_type = 'pick_success_probability'
@@ -199,7 +242,7 @@ def main():
     action = 'train'
     action_list = ['train', 'test']
     
-    opts, args = getopt.getopt(sys.argv[1:],"ha:d:t:o:",["action=","datadir=","type=", "object="])
+    opts, args = getopt.getopt(sys.argv[1:],"ha:d:t:o:c:",["action=","datadir=","type=", "object=", "classifier="])
     #print opts
     for opt, arg in opts:
       # print opt
@@ -219,11 +262,20 @@ def main():
             train_type = arg
       elif opt in ("-o", "--object"):
           object_name = arg
+      elif opt in ("-c", "--classifier"):
+          classifier_type = arg
+              
+              
 
   
           
     if(action == 'train'):
-        train(object_name, data_dir, train_type)
+        train_object_name = object_name
+        if os.path.exists(data_dir + "/SASOData_0-005_Cylinder_" + object_name + "_allActions.txt"):
+            train_object_name = "/SASOData_0-005_Cylinder_" + object_name
+        
+        ans = train(train_object_name, data_dir, train_type, classifier_type)
+        train(object_name, data_dir, train_type, classifier_type,ans, False)    
     
     #test()
     #test_dataGenerator(1,logfileName)   
