@@ -6,6 +6,8 @@ import math
 import sys
 import getopt
 import subprocess
+from generate_grasping_ros_mico_yaml_config_file import get_grasping_object_name_list
+
 
 PROBLEM_NAME = "vrep"
 def get_mean_std_for_array(a, sum2 = None):
@@ -254,6 +256,7 @@ def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, c
   
     if colors is None:
         colors = ['blue', 'red', 'yellow', 'teal', 'magenta', 'cyan', 'hotpink', 'lightblue', 'pink']
+        colors = ['blue', 'red', 'yellow', 'green', 'magenta', 'cyan', 'black']
     N = len(means[0])   # number of data entries
 
     ind = np.arange(N)
@@ -295,6 +298,12 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
         patterns = ['*8cm*.log', '*9cm*.log', '*7cm*.log']
     elif test_pattern == 'test':
         patterns = ['*85mm*.log', '*75mm*.log']
+    elif test_pattern == 'grasp_objects':
+        object_list = get_grasping_object_name_list()
+        patterns = ['*' + test_pattern + '*.log' for test_pattern in object_list]
+    elif test_pattern == 'coffee_yogurt_cup':
+        object_list = get_grasping_object_name_list(test_pattern)
+        patterns = ['*' + test_pattern + '*.log' for test_pattern in object_list]
     else :
         patterns = ['*' + test_pattern + '*.log']
     reward_file_size = end_index * len(patterns)
@@ -442,7 +451,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
             csv_file.write("\n")
         
         for c in combined_policy_versions:
-            for t in time_steps:
+            for t in time_steps[0:1]:
                 for csv_file in csv_files:    
                     csv_file.write("L" + l + "T" + t + "S" + c)
                 
@@ -454,7 +463,14 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
                 
                 for csv_file in csv_files: 
                     csv_file.write("\n")
-                
+    if 'baseline' in dir_name:
+        for csv_file in csv_files: 
+            csv_file.write("Baseline")
+        new_dir_name = dir_name
+        write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
+        for csv_file in csv_files: 
+            csv_file.write("\n")
+ 
    
 def generate_latex_table(means,stds, legend, xlabels, csv_file):
     latex_table_file_name = csv_file.split('.')[0] + '.tex'
@@ -475,8 +491,9 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
     
     for i in range(0,NR):
         line = legend[i].replace('L7', 'L1').replace('L8', 'L1') + " "
-        if'T5S' in line:
+        if ('T5S' in line) or ('T10S' in line):
             continue
+        
         if 'dummy' in csv_file and 'S3' not in line:
             continue
         for j in range(0, NC):
@@ -509,10 +526,10 @@ def plot_graph_from_csv(csv_file, plt_error):
         plt_title = line[0]
         xlabels = line[1:]
         for line in f:
-            if'T5S' in line:
+            if ('S0-' in line) or ('S1' in line) or ('T5S' in line) or ('T10S' in line):
                 continue
             data = line.rstrip('\n').split(",")
-            legend.append(data[0])
+            legend.append(data[0].replace('S3-50', 'S3'))
             means.append([])
             stds.append([])
             for value in data[1:]:
@@ -530,7 +547,7 @@ def plot_graph_from_csv(csv_file, plt_error):
     plot_line_graph_with_std_error(fig_name, means, stds, plt_title, legend, xlabels)
     
 
-def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern):
+def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs = None):
     
     
     #data_type = 'reward'
@@ -561,7 +578,10 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
         for i in range(0,len(data_types)):
             raw_input_message = raw_input_message + data_types[i] + '[' + repr(i) + '] '
         raw_input_message = raw_input_message + '?'
-        plot_type = int(raw_input(raw_input_message))
+        if inputs is None:
+            plot_type = int(raw_input(raw_input_message))
+        else:
+            plot_type = int(inputs[-1])
         file_name_begin_range = plot_type
         file_name_end_range = plot_type + 1
        
@@ -571,7 +591,10 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     
     for i  in range(file_name_begin_range, file_name_end_range):
         if os.path.exists(csv_file_names[i]):
-            ans = raw_input("Csv file " + csv_file_names[i] + " already exists. Overwrite it[y or n]?")
+            if inputs is None:
+                ans = raw_input("Csv file " + csv_file_names[i] + " already exists. Overwrite it[y or n]?")
+            else:
+                ans = inputs[1]
             if ans == 'y':
                 generate_csv = True
             else:
@@ -589,27 +612,45 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
 
     if generate_csv:
         time_steps = ['1','5']
-        time_steps = get_list_input(time_steps, "Planning times")
-    
         sampled_scenarios = ['5', '10', '20', '40', '80', '160', '320', '640', '1280']
-        sampled_scenarios = get_list_input(sampled_scenarios, "Sampled scenarios")
-    
-        
         learning_versions = ['6']
-        learning_versions =  get_list_input(learning_versions, "Learning versions")
-    
-    
         combined_policy_versions = ['0', '1', '2']
-        combined_policy_versions = get_list_input(combined_policy_versions, "Combined policy versions")
-        
+        if inputs is None:
+            time_steps = get_list_input(time_steps, "Planning times")
+            sampled_scenarios = get_list_input(sampled_scenarios, "Sampled scenarios")
+            learning_versions =  get_list_input(learning_versions, "Learning versions")
+            combined_policy_versions = get_list_input(combined_policy_versions, "Combined policy versions")
+            begin_index_input = raw_input("Begin index (default 0)")
+            end_index_input = raw_input("End index (default 1000):")
+            index_step_input = raw_input("Index step(default 1000):")
+        else:
+            time_steps = inputs[2].split(',')
+            if '' in time_steps:
+                time_steps.remove('')
+            sampled_scenarios = inputs[3].split(',')
+            if '' in sampled_scenarios:
+                sampled_scenarios.remove('')
+            learning_versions =  inputs[4].split(',')
+            if '' in learning_versions:
+                learning_versions.remove('')
+            combined_policy_versions = inputs[5].split(',')
+            if '' in combined_policy_versions:
+                combined_policy_versions.remove('')
+            begin_index_input = inputs[6]
+            end_index_input = inputs[7]
+            index_step_input = inputs[8]
+            
         begin_index = 0
         end_index = 1000
-        end_index_input = raw_input("End index (default 1000):")
+        index_step = 1000
+        
+        if begin_index_input:
+            begin_index = int(begin_index_input)
+            
         if end_index_input:
             end_index = int(end_index_input)
         
-        index_step = 1000
-        index_step_input = raw_input("Index step(default 1000):")
+                
         if index_step_input:
             index_step = int(index_step_input)
         
@@ -638,6 +679,8 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     max_y_o = 0.2295; #range for object location
     max_reward = 100
     min_reward = -10
+    if 'penalty100' in dir_name:
+        min_reward = -10
     
     time_step = raw_input('Time step?')
     
@@ -648,7 +691,7 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     print dir_name
     cur_dir = os.getcwd()
     os.chdir(dir_name)
-    num_cases = 49
+    num_cases = 81
     plt.subplots(1,5)
     for j in range(0,5):
         x = []
@@ -674,10 +717,10 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
             if fullData['stepInfo'][-1]['reward'] == max_reward:
                 colors.append('green')
             elif fullData['stepInfo'][-1]['reward'] == min_reward:
-                print "Red " + repr(i)
+                print "Red " + repr(i % num_cases)
                 colors.append('red')
             else:
-                print "Yellow " + repr(i)
+                print "Yellow " + repr(i % num_cases)
                 colors.append('yellow')
         plt.subplot(1,5,j+1)
         plot_scatter_graph(y, x, colors)
@@ -722,17 +765,31 @@ def main():
       elif opt=='-t':
           PROBLEM_NAME = arg
          
-    pattern = 'test'
-    input_pattern = raw_input("Pattern type: train or test or file identifier?")
-    input_patterns = ['test', 'train', '9cm', '8cm', '7cm', '75mm', '85mm']
-    #if input_pattern in input_patterns:
-    pattern = input_pattern
+    
     #else :
     #    print "Invalid pattern. Setting pattern as test"
-    
-        
-    get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
-    #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
+    input_file = None
+    if len(args) > 0:
+        input_file = args[0]
+        start_i = 0
+        if len(args) > 1:
+            start_i = int(args[1])
+        with open(input_file, 'r') as ff:
+            a =  ff.readlines()[start_i:]
+            for line in a:
+                if line is not None:
+                    inputs = line.split(' ')
+                    pattern = inputs[0]    
+                    get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs)
+    else:
+        pattern = 'test'
+        input_pattern = raw_input("Pattern type: train or test or file identifier?")
+        #input_patterns = ['test', 'train', 'grasp_objects','9cm', '8cm', '7cm', '75mm', '85mm']
+        #if input_pattern in input_patterns:
+        pattern = input_pattern
+        get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
+
+        #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
 
 if __name__ == '__main__':
     main()    

@@ -1,0 +1,5 @@
+{additional_params: --number=-1 -l CAP, begin_index: 0, belief_type: GAUSSIAN_WITH_STATE_IN,
+  config_file: config_files/VrepInterface_low_friction.yaml, end_index: 1000,
+  file_name_prefix: Table_scene_low_friction_9cm_cylinder_v7, horizon: 50, number_scenarios: 5,
+  output_dir: ./results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/simulator/learning/version7/combined_0,
+  planning_time: 1, solver: LEARNINGPLANNING}

@@ -18,7 +18,8 @@
 
 
 #include <string>
-#include "boost/bind.hpp"  
+#include "boost/bind.hpp"
+#include "VrepLogFileInterface.h"  
 
 GraspingRealArm::GraspingRealArm(int start_state_index_, int interfaceType) {
  
@@ -75,6 +76,32 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::low_friction_table = false;
     }
     
+    if(config["version5"])
+    {
+        RobotInterface::version5 = config["version5"].as<bool>();
+        LearningModel::problem_name  = "vrep/ver5";
+    }
+    else
+    {
+        RobotInterface::version5 = false;
+    }
+    if(config["use_data_step"])
+    {
+        RobotInterface::use_data_step = config["use_data_step"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_data_step = false;
+    }
+    if(config["get_object_belief"])
+    {
+        RobotInterface::get_object_belief = config["get_object_belief"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::get_object_belief = false;
+    }
+    
     
  
     
@@ -93,6 +120,11 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     else
     {
         belief_object_ids.push_back(test_object_id);
+    }
+    
+    if(RobotInterface::get_object_belief)
+    {
+        LearningModel::problem_name  = "vrep/ver5/weighted_" + to_string(belief_object_ids.size());
     }
     
    
@@ -168,7 +200,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
 
 void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
    
-  
+    logFileInterface = false;
     if(interfaceType == 0)
      {
         VrepInterface* vrepInterfacePointer = new VrepInterface(start_state_index);
@@ -191,6 +223,13 @@ void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
     //
         robotInterface = interfacePointer;
      }
+    
+    if(interfaceType == 3)
+    {
+        VrepLogFileInterface* interfacePointer = new VrepLogFileInterface(start_state_index);
+        robotInterface = interfacePointer;
+        logFileInterface = true;
+    }
     
      // Display the belief partilces
     pub_gripper = grasping_display_n.advertise<grasping_ros_mico::State>("gripper_pose", 10);
@@ -491,9 +530,10 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     //std::cout << "In initial belief" << std::endl;
     std::vector<State*> particles;
     int num_particles = 0;
-    
+    belief_object_weights = robotInterface->GetBeliefObjectProbability(belief_object_ids);
     //Gaussian belief for gaussian start state
-    if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN")
+    if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" ||
+           type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN" )
     {
         
         for(int i = 0; i < num_belief_particles; i++)
@@ -508,8 +548,14 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                     
                     while(true)
                     {
-                        robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
-                        
+                        if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" )
+                        {
+                            robotInterface->GenerateGaussianParticleFromState(*grasping_state, type);
+                        }
+                        if (type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN")
+                        {
+                            robotInterface->GenerateUniformParticleFromState(*grasping_state, type);
+                        }
                         
                         if (robotInterface->IsValidState(*grasping_state))
                         {
@@ -517,13 +563,39 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                         }
                     }
                     
+                    grasping_state->weight = belief_object_weights[grasping_state->object_id];
                     particles.push_back(grasping_state);
                     num_particles = num_particles + 1;
             }
         }
     }
     
-    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN" || type == "DEFAULT" )
+    /*if (type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN")
+    {
+       
+        
+        
+        for(int k = 0; k < belief_object_ids.size(); k++)
+        {
+           
+            for(int i = 0; i < 17; i++)
+            {
+                for(int j = 0; j < 17; j++)
+                {
+                    GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
+                    grasping_state->object_id = belief_object_ids[k];
+                    robotInterface->GetDefaultStartState(*grasping_state);
+                    grasping_state->object_pose.pose.position.y = robotInterface->initial_object_y -0.04 + (j*0.005);
+                    grasping_state->object_pose.pose.position.x = robotInterface->initial_object_x -0.04 + (i*0.005);
+                    particles.push_back(grasping_state);
+                    num_particles = num_particles + 1;
+                }
+            }
+        } 
+    }*/
+    
+    if (type == "SINGLE_PARTICLE" || type == "GAUSSIAN_WITH_STATE_IN"
+            || type == "DEFAULT" || type ==  "UNIFORM_WITH_STATE_IN" )
     {
     //Single Particle Belief  
         GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
@@ -539,6 +611,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
             grasping_state->object_pose.pose.position.x = object_x;
             grasping_state->object_pose.pose.position.y = object_y;
         }
+        grasping_state->weight = belief_object_weights[grasping_state->object_id];
         particles.push_back(grasping_state);
         num_particles = num_particles + 1;
     }
@@ -601,9 +674,10 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     }
     */
     std::cout << "Num particles : " << num_particles << std::endl;
+    double total_weight = State::Weight(particles);
     for(int i = 0; i < num_particles; i++)
     {
-        particles[i]->weight = 1.0/num_particles;
+        particles[i]->weight = particles[i]->weight/total_weight;
     }
     //std::cout << "Num particles : " << num_particles << std::endl;
     return particles;
@@ -689,6 +763,7 @@ void GraspingRealArm::DisplayBeliefs(ParticleBelief* belief,
              msg.belief.push_back(grasping_state.object_pose.pose.position.x);
              msg.belief.push_back(grasping_state.object_pose.pose.position.y);
              msg.belief.push_back(grasping_state.weight);
+             msg.belief.push_back(grasping_state.object_id);
         }
 
     }

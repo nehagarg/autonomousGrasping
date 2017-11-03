@@ -1,0 +1,5 @@
+{additional_params: --number=-2 -l CAP, begin_index: 0, belief_type: UNIFORM_WITH_STATE_IN,
+  config_file: config_files/VrepInterfaceVer5Single1001-84TestG3DB84_yogurtcup_final_low_friction_table.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_G3DB84_yogurtcup_final, horizon: 50,
+  number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_single_reward100_penalty10/simulator,
+  planning_time: 1, solver: DESPOT}

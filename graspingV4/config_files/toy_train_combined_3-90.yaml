@@ -1,0 +1,2 @@
+{learned_model_name: toy/version1/model.ckpt-946, svm_model_prefix: output/toy/version1/nu_0_1_kernel_rbf_gamma_0_1_,
+  switching_method: 3, switching_threshold: 90, test_object_id: 0}

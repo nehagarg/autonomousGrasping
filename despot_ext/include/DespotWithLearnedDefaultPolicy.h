@@ -66,6 +66,9 @@ public:
 
 
      DeepLearningSolver deepLearningSolver;
+     LearningModel * getModel(){
+         return ((LearningModel*)model_);
+     }
 protected:
 
    // ValuedAction Search();
@@ -73,6 +76,7 @@ protected:
     void InitStatistics();
 
     void CoreSearch(std::vector<State*> particles, RandomStreams& streams);
+    
     //ScenarioLowerBound* learned_policy_lower_bound_;
     LearnedPolicy* deepPolicy;
    

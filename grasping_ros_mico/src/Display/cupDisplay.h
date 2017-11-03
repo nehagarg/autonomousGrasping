@@ -35,6 +35,7 @@ private:
         
 	std::vector< std::pair<double, double> > object_pose_bel;
         std::vector< double> object_pose_bel_weight;
+        std::vector< int > object_pose_id;
 	std::pair<double, double> gripper_pose;
         std::pair<double, double> object_pose;
         std::string header_frame_id = "/vrep_world";

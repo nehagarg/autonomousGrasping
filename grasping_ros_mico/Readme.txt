@@ -1,4 +1,9 @@
 Works with vrep version 3_3_2
+version 3_3_2 modified using patch from here:
+https://github.com/marcinkaszynski/vrep-ros-plugins/commit/3e3c1c22703a14e55cf32aff4603c23f82b2a5ab
+for getting depth image for dexnet
+For details see this link : http://marcinkaszynski.com/2016/09/10/vrep-ros-rgbdslam-simulated-kinect.html
+
 
 to run vrep in headless mode via ssh
 xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../../WORK_FOLDER/vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer1.ttt
@@ -15,9 +20,12 @@ micoWithSensorsMutliObjectTrialWithDespotIKCuboidVer2.ttt(Cuboid object too heav
 micoWithSensorsMutliObjectTrialWithDespotIKYCBObjectsVer3.ttt
 
 micoWithSensorsMutliObjectTrialWithDespotIKVer4.ttt : (Object closer to real arm and gripper behaviour close to real arm behaviour around object)
-table friction material : floor material in vrep
+table friction material : floor material in vrepsc
 objecct height : 10cm
 object weight : 0.3027 kg
+
+micoWithSensorsMutliObjectTrialWithDespotIKVer5.ttt : (Difference from Ver4 : Gripper closing behaviour closer to real gripper closing behaviour. Gripper palm can detect collisions. Robot position shifted as previous position resulted in instability during pick at far x locations.
+To change the scene from Ver4 to Ver 5 : change the force of MicoHand_finger12_motor1 to 4. Change the maximum angles on MicoHand_joint1_finger1/3 to 90, Divide the velocity in Cup script for j1 by 4.0 and Decimate the MicoHand shape by 90% so that it becomes a smple shape from multishape. Set Mico positon to 0.07,0.01
 
 
 
@@ -46,4 +54,18 @@ GAUSSIAN_WITH_STATE_IN : Belief contains 50 particles in gaussian distribution a
 
 number type:
 -1 for generating state through gaussian distribution
-0-49 for generating state therough belonging to 7x7 grid for object locations on table
+0-81 for generating state therough belonging to 9x9 grid for object locations on table
+
+
+Experiment details
+Look in folder low_friction_table/multiObjectType
+belief_cylinder_7_8_9_reward100_penalty10 vrep scene ver4, gaussian belief contain experiments woth cylinders
+belief_cylinder_7_8_9_reward100_penalty100 vrep scene ver4, gaussian belief , contains experiments with cylinder and cylindrical g3db objects
+belief_g3db_1_84_reward100_penalty10 vrep scene ver5, gaussian belief, no experiments
+belief_uniform_cylinder_7_8_9_reward100_penalty10 vrep scene ver5, uiform belief ,contains experiments with cylinder and cylindrical g3db objects
+belief_uniform_cylinder_7_8_9_reward100_penalty100 vrep scene ver4, uniform belief, done for checking combined learning versionn 4. contains only data experiments with cylinders
+belief_uniform_cylinder_8_9_1001_reward100_penalty10 vrep scene ver5, uniform belief, experiment with 8, 9 and G3DB1 in belief
+belief_uniform_cylinder_8_9_reward100_penalty10 vrep scene ver5, uniform belief, experiment with cylinder 8 and 9 in belief
+belief_uniform_g3db_1_84_reward100_penalty10 vrep scene ver5, uniform belief, experiment with G3DB1 and G3DB84 in belief
+belief_uniform_g3db_single_reward100_penalty10 vrep scene ver5, uniform belief, experiment with single g3db objects in belief
+

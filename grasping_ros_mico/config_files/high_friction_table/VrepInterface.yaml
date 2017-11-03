@@ -1,0 +1,19 @@
+belief_object_ids: [0]
+interface_type: 0
+invalid_state_penalty: -10
+learned_model_name: ''
+low_friction_table: false
+num_belief_particles: 1000
+object_initial_pose_z: [1.1248, 1.1248, 1.1248, 1.1248, 1.1248, 1.1248, 1.1248, 1.1248,
+  1.1248]
+object_mapping: [data_table_exp/SASOData_Cylinder_9cm_, data_table_exp/SASOData_Cylinder_8cm_,
+  data_table_exp/SASOData_Cylinder_7cm_, data_table_exp/SASOData_Cuboid_9cm_, data_table_exp/SASOData_Cuboid_8cm_,
+  data_table_exp/SASOData_Cuboid_7cm_, data_table_exp/SASOData_Cylinder_75mm_, data_table_exp/SASOData_Cylinder_85mm_]
+object_min_z: [1.12, 1.12, 1.12, 1.12, 1.12, 1.12, 1.12, 1.12, 1.12]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+svm_model_prefix: ''
+switching_method: 0
+switching_threshold: 10
+test_object_id: 0

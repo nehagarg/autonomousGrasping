@@ -12,6 +12,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float64.h"
 #include "Display/parameters.h"
+#include "Python.h"
 
 VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_state_index_) {
    
@@ -22,6 +23,17 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
     if(RobotInterface::low_friction_table)
     {
          joint_file_name = "data_low_friction_table_exp/jointData.txt";
+    }
+    if(RobotInterface::version5)
+    {
+        if (start_state_index_ == -10000) //gathering data with epsiln 0.005
+        {
+            joint_file_name = "data_low_friction_table_exp_ver5/jointData_0_0-005.txt";
+        }
+        else
+        {
+         joint_file_name = "data_low_friction_table_exp_ver5/jointData.txt";
+        }
     }
     std::ifstream infile1(joint_file_name);
     int x_i, x_j;
@@ -379,7 +391,8 @@ void VrepInterface::OpenCloseGripperInVrep(int action_offset, GraspingStateRealA
     }
     
     WaitForStability("closeGripper","/vrep/checkGripper",  action_offset - A_CLOSE + 1, 0);
-    
+    //Adding this as opening closing gripper takes longer now
+    sleep(5);
     /*vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     set_integer_signal_srv.request.signalName = "closeGripper";
     set_integer_signal_srv.request.signalValue = action_offset - A_CLOSE + 1;
@@ -906,8 +919,10 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
 void VrepInterface::GatherJointData(int object_id) const {
     std::ofstream myfile;
     //myfile.open ("data_table_exp/jointData_0.txt");
-    myfile.open ("data_low_friction_table_exp/jointData_0.txt");
-
+    //myfile.open ("data_low_friction_table_exp/jointData_0.txt");
+    //myfile.open ("data_low_friction_table_exp_ver5/jointData_0.txt");
+    myfile.open ("data_low_friction_table_exp_ver5/jointData_0_0-005.txt");
+    
     
     //Get Current Pose of mico target
     geometry_msgs::PoseStamped mico_target_pose;
@@ -979,8 +994,8 @@ void VrepInterface::GatherJointData(int object_id) const {
                 mico_target_pose.pose.position.y = min_y_i + 0.01*(j+2);
                 SetMicoTargetPose(mico_target_pose);
             }*/
-            mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-            mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+            mico_target_pose.pose.position.x = min_x_i + epsilon*i;
+            mico_target_pose.pose.position.y = min_y_i + epsilon*j;
             SetMicoTargetPose(mico_target_pose);
 
             WaitForArmToStabilize();
@@ -1051,9 +1066,23 @@ void VrepInterface::GatherData(int object_id) const {
 
     std::ofstream myfile;
     std::string filename;
-    filename = "data_low_friction_table_exp/SASOData_Cylinder_";
+    if(version5)
+    {
+        if (epsilon == 0.01)
+        {
+        filename = "data_low_friction_table_exp_ver5/SASOData_Cylinder_";
+        }
+        else{
+           filename = "data_low_friction_table_exp_ver5/SASOData_0-005_Cylinder_"; 
+        }
+    }
+    else
+    {
+        filename = "data_low_friction_table_exp/SASOData_Cylinder_";
+    }
     filename = filename +std::to_string(object_id/10);
     filename = filename + "cm_";
+    //filename = "dummy_";
     bool allActions = true;
     int k_loop_min_value = 0;
     int k_look_max_value = A_CLOSE+1;
@@ -1083,6 +1112,10 @@ void VrepInterface::GatherData(int object_id) const {
     if(initial_state.object_id == -1)
     {
         initial_state.object_id = 0;
+        if(object_id > 1000)// G3DB object
+        {
+           initial_state.object_id = 1; 
+        }
         
     }
     GraspingStateRealArm* grasping_state = &initial_state;
@@ -1131,6 +1164,8 @@ void VrepInterface::GatherData(int object_id) const {
             for(int j = j_loop_min; j < j_loop_max; j++) //loop over y 
             {
                 //Set mico joint positions
+                 //Removing joint position setting as this leads to collisions with g3DB objects
+                //Again adding as setting position after simulation leads to displacement of object
                 vrep_common::simRosSetJointPosition joint_state_srv;
                 for(int ii = 0; ii < 4; ii++)
                 {
@@ -1160,8 +1195,8 @@ void VrepInterface::GatherData(int object_id) const {
                 //SetMicoTargetPose(mico_target_pose);
                 //For some wierd reason this should be set after setting joints
                 //Otherwise it gets reset
-                mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-                mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+                mico_target_pose.pose.position.x = min_x_i + epsilon*i;
+                mico_target_pose.pose.position.y = min_y_i + epsilon*j;
 
 
                 vrep_common::simRosSetObjectPose set_object_pose_srv;
@@ -1172,8 +1207,8 @@ void VrepInterface::GatherData(int object_id) const {
                 {
                     std::cout << "Call to set mico target pose failed " << std::endl;
                     assert(0==1);
-                }
- 
+                }                 
+               
                
                for(int k = k_loop_min; k < k_loop_max; k++) //loop over actions
                 {
@@ -1502,6 +1537,10 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
 }
 */
 bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double random_num, int action, double& reward, GraspingObservation& grasping_obs) const {
+    if(RobotInterface::use_data_step)
+    {
+        return VrepDataInterface::StepActual(grasping_state, random_num, action, reward, grasping_obs);
+    }
     GraspingStateRealArm initial_grasping_state = grasping_state;
     std::cout << "Action is " << action ;
     if (action < A_CLOSE) { 
@@ -1527,12 +1566,24 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
         //TODO Test : Add decrease x action to make sure gripper is always open on open action
         //Do not do it while gathering data or may be do it as it will lead to open action always resulting in open gripper
+                int i = 0;
         if(action == A_OPEN)
         {
             bool touching = true;
             int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
             while(new_gripper_status > 0)
-            {
+            {    
+                i = i+1;
+                if (i > 5)
+                {
+                    //Sometimes this gets stuck in a loop as gripper doesnt open fully. So try only 5 times
+                    break;
+                }
+                if (grasping_state.gripper_pose.pose.position.x < min_x_i + 0.005)
+                {
+                    grasping_state.gripper_pose.pose.position.x = min_x_i - 0.01;
+                    break;
+                }
                 TakeStepInVrep(A_DECREASE_X, 1, touching, grasping_state, grasping_obs, reward);                 
                 OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
                 new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
@@ -1598,6 +1649,7 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         
         std::cout << "Creating Start state" << std::endl;
         //Set gripper pose in front of bin
+        //Simulation started with this command
         SetGripperPose(i,j);
         std::cout << "Gripper pose set" << std::endl;
         
@@ -1605,7 +1657,7 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         VrepDataInterface::CreateStartState(initial_state, type);
         
         //Get object pose from vrep and update its x and y coordnates from initial state
-         double object_x = initial_state.object_pose.pose.position.x;
+        double object_x = initial_state.object_pose.pose.position.x;
         double object_y = initial_state.object_pose.pose.position.y;
       
          vrep_common::simRosGetObjectPose object_pose_srv;
@@ -1626,6 +1678,10 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         
         //std::cout << "Getting initial state" << std::endl;
         GetStateFromVrep(initial_state);
+        if(!IsValidState(initial_state))
+        {
+            std::cout << "ERROR failed Invalid initial state" << std::endl;
+        }
         //std::cout<< "Got initial state" << std::endl;
         
 }
@@ -1646,7 +1702,6 @@ bool VrepInterface::IsReachableState(GraspingStateRealArm grasping_state, geomet
     
     return isReachable;
 }
-
 /*void VrepInterface::GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const {
     double pick_reward;
     Step(grasping_state,Random::RANDOM.NextDouble(), A_PICK, pick_reward, grasping_obs);
@@ -1659,7 +1714,86 @@ bool VrepInterface::IsReachableState(GraspingStateRealArm grasping_state, geomet
         reward = -1.5;
     }
 }
-*/
+ */
+
+
+std::vector<double> VrepInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+    if(!RobotInterface::get_object_belief)
+    {
+        return VrepDataInterface::GetBeliefObjectProbability(belief_object_ids);
+    }
+    std::vector<double> belief_object_weights;
+    
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('python_scripts')");
+    
+    char ** argv;
+    //std::cout << "Initialized python 1" << std::endl;
+    PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
+    std::cout << "Initialized python 2" << std::endl;
+    //PyRun_SimpleString("print sys.argv[0]");
+    //std::cout << "Initialized python 3" << std::endl;
+    //PyRun_SimpleString("import tensorflow as tf");
+    
+    //std::cout << "Initialized python" << std::endl;
+    PyObject *pName;
+    pName = PyString_FromString("get_initial_object_belief");
+    PyObject *pModule = PyImport_Import(pName);
+    if(pModule == NULL)
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"get_initial_object_belief\"\n");
+        assert(0==1);
+    }
+    Py_DECREF(pName);
+    
+    
+    PyObject *load_function = PyObject_GetAttrString(pModule, "get_belief_for_objects");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"get_belief_for_objects\"\n");
+    }
+    
+    PyObject *pArgs, *pValue;
+    pArgs = PyTuple_New(2);
+    PyObject* object_list = PyList_New(belief_object_ids.size());
+    for(int i =0;i < belief_object_ids.size(); i++)
+    {
+        PyList_SetItem(object_list, i, PyString_FromString(object_id_to_filename[belief_object_ids[i]].c_str()));
+    }
+    
+    PyTuple_SetItem(pArgs, 0, object_list);
+    pValue = PyString_FromString("point_clouds");
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, 1, pValue);
+
+    PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(pArgs);
+    Py_DECREF(load_function);
+    
+    if (belief_probs != NULL) {
+        std::cout << "Call to get belief probs succeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to get belief probs failed\n");
+        assert(0==1);
+    }
+
+    for(int i = 0; i < belief_object_ids.size(); i++)
+    {
+        PyObject* tmpObj = PyList_GetItem(belief_probs, i);
+        belief_object_weights.push_back(PyFloat_AsDouble(tmpObj));
+    }
+    
+    return belief_object_weights;
+    
+}
+
 
 VrepInterface::VrepInterface(const VrepInterface& orig) {
 }

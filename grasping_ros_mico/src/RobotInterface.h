@@ -28,6 +28,7 @@ public:
     void PrintObs(GraspingObservation& obs, std::ostream& out = std::cout) const;
     
     virtual void CreateStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const = 0;
+    virtual std::vector<double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
     double ObsProb(GraspingObservation grasping_obs, const GraspingStateRealArm& grasping_state, int action) const;
     bool Step(GraspingStateRealArm& state, double random_num, int action,
         double& reward, GraspingObservation& obs, bool debug = false) const;
@@ -36,6 +37,8 @@ public:
     virtual bool IsValidState(GraspingStateRealArm grasping_state) const = 0;
     
     void GenerateGaussianParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
+    void GenerateUniformParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
+    
     void GetDefaultStartState(GraspingStateRealArm& initial_state) const;
     double abs(double x) const{
         if (x < 0) 
@@ -92,9 +95,10 @@ public:
     double default_initial_object_pose_z_low_friction_table = 1.0998;
     double default_min_z_o = 1.1200 ; //for objects on high friction table
     double default_initial_object_pose_z = 1.1248; // for objects on high friction table //1.7066; //for amazon shelf
+    double max_x_o_difference = 0.01;
     
-    double pick_z_diff = 0.06; 
-    double pick_x_val = 0.3079;
+    double pick_z_diff = 0.12; 
+    double pick_x_val = 0.2879;
     double pick_y_val = 0.1516;
     
     
@@ -114,6 +118,9 @@ public:
     double invalid_state_penalty = -100;
     bool separate_close_reward = true;
     static bool low_friction_table;
+    static bool version5;
+    static bool use_data_step;
+    static bool get_object_belief;
     double epsilon = 0.01; //Smallest step value
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
@@ -125,6 +132,11 @@ public:
     double touch_sensor_max[48];
     double touch_sensor_mean_closed_without_object[48];
     double touch_sensor_mean_closed_with_object[48];
+    
+    double touch_sensor_mean_ver5[2];
+    double touch_sensor_mean_closed_without_object_ver5[2];
+    double touch_sensor_mean_closed_with_object_ver5[2];
+    
     mutable std::vector<SimulationData> simulationDataCollectionWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     mutable std::vector<int> simulationDataIndexWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[A_PICK+1];
@@ -140,8 +152,9 @@ public:
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
     void getSimulationData(int object_id);
+    bool isDataEntryValid(double reward, SimulationData simData, int action);
     
-    
+
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
     virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
     virtual bool IsValidPick(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs) const = 0;
@@ -157,5 +170,10 @@ inline double Gaussian_Distribution(std::default_random_engine& generator, doubl
 	return distrbution(generator);
 }
 
+inline double Uniform_Distribution(std::default_random_engine& generator, double a, double b)
+{
+    std::uniform_real_distribution<double> distribution(a,b+0.0001);
+    return distribution(generator);
+}
 #endif	/* ROBOTINTERFACE_H */
 

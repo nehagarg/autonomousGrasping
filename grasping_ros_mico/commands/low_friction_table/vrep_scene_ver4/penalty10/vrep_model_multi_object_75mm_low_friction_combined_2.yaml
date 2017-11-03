@@ -1,0 +1,4 @@
+{additional_params: --number=-1 -l CAP, begin_index: 0, belief_type: GAUSSIAN, config_file: config_files/VrepInterfaceMultiCylinderObjectTest75mm_low_friction_table_combined_2.yaml,
+  end_index: 500, file_name_prefix: Table_scene_low_friction_75mm_cylinder_v8, horizon: 50,
+  number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/combined_2,
+  planning_time: 1, solver: LEARNINGPLANNING}

@@ -36,7 +36,8 @@ def getPublishableBelief(belief_array):
         belief_msg.belief.append(belief_array[i]['state'].o_x);
         belief_msg.belief.append(belief_array[i]['state'].o_y);
         belief_msg.belief.append(float(belief_array[i]['weight']));
-    
+        belief_msg.belief.append(belief_array[i]['object_id']);
+        
     return belief_msg
          
            
@@ -89,6 +90,7 @@ if __name__ == '__main__':
         pub_gripper.publish(p_State)
         pub_belief.publish(p_Belief)
         rate.sleep()
+        print lfp.stepInfo_[i]['reward']
         name = raw_input("Continue with next step " + repr(i) + " " + lfp.stepInfo_[i]['action'] ) 
             
     

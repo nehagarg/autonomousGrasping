@@ -12,6 +12,8 @@ running_nodes_to_screen = {}
 running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
+last_assigned_node = None
+vrep_scene_version = "5"
 
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
@@ -27,7 +29,17 @@ def get_list_input(sampled_scenarios, command):
     return sampled_scenarios  
 
 
+def get_gather_data_number(pattern, t):
+    if 'G3DB' in pattern:
+        num = int(pattern.split('_')[0][4:])
+        return ((1000+num)*10) + int(t)
+    else:
+        return (int(filter(str.isdigit, pattern))*10) + int(t)
+    
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
+    if(command_prefix == 'gather_data'):
+        num = get_gather_data_number(pattern, t)
+        return './bin/gather_data ' + repr(num)
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
     actual_command = actual_command + ' -c ' + repr(end_index)
@@ -48,6 +60,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     f = open(file_name, 'w')    
     global initial_ros_port
     global max_ros_port 
+    global vrep_scene_version
     starting_ros_port = initial_ros_port 
     vrep_ros_port = initial_ros_port + 1
     
@@ -71,6 +84,8 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
         pattern_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     if pattern == 'grasp_objects':    
         pattern_list = get_grasping_object_name_list()
+    if pattern == 'coffee_yogurt_cup':
+        pattern_list = get_grasping_object_name_list('coffee_yogurt_cup')
     
     if command_list_file is None:
         command_prefix = raw_input("Command prefix?")
@@ -150,9 +165,9 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             vrep_command = vrep_command + vrep_dir 
                             vrep_command = vrep_command + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h '
                             if 'G3DB' in p:
-                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4'
+                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version
                             else:
-                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer4Cylinder'
+                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version + 'Cylinder'
                             vrep_command = vrep_command + p + '.ttt'
                             
                                 
@@ -244,11 +259,17 @@ def assign_node(node_list, screen_name, running_node_file):
     global running_nodes_to_screen 
     global running_screen_to_nodes 
     global stopped_nodes_to_screen 
-    global stopped_screen_to_nodes 
+    global stopped_screen_to_nodes
+    global last_assigned_node
     
     (screen_counter, screen_port) = get_screen_counter_port_from_screen_name(screen_name)
     
-    for node in node_list:
+    node_start_index = 0
+    if last_assigned_node is not None:
+        node_start_index = node_list.index(last_assigned_node)
+        
+    for node_index in range(0,len(node_list)):
+        node = node_list[(node_index +node_start_index) % len(node_list) ]
         #check node ssh
         command = "timeout 5 ssh " + node + " echo 'hello'"
         success = run_command_on_node(command )
@@ -282,6 +303,7 @@ def assign_node(node_list, screen_name, running_node_file):
             f.write(node + " " + screen_name + "\n")
         
         #assign node
+        last_assigned_node = node
         return node
     
     return None   
@@ -348,6 +370,19 @@ def update_nodes(node_file_name):
     nodes = [x.strip() for x in nodes]
     return nodes
         
+def kill_roscore(node_file_name):
+    nodes = update_nodes(node_file_name)
+    all_nodes_free = False
+    while(not all_nodes_free):
+        all_nodes_free = True
+        for node in nodes:
+            output = run_command_on_node('screen -S roscore -X select .', node) #check if screen exists
+            if output is not None: #command successful screen exists
+                all_nodes_free = False
+                run_command_on_node("screen -S roscore -X stuff '^C'", node)
+                run_command_on_node("screen -S roscore -X stuff '^D'", node)
+                run_command_on_node("screen -S roscore -X stuff '^D'", node)
+                
 def do_roscore_setup(nodes):
     for node in nodes:    
         output = run_command_on_node('screen -S roscore -X select .', node) #check if screen exists
@@ -385,7 +420,7 @@ def all_processes_stopped():
     
     return set(running_screens) == set(stopped_screens)
     
-def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file):    
+def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file, force_counter):    
     nodes = update_nodes(node_file_name)
     
     #update ports on each node
@@ -404,9 +439,11 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
             start_screen_counter_list = sorted(set([int(x) for x in all_lines]))
         
     with open(current_screen_counter_file, 'r') as f:
-        assert(int(f.readline() ) ==   start_screen_counter)
+        existing_screen_counter = int(f.readline() )
+        if not force_counter:
+            assert( existing_screen_counter ==   start_screen_counter)
     
-    existing_screen_counter = start_screen_counter
+    #existing_screen_counter = start_screen_counter
     assigned_node = None
     line_number_found = False
     with open(command_file_name) as f:
@@ -467,11 +504,12 @@ def check_finished_processes_standalone(running_node_file, stopped_node_file):
     update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
     update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
     while(not all_processes_stopped()):
+            run_command_on_node('sleep 10') #To avoid newly started process being stopped
             
             check_finished_processes(stopped_node_file)
             print "Sleeping before checking process status..."
             run_command_on_node('sleep 360')
-            update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
+            update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)          
             #update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
             
 def generate_error_re_run_commands(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file):
@@ -550,7 +588,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
             initial_ros_port = initial_ros_port + 1
     
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hergvtd:p:s:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hefrgkvtd:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
@@ -559,6 +597,8 @@ def main():
     separate_ros_vrep_port = False
     source_tensorflow = False
     starting_screen_counter = 1
+    force_counter = False
+    k_roscore = False
 
     problem_type = None
     for opt, arg in opts:
@@ -568,10 +608,14 @@ def main():
          sys.exit()
       elif opt == '-e':
          execute_command_file = True
+      elif opt == '-f' :
+         force_counter = True
       elif opt == '-g':
          genarate_command_file = True
       elif opt == '-r':
           remove_stopped_process = True
+      elif opt == '-k':
+          k_roscore = True
       elif opt == '-v':
          separate_ros_vrep_port = True
       elif opt == '-t':
@@ -593,6 +637,9 @@ def main():
     
     if genarate_command_file:
         generate_commands_file(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
+    
+    if k_roscore:
+        kill_roscore("run_txt_files/node_list.txt")
         
     if remove_stopped_process:
         running_nodes_file = "run_txt_files/running_nodes.txt"
@@ -618,7 +665,8 @@ def main():
             
         
         while True:            
-            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file)
+            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file, force_counter)
+            force_counter = False
             with open(current_screen_counter_file, 'r') as f:
                 new_screen_counter = int(f.readline())
                 if new_screen_counter == current_screen_counter:
@@ -632,6 +680,7 @@ def main():
             print "Sleeping before checking process status..."
             run_command_on_node('sleep 600')
             check_finished_processes(stopped_nodes_file)
+            
         
 if __name__ == '__main__':
     main()

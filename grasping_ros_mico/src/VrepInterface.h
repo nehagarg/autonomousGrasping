@@ -42,6 +42,9 @@ public:
     void CreateStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
     //bool IsValidState(GraspingStateRealArm grasping_state) const;
     
+    std::vector<double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
+    
+    
 
     
 private:
@@ -66,7 +69,7 @@ private:
     int finger_joint_handles[4];
     int arm_joint_handles[6];
     
-    double joint_angles_initial_position[20][16][10];
+    double joint_angles_initial_position[39][31][10];
     
 
     

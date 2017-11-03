@@ -1,0 +1,4 @@
+{additional_params: -l CAP --number=, begin_index: 0, belief_type: GAUSSIAN, config_file: config_files/VrepPenalty100InterfaceMultiCylinderObjectTestG3DB73_juicebottle_final_low_friction_table.yaml,
+  end_index: 245, file_name_prefix: Table_scene_low_friction_G3DB73_juicebottle_final_cylinder,
+  horizon: 50, number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty100/simulator/fixed_distribution,
+  planning_time: 1, solver: DESPOT}
