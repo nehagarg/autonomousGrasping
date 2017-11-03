@@ -1,5 +1,6 @@
 
 from log_file_parser import ParseLogFile
+from grasping_object_list import get_grasping_object_name_list
 #from adaboost_data_generator import get_label_string
 
 
@@ -180,6 +181,17 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName == 'vrep/version13':
+        object_list = get_grasping_object_name_list('coffee_yogurt_cup')
+        for i in range(0,4000):
+            for t in ['5']:
+                for scenario in ['80']:
+                   for object in object_list:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_1_84_reward100_penalty10/icp_score_weighted/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver5/weighted_2') 
+
     elif fileName == 'vrep/version12':
         for i in range(0,4000):
             for t in ['5']:
