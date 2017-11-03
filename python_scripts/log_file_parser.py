@@ -72,6 +72,7 @@ class VrepGripperState:
         o.fj2 = self.fj2
         o.fj3 = self.fj3
         o.fj4 = self.fj4
+	return o
                 
 class VrepGripperObs:
     
@@ -255,10 +256,11 @@ class ParseLogFile:
             if 'vrep/ver5/weighted' in state_type:
                 object_prob_expression = '<Object Probabilities>'
                 objectProbStart = re.match(object_prob_expression, line)
-                values = ParseLogFile.rx.findall(line)
-                step_info = {}
-                step_info['initial_object_probs'] = values
-                yield stepNo, roundNo, step_info
+                if objectProbStart:
+			values = ParseLogFile.rx.findall(line)
+                	step_info = {}
+                	step_info['initial_object_probs'] = values
+                	yield stepNo, roundNo, step_info
                 
             regular_expression = 'Round (\d+) Step (\d+)'
             step_re_id = 2
@@ -349,6 +351,9 @@ class ParseLogFile:
                 roundInfo['initial_object_probs'] = step_info['initial_object_probs']
             else:
                 stepInfo.append(step_info.copy())
+	    #print step_info
+	    #print stepInfo
+	    #print stepNo
             assert len(stepInfo) == (stepNo + 1)
         
         self.roundInfo_ = roundInfo

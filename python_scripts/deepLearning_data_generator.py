@@ -121,7 +121,7 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
                 #obs.append(fullData['stepInfo'][j]['obs'].y_w_obs)
             seq.append((act,obs))
         if 'vrep/ver5/weighted' in state_type:
-            obs = fullData['roundInfo']['initial_state'].get_obs.convert_to_array(state_type)
+	    obs = fullData['roundInfo']['state'].get_obs().convert_to_array(state_type)
             obs = obs + fullData['roundInfo']['initial_object_probs']
             seq = [('$', obs) ] + seq
         if not isTraining:
