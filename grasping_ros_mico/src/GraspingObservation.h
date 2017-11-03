@@ -10,6 +10,7 @@
 
 #include "geometry_msgs/PoseStamped.h"
 #include "observation.h"
+#include "GraspingStateRealArm.h"
 
 class GraspingObservation : public ObservationClass {
  public :
@@ -66,6 +67,25 @@ class GraspingObservation : public ObservationClass {
         {
             inputString >> touch_sensor_reading[i]; 
         }
+    }
+    
+    void getObsFromState(GraspingStateRealArm initial_state)
+    {
+        gripper_pose.pose.position.x  = initial_state.gripper_pose.pose.position.x ;
+        gripper_pose.pose.position.y  = initial_state.gripper_pose.pose.position.y ;
+        gripper_pose.pose.position.z  = initial_state.gripper_pose.pose.position.z ;
+        gripper_pose.pose.orientation.x = initial_state.gripper_pose.pose.orientation.x ;
+        gripper_pose.pose.orientation.y = initial_state.gripper_pose.pose.orientation.y ;
+        gripper_pose.pose.orientation.z = initial_state.gripper_pose.pose.orientation.z  ;
+        gripper_pose.pose.orientation.w = initial_state.gripper_pose.pose.orientation.w ;
+        finger_joint_state[0] = initial_state.finger_joint_state[0]  ;
+        finger_joint_state[1] = initial_state.finger_joint_state[1] ;
+        finger_joint_state[2]= initial_state.finger_joint_state[2] ;
+        finger_joint_state[3]= initial_state.finger_joint_state[3] ;
+        
+        touch_sensor_reading[0] = initial_state.touch[0];
+        touch_sensor_reading[1] = initial_state.touch[1];
+        
     }
 };
 

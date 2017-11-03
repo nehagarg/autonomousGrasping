@@ -111,6 +111,8 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
                 act = action_string_hash[("").join(fullData['stepInfo'][j]['action'][:-1].split(" "))]
             if 'obs' in fullData['stepInfo'][j]:
                 obs = fullData['stepInfo'][j]['obs'].convert_to_array(state_type)
+                if 'vrep/ver5/weighted' in state_type:
+                    obs = obs + fullData['roundInfo']['initial_object_probs']
                 #obs = fullData['stepInfo'][j]['obs'].sensor_obs
                 #obs.append(fullData['stepInfo'][j]['obs'].gripper_l_obs)
                 #obs.append(fullData['stepInfo'][j]['obs'].gripper_r_obs)
@@ -118,7 +120,9 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
                 #obs.append(fullData['stepInfo'][j]['obs'].y_w_obs)
             seq.append((act,obs))
         if 'vrep/ver5/weighted' in state_type:
-            seq = [(-1,fullData['roundInfo']['initial_object_probs'])] + seq
+            obs = fullData['roundInfo']['initial_state'].get_obs.convert_to_array(state_type)
+            obs = obs + fullData['roundInfo']['initial_object_probs']
+            seq = [('$', obs) ] + seq
         if not isTraining:
             seq.append((num_actions,None))
         seqs.append(seq)

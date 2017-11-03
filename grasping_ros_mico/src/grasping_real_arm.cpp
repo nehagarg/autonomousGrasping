@@ -530,7 +530,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     //std::cout << "In initial belief" << std::endl;
     std::vector<State*> particles;
     int num_particles = 0;
-    std::vector<double> belief_object_weights = robotInterface->GetBeliefObjectProbability(belief_object_ids);
+    belief_object_weights = robotInterface->GetBeliefObjectProbability(belief_object_ids);
     //Gaussian belief for gaussian start state
     if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" ||
            type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN" )

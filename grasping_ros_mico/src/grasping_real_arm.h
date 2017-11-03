@@ -156,6 +156,7 @@ public:
     std::hash<std::string> obsHash;
     mutable std::map<uint64_t, GraspingObservation> obsHashMap;
     mutable GraspingStateRealArm initial_state;
+    mutable std::vector<double> belief_object_weights;
     std::vector<int> belief_object_ids;
     int test_object_id;
     bool logFileInterface;
@@ -189,30 +190,95 @@ public:
         return start_state_index;
     }
     
-    
-    void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
+    void getInputSequenceForLearnedModelFromObs(GraspingObservation o, std::ostream& oss) const
     {
         double x_ref = robotInterface->min_x_i;
         double y_ref = robotInterface->min_y_i + (0.01*7);
+        int weight_belief_values = 0;
+        if(LearningModel::problem_name.find("vrep/ver5/weighted") !=std::string::npos)
+        {
+            weight_belief_values = belief_object_weights.size();
+        }
+        int inc = 1;
+        if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos)
+        {
+            inc = 2;
+        }
+        for(int j = 0; j < 2; j++)
+        {
+            oss << o.touch_sensor_reading[j] << ",";
+        }
+        oss << (o.gripper_pose.pose.position.x -x_ref) << ",";
+        oss << (o.gripper_pose.pose.position.y -y_ref) << ",";
+
+        for(int j = 0; j < 4; j=j+inc)
+        {
+            char c = ',';
+            if (j+inc >=4){
+                if(weight_belief_values == 0)
+                        {
+                            c = '*';
+                        }    
+            }
+            oss << o.finger_joint_state[j] << c;
+        }
+        for(int j = 0; j < weight_belief_values;j++)
+            {
+                char c = ',';
+                if(j== weight_belief_values-1)
+                {
+                    c = '*';
+                }
+                oss << belief_object_weights[j] << c;
+            }
+    }
+    void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
+    {   
+        int weight_belief_values = 0;
+        
+        
+        
+        if(LearningModel::problem_name.find("vrep/ver5/weighted") !=std::string::npos)
+        {
+            weight_belief_values = belief_object_weights.size();
+        
+            if( h.Size() == 0)
+            {
+                //Create initial observation
+                oss << "$" << ",";
+                GraspingObservation o;
+                o.getObsFromState(initial_state);
+                getInputSequenceForLearnedModelFromObs(o,oss);
+            }
+        }
+        
+        int inc = 1;
+        if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos)
+        {
+            inc = 2;
+        }
+        
         for(int i = 0; i < h.Size(); i++)
             {
                 oss << h.Action(i) << ",";
                 GraspingObservation o = obsHashMap.at(h.Observation(i));
-                for(int j = 0; j < 2; j++)
-                {
-                    oss << o.touch_sensor_reading[j] << ",";
-                }
-                oss << (o.gripper_pose.pose.position.x -x_ref) << ",";
-                oss << (o.gripper_pose.pose.position.y -y_ref) << ",";
-                for(int j = 0; j < 4; j++)
-                {
-                    char c = ',';
-                    if (j==3){c = '*';}
-                    oss << o.finger_joint_state[j] << c;
-                }
+                getInputSequenceForLearnedModelFromObs(o,oss);
                 
             }
-        oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " ;
+        
+        if(inc ==1 )
+        {
+            oss << NumActions() << ",-1,-1,-1,-1,-1,-1,-1,-1 " ;
+        }
+        else
+        {
+            oss << NumActions() << ",-1,-1,-1,-1,-1,-1" ; 
+            for(int j = 0; j < weight_belief_values; j++)
+            {
+                oss << ",-1";
+            }
+            oss<<" ";
+        }
     }
        
     ValuedAction GetNextActionFromUser(History h) const {

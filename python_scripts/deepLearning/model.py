@@ -56,8 +56,10 @@ class Encoder(object):
                 obs = int(x[1][0])
                 index_obs = [i for i, c in enumerate(reversed('{0:b}'.format(obs))) if c=='1']
                 trans_x[index_obs] = 1
-        
-            trans_x[self.len_obs + int(act)] = 1
+            if act==STUMP:
+                trans_x[-2] = 1
+            else:
+                trans_x[self.len_obs + int(act)] = 1
         #print trans_x
         return trans_x
 
@@ -439,8 +441,9 @@ def parse_data(fileName, my_seq_length):
     #print seqs
     #seqs = traces.parse('canadian_bridge_trace', 'canadian_bridge')
     st = [STUMP]
-    xseqs = [(st + seq)[:-1] for seq in seqs]
+    xseqs = [(st + seq)[:-1] if (not seq or seq[0][0] != STUMP) else seq[:-1] for seq in seqs]
     yseqs = [[t[0] for t in seq] for seq in seqs]
+    yseqs = [seq[1:] if (seq and seq[0]==STUMP ) else seq for seq in yseqs]
     '''
     xseqs = seqs
     yseqs = [[t[0] for t in seq][1:]+st for seq in seqs]
