@@ -448,7 +448,7 @@ def parse_data(fileName, my_seq_length):
     xseqs = seqs
     yseqs = [[t[0] for t in seq][1:]+st for seq in seqs]
     '''
-    maxlen = max(map(len, seqs)) + 1
+    maxlen = max(map(len, xseqs)) + 1
     if my_seq_length is not None:
             maxlen = my_seq_length
     # extend to maxlen
