@@ -376,12 +376,14 @@ def generate_G3DB_belief_files():
                 write_config_in_file(filename, ans)
                 
 def generate_G3DB_ver5_belief_files(weighted = 'false'):
+    global LEARNED_MODEL_NAME
+    LEARNED_MODEL_NAME = 'model.ckpt-867' #for version 13
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     weighted_prefix = ""
     if weighted != 'false':
         weighted_prefix = "weighted_belief/"
     interface_types = ["", "Data"]
-    for filetype in ['']:
+    for filetype in ['', '_combined_0_v13']:
        for interface_type in interface_types:
            for object_type in object_list:
                 file_prefix = "low_friction_table/vrep_scene_ver5/penalty10/yoghurtCup/" + weighted_prefix + "Vrep" +interface_type + "InterfaceVer5Multi1001-84Test" + object_type + "_low_friction_table"
@@ -473,9 +475,9 @@ def main():
             #generate_config_files_for_penalty100_v10(arg)
             #generate_combined_config_files_for_G3DB(arg)
             #generate_G3DB_belief_files()
-            #generate_G3DB_ver5_belief_files(arg)
+            generate_G3DB_ver5_belief_files(arg)
             #generate_G3DB_ver5_single_belief_files()
-            generate_G3DB_ver5_cylinder_belief_files()
+            #generate_G3DB_ver5_cylinder_belief_files()
             #generate_G3DB_ver5_cylinder_cup_belief_files()
             return
         elif opt == '-h':
