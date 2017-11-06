@@ -435,7 +435,7 @@ def parse_data(fileName, my_seq_length):
         seqs = [[]]
         for act_obs_string in fileName.split('*'):
             values = act_obs_string.split(",")
-            act = int(values[0])
+            act = values[0]
             obs = [float(x) for x in values[1:]]
             seqs[0].append((act,obs))
     #print seqs
