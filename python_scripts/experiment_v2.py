@@ -245,7 +245,7 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = '1001-84_weighted')
         config_file_prefix = 'cylinder'
         dir_name = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty10'
         belief_name = 'cylinder_7_8_9'
-        object_list = ['9cm', '8cm', '7cm', '75mm', '85mm']
+        object_list = ['9cm', '8cm', '7cm', '75mm', '85mm', 'G3DB84_yogurtcup_final']
         
     if type=='cylinder_1001':
         config_file_name = 'Ver5MultiCylinder-1001'
@@ -266,8 +266,8 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = '1001-84_weighted')
     
 def generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix):
     #for filetype in ['']:
-    for filetype in ['','_learning_v13', '_combined_0_v13']:
-    #for filetype in ['','_v12_learning', '_v12_combined_0']:
+    #for filetype in ['','_learning_v13', '_combined_0_v13']:
+    for filetype in ['','_v12_learning', '_v12_combined_0']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             if 'Ver5' in config_file_name:
