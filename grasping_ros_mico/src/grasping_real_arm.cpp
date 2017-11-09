@@ -599,8 +599,11 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     {
     //Single Particle Belief  
         GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
-        if(grasping_state->object_id >= RobotInterface::objects_to_be_loaded.size() )
+        if(std::find(belief_object_ids.begin(), 
+                    belief_object_ids.end(),
+                    grasping_state->object_id ) == belief_object_ids.end()) //Object id not in belief
         {
+            //Load a belief object id 0 particle
             grasping_state->object_id = belief_object_ids[0];
         }
         double object_x = grasping_state->object_pose.pose.position.x;

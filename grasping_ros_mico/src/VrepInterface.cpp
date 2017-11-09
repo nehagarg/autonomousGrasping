@@ -1717,12 +1717,12 @@ bool VrepInterface::IsReachableState(GraspingStateRealArm grasping_state, geomet
  */
 
 
-std::vector<double> VrepInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
     if(!RobotInterface::get_object_belief)
     {
         return VrepDataInterface::GetBeliefObjectProbability(belief_object_ids);
     }
-    std::vector<double> belief_object_weights;
+    std::map<int,double> belief_object_weights;
     
     Py_Initialize();
     PyRun_SimpleString("import sys");
@@ -1787,7 +1787,7 @@ std::vector<double> VrepInterface::GetBeliefObjectProbability(std::vector<int> b
     for(int i = 0; i < belief_object_ids.size(); i++)
     {
         PyObject* tmpObj = PyList_GetItem(belief_probs, i);
-        belief_object_weights.push_back(PyFloat_AsDouble(tmpObj));
+        belief_object_weights[belief_object_ids[i]] = PyFloat_AsDouble(tmpObj);
     }
     
     return belief_object_weights;

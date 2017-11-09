@@ -28,7 +28,7 @@ public:
     void PrintObs(GraspingObservation& obs, std::ostream& out = std::cout) const;
     
     virtual void CreateStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const = 0;
-    virtual std::vector<double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
+    virtual std::map<int,double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
     double ObsProb(GraspingObservation grasping_obs, const GraspingStateRealArm& grasping_state, int action) const;
     bool Step(GraspingStateRealArm& state, double random_num, int action,
         double& reward, GraspingObservation& obs, bool debug = false) const;

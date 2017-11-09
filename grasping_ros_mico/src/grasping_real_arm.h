@@ -156,7 +156,7 @@ public:
     std::hash<std::string> obsHash;
     mutable std::map<uint64_t, GraspingObservation> obsHashMap;
     mutable GraspingStateRealArm initial_state;
-    mutable std::vector<double> belief_object_weights;
+    mutable std::map<int, double> belief_object_weights;
     std::vector<int> belief_object_ids;
     int test_object_id;
     bool logFileInterface;
@@ -229,7 +229,7 @@ public:
                 {
                     c = '*';
                 }
-                oss << belief_object_weights[j] << c;
+                oss << belief_object_weights[belief_object_ids[j]] << c;
             }
     }
     void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
