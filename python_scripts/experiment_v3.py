@@ -88,7 +88,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
         pattern_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     elif pattern == 'grasp_objects':    
         pattern_list = get_grasping_object_name_list()
-    else
+    else:
         pattern_list = get_grasping_object_name_list(pattern)
     
     if command_list_file is None:
