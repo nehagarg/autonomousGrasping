@@ -4,7 +4,7 @@ import getopt
 import sys
 #from plot_despot_results import get_list_input
 import subprocess
-from generate_grasping_ros_mico_yaml_config_file import get_grasping_object_name_list
+from grasping_object_list import get_grasping_object_name_list
     
 initial_ros_port = 11311
 max_ros_port = initial_ros_port + 50
@@ -38,8 +38,10 @@ def get_gather_data_number(pattern, t):
     
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
     if(command_prefix == 'gather_data'):
-        num = get_gather_data_number(pattern, t)
-        return './bin/gather_data ' + repr(num)
+        #num = get_gather_data_number(pattern, t)
+        command = './bin/gather_data ' + pattern + ' ' + t + ' ' + n
+        command = command + ' ' + ",".join(map(std,[begin_index, end_index, -1, -1]))
+        return command
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
     actual_command = actual_command + ' -c ' + repr(end_index)

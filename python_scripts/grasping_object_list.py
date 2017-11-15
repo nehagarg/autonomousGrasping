@@ -23,4 +23,7 @@ def get_grasping_object_name_list(type='used'):
         pattern_list.append('G3DB84_yogurtcup_final')
     if type=='all_g3db':
         pattern_list.append('G3DB1_Coffeecup_final-20-dec-2015')
+    if type=='all_cylinders':
+        a = ['9','8','7','75','85']
+        pattern_list = ['Cylinder_' + i for i in a]
     return pattern_list

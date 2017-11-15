@@ -1284,7 +1284,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     
     //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
     //myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
-    myfile.open (filename);
+   
     GraspingStateRealArm initial_state ;
     initial_state.object_id == 0;
     /*if(initial_state.object_id == -1)
@@ -1316,17 +1316,28 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
     int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
-    if(max_x > -1) i_loop_max = max_x;
+    if(max_x > -1 && max_x < i_loop_max) i_loop_max = max_x;
     int i_loop_min = 0;  //20
     if(min_x > -1) i_loop_min = min_x;
     int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
-    if  (max_y > -1) j_loop_max = max_y;
+    if  (max_y > -1 && max_y < j_loop_max) j_loop_max = max_y;
     int j_loop_min = 0;//16;
     if(min_y > -1) j_loop_min = min_y;
     int k_loop_max = k_look_max_value;
     int k_loop_min = k_loop_min_value ;
     
-    
+    if((i_loop_min < i_loop_max) &&
+       (j_loop_min < j_loop_max) &&
+       (k1_loop_min_value < k1_loop_max_value) &&
+       (k_loop_min < k_loop_max))
+    {
+        myfile.open (filename);
+    }
+    else
+    {
+        std::cout << "Not gathering data" << std::endl;
+        return;
+    }
     //int l_loop = 2;
    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
