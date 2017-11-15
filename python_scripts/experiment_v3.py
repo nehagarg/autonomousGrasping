@@ -14,6 +14,7 @@ stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
 last_assigned_node = None
 vrep_scene_version = "5"
+generic_scene = False
 
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
@@ -63,6 +64,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     global initial_ros_port
     global max_ros_port 
     global vrep_scene_version
+    global generic_scene
     starting_ros_port = initial_ros_port 
     vrep_ros_port = initial_ros_port + 1
     
@@ -166,11 +168,14 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             vrep_command = 'until rostopic list ; do sleep 1; done ; cd '
                             vrep_command = vrep_command + vrep_dir 
                             vrep_command = vrep_command + '; xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h '
-                            if 'G3DB' in p:
-                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version
+                            vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version
+
+                            if generic_scene:
+                               vrep_command = vrep_command + 'G3DB_generic.ttt'
                             else:
-                                vrep_command = vrep_command + '../vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer' + vrep_scene_version + 'Cylinder'
-                            vrep_command = vrep_command + p + '.ttt'
+                                if 'G3DB' not in p:
+                                    vrep_command = vrep_command +  'Cylinder'
+                                vrep_command = vrep_command + p + '.ttt'
                             
                                 
                             vrep_screen_name = repr(starting_screen_counter)+ '_vrep_' + repr(starting_ros_port)
@@ -590,7 +595,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
             initial_ros_port = initial_ros_port + 1
     
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hefrgkvtd:p:s:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hefrgkv:td:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
@@ -601,12 +606,12 @@ def main():
     starting_screen_counter = 1
     force_counter = False
     k_roscore = False
-
+    global generic_scene
     problem_type = None
     for opt, arg in opts:
       # print opt
       if opt == '-h':
-         print 'experiment_v3.py -e |-g | -r -v -t  -s starting_screen_counter -p problem_type -d work_folder_dir command_file'
+         print 'experiment_v3.py -e |-g | -r -v <0 for specific scene 1 for generic scene> -t  -s starting_screen_counter -p problem_type -d work_folder_dir command_file'
          sys.exit()
       elif opt == '-e':
          execute_command_file = True
@@ -620,6 +625,8 @@ def main():
           k_roscore = True
       elif opt == '-v':
          separate_ros_vrep_port = True
+         if(int(arg) == 1):
+             generic_scene = True
       elif opt == '-t':
          source_tensorflow = True
       elif opt == '-p':
