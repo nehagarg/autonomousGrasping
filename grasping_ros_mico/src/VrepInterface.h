@@ -23,6 +23,7 @@
 #include "vrep_common/simRosGetJointState.h"
 #include "vrep_common/simRosSetJointPosition.h"
 #include "vrep_common/simRosSetIntegerSignal.h"
+#include "vrep_common/simRosCallScriptFunction.h"
 
 #include "VrepDataInterface.h"
 
@@ -32,7 +33,7 @@ public:
     VrepInterface(const VrepInterface& orig);
     virtual ~VrepInterface();
     
-    void GatherData(int object_id = 0) const;
+    void GatherData(std::string object_id, int action_type, int min_x, int max_x, int min_y, int max_y) const;
     void GatherJointData(int object_id = 0) const;
     void GatherGripperStateData(int object_id = 0) const;
    
@@ -43,7 +44,7 @@ public:
     //bool IsValidState(GraspingStateRealArm grasping_state) const;
     
     std::map<int,double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
-    
+    void LoadObjectInScene(std::string object_id) const;
     
 
     
@@ -64,7 +65,7 @@ private:
     
     int mico_target_handle;
     int mico_tip_handle;
-    int target_object_handle;
+    mutable int target_object_handle;
     int force_sensor_handles[48];
     int finger_joint_handles[4];
     int arm_joint_handles[6];
@@ -93,7 +94,10 @@ private:
     void GetNextStateAndObservation(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, geometry_msgs::PoseStamped micoTargetPose) const;
     void WaitForArmToStabilize() const;
     void WaitForStability(std::string signal_name, std::string topic_name, int signal_on_value, int signal_off_value) const;
-    
+    int GetCollisionState() const;
+    void GatherDataStep(GraspingStateRealArm* grasping_state, 
+            std::ofstream& myfile, int i, int j, int action, int k1,
+            geometry_msgs::PoseStamped mico_target_pose, std::string object_id) const;
 
 };
 

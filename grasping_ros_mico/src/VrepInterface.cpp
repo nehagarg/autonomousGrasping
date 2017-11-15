@@ -129,9 +129,72 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
             arm_joint_handles[i] = object_handle_srv.response.handle;
         }
     }
+    
+    //Initialize python script for loading object
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('python_scripts')");
+    
+    char ** argv;
+    //std::cout << "Initialized python 1" << std::endl;
+    PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
 
 }
 
+void VrepInterface::LoadObjectInScene(std::string object_id) const {
+    if(target_object_handle != -1)
+    {
+        std::cout << "Object already loaded. Assuming properties are set too" << std::endl;
+    }
+    else
+    {
+        PyObject *pName;
+        pName = PyString_FromString("load_objects_in_vrep");
+        PyObject *pModule = PyImport_Import(pName);
+        if(pModule == NULL)
+        {
+            PyErr_Print();
+            fprintf(stderr, "Failed to load \"load objects in vrep\"\n");
+            assert(0==1);
+        }
+        Py_DECREF(pName);
+
+        PyObject *load_function = PyObject_GetAttrString(pModule, "add_object_in_scene");
+        if (!(load_function && PyCallable_Check(load_function)))
+        {
+            if (PyErr_Occurred())
+                    PyErr_Print();
+                fprintf(stderr, "Cannot find function \"add_object_in_scene\"\n");
+        }
+
+        PyObject *pArgs, *pValue;
+        pArgs = PyTuple_New(2);
+        pValue = PyString_FromString(object_id.c_str());
+        /* pValue reference stolen here: */
+        PyTuple_SetItem(pArgs, 0, pValue);
+        pValue = PyString_FromString(object_property_dir.c_str());
+        /* pValue reference stolen here: */
+        PyTuple_SetItem(pArgs, 1, pValue);
+
+        PyObject* object_properties = PyObject_CallObject(load_function, pArgs);
+        Py_DECREF(pArgs);
+        Py_DECREF(load_function);
+        Py_DECREF(pModule);
+
+        PyObject* value1 = PyDict_GetItemString(object_properties, "object_min_z");
+        min_z_o.push_back(PyFloat_AsDouble(value1));
+        value1 = PyDict_GetItemString(object_properties, "object_initial_pose_z");
+        initial_object_pose_z.push_back(PyFloat_AsDouble(value1));
+        Py_DECREF(object_properties);
+        vrep_common::simRosGetObjectHandle object_handle_srv;
+        object_handle_srv.request.objectName = "Cup";
+        if(sim_get_object_handle_client.call(object_handle_srv))
+        {
+            target_object_handle = object_handle_srv.response.handle;
+        }
+    }
+    
+}
 
 
 void VrepInterface::GetNextStateAndObservation(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, geometry_msgs::PoseStamped mico_target_pose) const {
@@ -1061,7 +1124,107 @@ void VrepInterface::GatherJointData(int object_id) const {
     
 }
 
-void VrepInterface::GatherData(int object_id) const {
+void VrepInterface::GatherDataStep(GraspingStateRealArm* grasping_state, 
+        std::ofstream& myfile, int i, int j, int k, int k1,
+        geometry_msgs::PoseStamped mico_target_pose, std::string object_id) const {
+    //Get initial State
+    std::cout << "Getting initial state" << std::endl;
+    GetStateFromVrep(*grasping_state);
+
+    bool isValid = IsValidState(*grasping_state);
+    bool isReachable = IsReachableState(*grasping_state, mico_target_pose);
+    bool isInCollision = (GetCollisionState() == pick_penalty);
+    bool isTerminal = false;
+    
+    if(k1 >=0)
+    {
+        double reward_;
+        GraspingObservation grasping_obs;
+        isTerminal = StepActual(*grasping_state, 0.0, k1, reward_, grasping_obs);
+        isValid = IsValidState(*grasping_state);
+        isReachable = IsReachableState(*grasping_state, grasping_obs.mico_target_pose);
+    }
+    if(k == A_OPEN)
+    {
+        double reward_;
+        GraspingObservation grasping_obs;
+        isTerminal = StepActual(*grasping_state, 0.0, A_CLOSE, reward_, grasping_obs);
+        isValid = IsValidState(*grasping_state);
+        isReachable = IsReachableState(*grasping_state, grasping_obs.mico_target_pose);
+    }
+    
+    
+     //Print Initial state
+    std::cout << "Before printing initial state" << std::endl;
+    myfile << i << " " << j << " ";
+    PrintState(*grasping_state, myfile);
+    myfile << k << "*";
+    std::cout << "Printed initial state" << std::endl;
+
+    //Take action
+    double reward = -1;
+    GraspingObservation obs;
+
+    if(!isValid)
+    {
+        reward = -1000; //to signal invalid initial state
+    }  
+    else
+    {
+        if(!isReachable)
+        {
+            reward = -2000;
+        }
+        else
+        {
+            if(isInCollision)
+            {
+                reward = -3000;
+            }
+            else
+            {
+                isTerminal = StepActual(*grasping_state, 0.0, k, reward, obs);
+                isValid = IsValidState(*grasping_state);
+                isReachable = IsReachableState(*grasping_state, obs.mico_target_pose);
+            }
+        }
+    }
+
+    PrintState(*grasping_state, myfile);
+    PrintObs(obs, myfile);
+    myfile << reward << std::endl;
+
+
+    if(k == A_CLOSE && (object_id!="-1"))
+    {  
+        if(isValid && isReachable && (!isTerminal))
+        {
+            /*
+            //Print reverse state with action id 17
+            //Not needed as reverse state is not necessarily achieved after open action
+            myfile << i << " " << j << " ";
+            PrintState(*grasping_state, myfile);
+            myfile << A_OPEN << "*";
+            PrintState(initial_state_copy, myfile);
+            PrintObs(grasping_obs, myfile);
+            myfile<<"-1" << std::endl;
+             */
+            
+            //Print and perform pick action
+            myfile << i << " " << j << " ";
+            PrintState(*grasping_state, myfile);
+            myfile << A_PICK << "*";
+            StepActual(*grasping_state, 0.0, A_PICK, reward, obs);
+            PrintState(*grasping_state, myfile);
+            PrintObs(obs, myfile);
+            myfile << reward << std::endl;
+
+        } 
+    }
+                    
+}
+
+void VrepInterface::GatherData(std::string object_id, int action_type, int min_x, int max_x, int min_y, int max_y) const {
     //return;
 
     std::ofstream myfile;
@@ -1070,46 +1233,61 @@ void VrepInterface::GatherData(int object_id) const {
     {
         if (epsilon == 0.01)
         {
-        filename = "data_low_friction_table_exp_ver5/SASOData_Cylinder_";
+        filename = "data_low_friction_table_exp_ver5/SASOData_";
         }
         else{
-           filename = "data_low_friction_table_exp_ver5/SASOData_0-005_Cylinder_"; 
+           filename = "data_low_friction_table_exp_ver5/SASOData_0-005_"; 
         }
     }
     else
     {
         filename = "data_low_friction_table_exp/SASOData_Cylinder_";
     }
-    filename = filename +std::to_string(object_id/10);
-    filename = filename + "cm_";
-    //filename = "dummy_";
+    filename = filename +object_id;
+    filename = filename + "_";
+    if(min_x+max_x+min_y + max_y > -4)
+    {
+        filename = filename + std::to_string(min_x) + "-";
+        filename = filename + std::to_string(max_x) + "-";
+        filename = filename + std::to_string(min_y) + "-";
+        filename = filename + std::to_string(max_y) + "_";        
+    }
     bool allActions = true;
     int k_loop_min_value = 0;
     int k_look_max_value = A_CLOSE+1;
-    if(object_id % 10 == 0)
+    int k1_loop_min_value = -1;
+    int k1_loop_max_value = A_CLOSE;
+    if(action_type == 0)
     {
         filename = filename + "allActions.txt";
     }
-    if(object_id % 10 == 1)
+    if(action_type == 1)
     {
         filename = filename + "openAction.txt";
         k_loop_min_value = A_OPEN;
         k_look_max_value = A_OPEN + 1;
     }
-    if(object_id % 10 == 2)
+    if(action_type == 2)
     {
         filename = filename + "closeAndPushAction.txt";
         k_loop_min_value = A_CLOSE;
         k_look_max_value = A_CLOSE + 1;
     }
-    
-    
+    if(action_type == 4)
+    {
+        filename = filename + "collisionCheck.txt";
+        k_loop_min_value = A_COLLISIONCHECK;
+        k_look_max_value = A_COLLISIONCHECK + 1;
+        k1_loop_max_value = 0;
+    }
+    std::cout << "filename is " << filename << std::endl;
     
     //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
     //myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
     myfile.open (filename);
     GraspingStateRealArm initial_state ;
-    if(initial_state.object_id == -1)
+    initial_state.object_id == 0;
+    /*if(initial_state.object_id == -1)
     {
         initial_state.object_id = 0;
         if(object_id > 1000)// G3DB object
@@ -1117,7 +1295,7 @@ void VrepInterface::GatherData(int object_id) const {
            initial_state.object_id = 1; 
         }
         
-    }
+    }*/
     GraspingStateRealArm* grasping_state = &initial_state;
     
     //ros::Rate loop_rate(10);
@@ -1138,12 +1316,16 @@ void VrepInterface::GatherData(int object_id) const {
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
     int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    if(max_x > -1) i_loop_max = max_x;
     int i_loop_min = 0;  //20
+    if(min_x > -1) i_loop_min = min_x;
     int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    if  (max_y > -1) j_loop_max = max_y;
     int j_loop_min = 0;//16;
+    if(min_y > -1) j_loop_min = min_y;
     int k_loop_max = k_look_max_value;
     int k_loop_min = k_loop_min_value ;
-
+    
     
     //int l_loop = 2;
    
@@ -1209,141 +1391,53 @@ void VrepInterface::GatherData(int object_id) const {
                     assert(0==1);
                 }                 
                
-               
-               for(int k = k_loop_min; k < k_loop_max; k++) //loop over actions
+                for(int k1 = k1_loop_min_value; k1 < k1_loop_max_value; k1++)
                 {
-                   
-                    //std::cout<<"Starting simulation" << std::endl;
-                    if(sim_start_client.call(start_srv) )
+                    for(int k = k_loop_min; k < k_loop_max; k++) //loop over actions
                     {
-                        while(start_srv.response.result != 1)
-                        {
-                            std::cout << "Receiving response" << start_srv.response.result << "while starting" << std::endl;
-                            sim_start_client.call(start_srv);
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "Failed to start simualtion" << std::endl;
-                    }
-                
-                    //Wait for arm to stabilize
-                    WaitForArmToStabilize();
-                    
-                    //mico_target_pose.pose.position.x = min_x_i + 0.01*i;
-                    //mico_target_pose.pose.position.y = min_y_i + 0.01*j;
-                    //SetMicoTargetPose(mico_target_pose);
-                    //loop_rate.sleep();
-                    //loop_rate.sleep();
-                
-                    //Get initial State
-                    std::cout << "Getting initial state" << std::endl;
-                    GetStateFromVrep(*grasping_state);
-                    
-                    bool isValid = IsValidState(*grasping_state);
-                    bool isReachable = IsReachableState(*grasping_state, mico_target_pose);
-                    
-                    GraspingStateRealArm initial_state_copy(*grasping_state);
-                    GraspingObservation grasping_obs;
-                    if(k == A_CLOSE && object_id>=0)
-                    {
-                        // initial_state_copy = *grasping_state;
-                        //Gripper pose
-                        grasping_obs.gripper_pose = initial_state_copy.gripper_pose;
 
-                        //Mico target pose
-                        grasping_obs.mico_target_pose = mico_target_pose;
+                         //std::cout<<"Starting simulation" << std::endl;
+                         if(sim_start_client.call(start_srv) )
+                         {
+                             while(start_srv.response.result != 1)
+                             {
+                                 std::cout << "Receiving response" << start_srv.response.result << "while starting" << std::endl;
+                                 sim_start_client.call(start_srv);
+                             }
+                         }
+                         else
+                         {
+                             std::cout << "Failed to start simualtion" << std::endl;
+                         }
 
-                        //Finger Joints
-                        for(int ii = 0; ii < 4; ii++)
-                        {
-                            grasping_obs.finger_joint_state[ii] = initial_state_copy.finger_joint_state[ii];
-                        }
-                        // Get touch sensor observation
-                        GetTouchSensorReadingFromVrep(grasping_obs.touch_sensor_reading);
+                         //Wait for arm to stabilize
+                         WaitForArmToStabilize();
+
+                         //mico_target_pose.pose.position.x = min_x_i + 0.01*i;
+                         //mico_target_pose.pose.position.y = min_y_i + 0.01*j;
+                         //SetMicoTargetPose(mico_target_pose);
+                         //loop_rate.sleep();
+                         //loop_rate.sleep();
+
+                         GatherDataStep(grasping_state, myfile, i,j,k,k1 ,mico_target_pose, object_id);
+
+                         //Stop simulation
+                         //std::cout << "Stopping simulation" << std::endl;
+
+                         if(sim_stop_client.call(stop_srv) ){
+                             if(stop_srv.response.result ==0)
+                             {
+                                  std::cout << "Simulation already stopped" << std::endl;
+                             }
+                         }
+                         else
+                         {
+                             std::cout << "Failed to stop simualtion" << std::endl ;
+                         }
+
+
+
                     }
-                    
-                   
-                    if(k == A_OPEN)
-                    {
-                        double reward_;
-                        StepActual(*grasping_state, 0.0, A_CLOSE, reward_, grasping_obs);
-                    }
-                     //Print Initial state
-                    std::cout << "Before printing initial state" << std::endl;
-                    myfile << i << " " << j << " ";
-                    PrintState(*grasping_state, myfile);
-                    myfile << k << "*";
-                    std::cout << "Printed initial state" << std::endl;
-                   
-                    //Take action
-                    double reward = -1;
-                    GraspingObservation obs;
-                
-                    if(!isValid)
-                    {
-                        reward = -1000; //to signal invalid initial state
-                    }  
-                    else
-                    {
-                        if(!isReachable)
-                        {
-                            reward = -2000;
-                        }
-                        else
-                        {
-                            
-                            bool isTerminal = StepActual(*grasping_state, 0.0, k, reward, obs);
-                        }
-                    }
-                
-                    PrintState(*grasping_state, myfile);
-                    PrintObs(obs, myfile);
-                    myfile << reward << std::endl;
-                    
-                    
-                    if(k == A_CLOSE && object_id>=0)
-                    {  
-                        if(isValid && isReachable)
-                        {
-                            //Print reverse state with action id 17
-                            myfile << i << " " << j << " ";
-                            PrintState(*grasping_state, myfile);
-                            myfile << A_OPEN << "*";
-                            PrintState(initial_state_copy, myfile);
-                            PrintObs(grasping_obs, myfile);
-                            myfile<<"-1" << std::endl;
-                            
-                            //Print and perform pick action
-                            myfile << i << " " << j << " ";
-                            PrintState(*grasping_state, myfile);
-                            myfile << A_PICK << "*";
-                            StepActual(*grasping_state, 0.0, A_PICK, reward, obs);
-                            PrintState(*grasping_state, myfile);
-                            PrintObs(obs, myfile);
-                            myfile << reward << std::endl;
-                            
-                        } 
-                    }
-                    
-                    
-                
-                    //Stop simulation
-                    //std::cout << "Stopping simulation" << std::endl;
-        
-                    if(sim_stop_client.call(stop_srv) ){
-                        if(stop_srv.response.result ==0)
-                        {
-                             std::cout << "Simulation already stopped" << std::endl;
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "Failed to stop simualtion" << std::endl ;
-                    }
-                 
- 
-        
                 }
             }
         }
@@ -1495,7 +1589,6 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
         }
 }*/
 
-
 /*void VrepInterface::CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const {
     if(action != A_PICK)
     {
@@ -1535,8 +1628,45 @@ void VrepInterface::WaitForStability(std::string signal_name, std::string topic_
     }
     }
 }
-*/
+ */
+
+
+int VrepInterface::GetCollisionState() const {
+    std::cout<< "Calling script function" << std::endl;
+    ros::ServiceClient sim_call_script_function_client = grasping_n.serviceClient<vrep_common::simRosCallScriptFunction>("/vrep/simRosCallScriptFunction");
+    vrep_common::simRosCallScriptFunction script_function_srv;
+    script_function_srv.request.functionNameAtObjectName = "rosCollisionFunction@highTable";
+    script_function_srv.request.scriptHandleOrType = 1;
+    //script_function_srv.request.inputInts = {0};
+    //script_function_srv.request.inputFloats= {0};
+    //script_function_srv.request.inputStrings= {""};
+    //script_function_srv.request.inputBuffer= "";
+    if(sim_call_script_function_client.call(script_function_srv))
+    {
+        if ( script_function_srv.response.outputInts[0] == 0)
+        {
+            return pick_reward;
+        }
+        else
+        {
+            return pick_penalty;
+        }
+    }
+    else
+    {
+        std::cout<< "Call to script function failed" << std::endl;
+        assert(0==1);
+        return -1000;
+    }
+    
+}
+
 bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double random_num, int action, double& reward, GraspingObservation& grasping_obs) const {
+    if (action == A_COLLISIONCHECK)
+    {
+        reward = GetCollisionState();
+        return false;
+    }
     if(RobotInterface::use_data_step)
     {
         return VrepDataInterface::StepActual(grasping_state, random_num, action, reward, grasping_obs);
@@ -1724,13 +1854,7 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     }
     std::map<int,double> belief_object_weights;
     
-    Py_Initialize();
-    PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append('python_scripts')");
-    
-    char ** argv;
-    //std::cout << "Initialized python 1" << std::endl;
-    PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
+
     std::cout << "Initialized python 2" << std::endl;
     //PyRun_SimpleString("print sys.argv[0]");
     //std::cout << "Initialized python 3" << std::endl;
@@ -1766,13 +1890,14 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     }
     
     PyTuple_SetItem(pArgs, 0, object_list);
-    pValue = PyString_FromString("point_clouds");
+    pValue = PyString_FromString(object_pointcloud_dir.c_str());
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 1, pValue);
 
     PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
     Py_DECREF(pArgs);
     Py_DECREF(load_function);
+    Py_DECREF(pModule);
     
     if (belief_probs != NULL) {
         std::cout << "Call to get belief probs succeded \n";
@@ -1788,6 +1913,7 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     {
         PyObject* tmpObj = PyList_GetItem(belief_probs, i);
         belief_object_weights[belief_object_ids[i]] = PyFloat_AsDouble(tmpObj);
+        Py_DECREF(tmpObj);
     }
     
     return belief_object_weights;

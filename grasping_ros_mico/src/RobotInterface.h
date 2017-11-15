@@ -68,7 +68,9 @@ public:
         A_DECREASE_Y = 6,
         A_CLOSE = 8 ,
         A_OPEN = 9,
-        A_PICK = 10
+        A_PICK = 10,
+        A_COLLISIONCHECK = 20
+                
     };
     
     static const int NUMBER_OF_OBJECTS = 10; 
@@ -89,8 +91,8 @@ public:
     double max_y_o = 0.2295; // range for object location
     
    // double min_z_o = 1.6900 ;//below this means object has fallen down //for amazon shelf
-    std::vector<double> min_z_o; //= 1.1200 ; //for objects on table
-    std::vector<double> initial_object_pose_z; // = 1.1248; //1.7066; //for amazon shelf
+    mutable std::vector<double> min_z_o; //= 1.1200 ; //for objects on table
+    mutable std::vector<double> initial_object_pose_z; // = 1.1248; //1.7066; //for amazon shelf
     double default_min_z_o_low_friction_table = 1.0950;
     double default_initial_object_pose_z_low_friction_table = 1.0998;
     double default_min_z_o = 1.1200 ; //for objects on high friction table
@@ -121,11 +123,13 @@ public:
     static bool version5;
     static bool use_data_step;
     static bool get_object_belief;
-    double epsilon = 0.01; //Smallest step value
+    double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
     static std::vector<int> objects_to_be_loaded;
     static std::vector<std::string> object_id_to_filename;
+    std::string object_property_dir = "g3db_object_labels";
+    std::string object_pointcloud_dir = "point_clouds";
     
     double touch_sensor_mean[48];
     double touch_sensor_std[48];

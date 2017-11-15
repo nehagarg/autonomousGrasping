@@ -56,16 +56,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         }
     }
     
-    test_object_id = 0;
-    if(config["test_object_id"]) 
-    {
-        test_object_id = config["test_object_id"].as<int>();
-        if (interface_type == 1) //Vrep Data interface
-        {
-            RobotInterface::objects_to_be_loaded.push_back(test_object_id);
-        }
-
-    }
+    
     
     if(config["low_friction_table"])
     {
@@ -93,6 +84,21 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
         RobotInterface::use_data_step = false;
     }
+    
+    
+     bool test_object_loaded = false;
+    test_object_id = 0;
+    if(config["test_object_id"]) 
+    {
+        test_object_id = config["test_object_id"].as<int>();
+        if ((interface_type == 1)|| RobotInterface::use_data_step) //Vrep Data interface
+        {
+            RobotInterface::objects_to_be_loaded.push_back(test_object_id);
+            test_object_loaded = true;
+        }
+
+    }
+    
     if(config["get_object_belief"])
     {
         RobotInterface::get_object_belief = config["get_object_belief"].as<bool>();
@@ -110,7 +116,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         for(int i = 0; i < config["belief_object_ids"].size(); i++)
         {
             int belief_object_id = config["belief_object_ids"][i].as<int>();
-            if ((interface_type != 1)|| (belief_object_id != test_object_id))
+            if ((!test_object_loaded)|| (belief_object_id != test_object_id))
             {
                 RobotInterface::objects_to_be_loaded.push_back(belief_object_id);
             }
@@ -693,6 +699,7 @@ State* GraspingRealArm::CreateStartState(std::string type) const {
     {
         initial_state.object_id = test_object_id;
         //std::cout << "Creating staet state" << std::endl;
+        //Object id is changed by VrepInterface. test object id is retained only by VrepDataInterface
         robotInterface->CreateStartState(initial_state, type);
         
     }
