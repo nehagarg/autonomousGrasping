@@ -53,8 +53,12 @@ def get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_j
         color = 'green'
         if reward < 0:
             color = 'red'
-        if rel_x < 0 or rel_x > 0.3 or rel_y > 0.1 or rel_y < -0.1 or reward < -999:
+        #if rel_x < 0 or rel_x > 0.3 or rel_y > 0.1 or rel_y < -0.1:
+        if reward < -999:
+                
                 color = None
+        #if float(touch_values[0]) > 5 or float(touch_values[1]) > 5:
+        #    color ='blue'
     elif action_id == 8:
         finger_joint1 =   float(finger_joint_values[0])*180/3.14
         finger_joint2 =   float(finger_joint_values[2])*180/3.14
@@ -79,10 +83,20 @@ def get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_j
                color = 'green'
             else:
                 color = 'yellow'
-        if rel_x < 0 or rel_x > 0.3 or rel_y > 0.1 or rel_y < -0.1:
+        #if rel_x < -0.1 or rel_x > 0.3 or rel_y > 0.1 or rel_y < -0.1:
+        if reward < -999:
                     color = None
         if reward < -101:
             color = None
+    elif action_id == 20:
+        color = 'yellow'
+        if reward == 20:
+            color = 'green'
+        if reward == -100:
+            color = 'red'
+        if reward < -999:
+            color = None
+            
     else:
         #print action_id
         if reward < -101:
@@ -93,6 +107,8 @@ def get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_j
             color = 'yellow'
         elif reward < 0:
             color = 'green'
+        #if float(touch_values[0]) > 10 or float(touch_values[1]) > 10:
+        #    color ='blue'
     return color
     
 def plot_pick_success(command_file, action_id= 10):
@@ -150,10 +166,10 @@ def plot_pick_success(command_file, action_id= 10):
                     
                         
                 
-                    
+                   
     area = np.pi * (5 * 1)**2 
-    plt.scatter(y,x,s = area, c = colors)
-    plt.show()
+    return y,x,area,colors
+    
     
 
 if __name__ == '__main__':
@@ -167,13 +183,21 @@ if __name__ == '__main__':
              print 'check_finger_joint_correlation.py -f <finger id 0|1> finger_data_file'
              sys.exit()
         elif opt == '-f':
-             finger = int(arg)
+             fingers = arg.split('-')
         elif opt == '-s':
              start_index = int(arg)
         elif opt == '-e':
              end_index = int(arg)
     if len(args) > 0:
-        command_file = args[0]
+        command_files = args
+    print len(command_files)
         
     #plot_finger(command_file, finger, start_index, end_index)
-    plot_pick_success(command_file, finger)
+    fig, ax = plt.subplots(nrows=1, ncols=len(command_files))
+    i = 1
+    for command_file in command_files:
+        y,x,area,colors = plot_pick_success(command_file, int(fingers[i-1]))
+        plt.subplot(1,len(command_files), i)
+        plt.scatter(y,x,s = area, c = colors)
+        i = i+1
+    plt.show()
