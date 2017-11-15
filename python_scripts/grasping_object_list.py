@@ -18,12 +18,14 @@ def get_grasping_object_name_list(type='used'):
     assert(len(pattern_list)==16)
     if type=='used':
         pattern_list.remove('G3DB11_cheese_final-10-mar-2016') #cheese falls at initial state creation
-    if type=='coffee_yogurt_cup':
+    elif type=='coffee_yogurt_cup':
         pattern_list = ['G3DB1_Coffeecup_final-20-dec-2015']
         pattern_list.append('G3DB84_yogurtcup_final')
-    if type=='all_g3db':
+    elif type=='all_g3db':
         pattern_list.append('G3DB1_Coffeecup_final-20-dec-2015')
-    if type=='all_cylinders':
+    elif type=='all_cylinders':
         a = ['9','8','7','75','85']
         pattern_list = ['Cylinder_' + i for i in a]
+    else:
+        pattern_list=[type]
     return pattern_list
