@@ -41,6 +41,11 @@ void GatherSimulationData(std::string val, double epsi, int action_type, int min
     VrepInterface* vrepInterfacePointer = new VrepInterface(start_index);
     vrepInterfacePointer->epsilon = epsi;
     vrepInterfacePointer->LoadObjectInScene(val);
+    //Expanding valid state for object for data collection
+    vrepInterfacePointer->min_x_o = vrepInterfacePointer->min_x_o - 0.1;
+    vrepInterfacePointer->max_x_o = vrepInterfacePointer->max_x_o + 0.1;
+    vrepInterfacePointer->min_y_o = vrepInterfacePointer->min_y_o - 0.1;
+    vrepInterfacePointer->max_y_o = vrepInterfacePointer->max_y_o + 0.1;
     /*vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
     vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
     if (val > 1000)
