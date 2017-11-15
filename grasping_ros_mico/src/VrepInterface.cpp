@@ -1197,7 +1197,7 @@ void VrepInterface::GatherDataStep(GraspingStateRealArm* grasping_state,
 
     if(k == A_CLOSE && (object_id!="-1"))
     {  
-        if(isValid && isReachable && (!isTerminal))
+        if(isValid && isReachable && (!isTerminal) &&(!isInCollision))
         {
             /*
             //Print reverse state with action id 17
