@@ -1233,12 +1233,15 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     std::string filename;
     if(version5)
     {
+        filename = "data_for_regression/" + object_id + "/SASOData_";
         if (epsilon == 0.01)
         {
-        filename = "data_low_friction_table_exp_ver5/SASOData_";
+        //filename = "data_low_friction_table_exp_ver5/SASOData_";
+
         }
         else{
-           filename = "data_low_friction_table_exp_ver5/SASOData_0-005_"; 
+           //filename = "data_low_friction_table_exp_ver5/SASOData_0-005_"; 
+            filename = filename + "0-005_";
         }
     }
     else
