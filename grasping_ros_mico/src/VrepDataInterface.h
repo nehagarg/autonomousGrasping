@@ -16,7 +16,7 @@ public:
     VrepDataInterface(const VrepDataInterface& orig);
     virtual ~VrepDataInterface();
     
-    int start_state_index;
+    mutable int start_state_index;
     void CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const;
 
     bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;

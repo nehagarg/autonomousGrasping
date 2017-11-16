@@ -33,7 +33,8 @@ public:
     VrepInterface(const VrepInterface& orig);
     virtual ~VrepInterface();
     
-    void GatherData(std::string object_id, int action_type, int min_x, int max_x, int min_y, int max_y) const;
+    void GatherData(std::string object_id, int action_type, int min_x, 
+            int max_x, int min_y, int max_y, int object_state_id) const;
     void GatherJointData(int object_id = 0) const;
     void GatherGripperStateData(int object_id = 0) const;
    
@@ -98,6 +99,7 @@ private:
     void GatherDataStep(GraspingStateRealArm* grasping_state, 
             std::ofstream& myfile, int i, int j, int action, int k1,
             geometry_msgs::PoseStamped mico_target_pose, std::string object_id) const;
+    void CreateObjectStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
 
 };
 

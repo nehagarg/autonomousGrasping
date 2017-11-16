@@ -1136,23 +1136,25 @@ void VrepInterface::GatherDataStep(GraspingStateRealArm* grasping_state,
     bool isInCollision = (GetCollisionState() == pick_penalty);
     bool isTerminal = false;
     
-    if(k1 >=0)
+    if(isValid && isReachable && (!isTerminal) &&(!isInCollision))
     {
-        double reward_;
-        GraspingObservation grasping_obs;
-        isTerminal = StepActual(*grasping_state, 0.0, k1, reward_, grasping_obs);
-        isValid = IsValidState(*grasping_state);
-        isReachable = IsReachableState(*grasping_state, grasping_obs.mico_target_pose);
+        if(k1 >=0)
+        {
+            double reward_;
+            GraspingObservation grasping_obs;
+            isTerminal = StepActual(*grasping_state, 0.0, k1, reward_, grasping_obs);
+            isValid = IsValidState(*grasping_state);
+            isReachable = IsReachableState(*grasping_state, grasping_obs.mico_target_pose);
+        }
+        if(k == A_OPEN)
+        {
+            double reward_;
+            GraspingObservation grasping_obs;
+            isTerminal = StepActual(*grasping_state, 0.0, A_CLOSE, reward_, grasping_obs);
+            isValid = IsValidState(*grasping_state);
+            isReachable = IsReachableState(*grasping_state, grasping_obs.mico_target_pose);
+        }
     }
-    if(k == A_OPEN)
-    {
-        double reward_;
-        GraspingObservation grasping_obs;
-        isTerminal = StepActual(*grasping_state, 0.0, A_CLOSE, reward_, grasping_obs);
-        isValid = IsValidState(*grasping_state);
-        isReachable = IsReachableState(*grasping_state, grasping_obs.mico_target_pose);
-    }
-    
     
      //Print Initial state
     std::cout << "Before printing initial state" << std::endl;
@@ -1224,7 +1226,7 @@ void VrepInterface::GatherDataStep(GraspingStateRealArm* grasping_state,
                     
 }
 
-void VrepInterface::GatherData(std::string object_id, int action_type, int min_x, int max_x, int min_y, int max_y) const {
+void VrepInterface::GatherData(std::string object_id, int action_type, int min_x, int max_x, int min_y, int max_y, int object_state_id) const {
     //return;
 
     std::ofstream myfile;
@@ -1245,6 +1247,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     }
     filename = filename +object_id;
     filename = filename + "_";
+    filename = filename + std::to_string(object_state_id)+ "_";
     if(min_x+max_x+min_y + max_y > -4)
     {
         filename = filename + std::to_string(min_x) + "-";
@@ -1252,6 +1255,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
         filename = filename + std::to_string(min_y) + "-";
         filename = filename + std::to_string(max_y) + "_";        
     }
+    
     bool allActions = true;
     int k_loop_min_value = 0;
     int k_look_max_value = A_CLOSE+1;
@@ -1286,7 +1290,13 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     //myfile.open ("data_table_exp/SASOData_Cylinder_85mm_allActions.txt");
    
     GraspingStateRealArm initial_state ;
-    initial_state.object_id == 0;
+    initial_state.object_id = 0;
+    
+    //Set Object pose
+    start_state_index = object_state_id;
+    CreateObjectStartState(initial_state);
+    
+    
     /*if(initial_state.object_id == -1)
     {
         initial_state.object_id = 0;
@@ -1340,6 +1350,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     }
     //int l_loop = 2;
    
+    
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
         {
 
@@ -1402,6 +1413,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
                     assert(0==1);
                 }                 
                
+                
                 for(int k1 = k1_loop_min_value; k1 < k1_loop_max_value; k1++)
                 {
                     for(int k = k_loop_min; k < k_loop_max; k++) //loop over actions
@@ -1751,6 +1763,29 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
     return false;
 }
 
+void VrepInterface::CreateObjectStartState(GraspingStateRealArm& initial_state, std::string type) const {
+        VrepDataInterface::CreateStartState(initial_state, type);
+        
+        //Get object pose from vrep and update its x and y coordnates from initial state
+        double object_x = initial_state.object_pose.pose.position.x;
+        double object_y = initial_state.object_pose.pose.position.y;
+      
+         vrep_common::simRosGetObjectPose object_pose_srv;
+        object_pose_srv.request.relativeToObjectHandle = -1;
+        object_pose_srv.request.handle = target_object_handle;
+        if(sim_get_object_pose_client.call(object_pose_srv))
+        {
+            initial_state.object_pose  = object_pose_srv.response.pose;
+        }
+        
+        //Set only x and y values. Rest should be same as the current values otherwise object becomes unstable
+        initial_state.object_pose.pose.position.x = object_x;
+        initial_state.object_pose.pose.position.y = object_y;
+        
+        SetObjectPose(initial_state.object_pose, target_object_handle, -1);
+            
+}
+
 void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
         
         
@@ -1795,26 +1830,7 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         std::cout << "Gripper pose set" << std::endl;
         
         
-        VrepDataInterface::CreateStartState(initial_state, type);
-        
-        //Get object pose from vrep and update its x and y coordnates from initial state
-        double object_x = initial_state.object_pose.pose.position.x;
-        double object_y = initial_state.object_pose.pose.position.y;
-      
-         vrep_common::simRosGetObjectPose object_pose_srv;
-        object_pose_srv.request.relativeToObjectHandle = -1;
-        object_pose_srv.request.handle = target_object_handle;
-        if(sim_get_object_pose_client.call(object_pose_srv))
-        {
-            initial_state.object_pose  = object_pose_srv.response.pose;
-        }
-        
-        //Set only x and y values. Rest should be same as the current values otherwise object becomes unstable
-        initial_state.object_pose.pose.position.x = object_x;
-        initial_state.object_pose.pose.position.y = object_y;
-        
-        SetObjectPose(initial_state.object_pose, target_object_handle, -1);
-            
+        CreateObjectStartState(initial_state,type);
         
         
         //std::cout << "Getting initial state" << std::endl;

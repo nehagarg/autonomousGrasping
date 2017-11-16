@@ -26,7 +26,8 @@ public:
 
 
 
-void GatherSimulationData(std::string val, double epsi, int action_type, int min_x, int max_x, int min_y, int max_y)
+void GatherSimulationData(std::string val, double epsi, int action_type, 
+        int min_x, int max_x, int min_y, int max_y, int object_state_id)
 {
     //GraspingRealArm* model = new GraspingRealArm(-1);
     RobotInterface::low_friction_table = true;
@@ -38,7 +39,7 @@ void GatherSimulationData(std::string val, double epsi, int action_type, int min
     {
         start_index = -10000;
     }
-    VrepInterface* vrepInterfacePointer = new VrepInterface(start_index);
+    VrepInterface* vrepInterfacePointer = new VrepInterface(start_index);    
     vrepInterfacePointer->epsilon = epsi;
     vrepInterfacePointer->LoadObjectInScene(val);
     //Expanding valid state for object for data collection
@@ -57,7 +58,7 @@ void GatherSimulationData(std::string val, double epsi, int action_type, int min
     }
     */
     std::cout<< "Gathering data" << std::endl;
-    vrepInterfacePointer->GatherData(val, action_type, min_x, max_x, min_y, max_y);
+    vrepInterfacePointer->GatherData(val, action_type, min_x, max_x, min_y, max_y, object_state_id);
     //vrepInterfacePointer->GatherJointData(0);
     //model->GatherJointData(0);
     //model->GatherGripperStateData(0);
@@ -78,6 +79,11 @@ int main(int argc, char* argv[]) {
     int max_x = -1;
     int min_y=-1;
     int max_y = -1;
+    
+    //6 27 48
+    //3 24 45
+    //0 21 42
+    int object_state_id = 24;
     if(argc >=2)
     {
         std::istringstream iss( argv[1] );
@@ -114,11 +120,17 @@ int main(int argc, char* argv[]) {
                 << "," << min_y << "," << max_y << std::endl;
         
     }
-    
+    if(argc >=6)
+    {
+        std::istringstream iss( argv[5] );
+        iss >> object_state_id;
+       std::cout << "Object state is  : " << object_state_id << std::endl;
+        
+    }
     std::cout << "In main" << std::endl;
     ros::init(argc,argv,"gather_data" + to_string(getpid()));
     
-    GatherSimulationData(val, epsilon, action_type, min_x, max_x, min_y, max_y);
+    GatherSimulationData(val, epsilon, action_type, min_x, max_x, min_y, max_y, object_state_id);
     return 0;
     
     //test_python();
