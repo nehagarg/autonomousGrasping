@@ -12,7 +12,8 @@
 #include "GraspingObservation.h"
 #include "simulation_data_reader.h"
 #include <cmath> //To make abs work for double
-
+#include "Python.h"
+#include "ScikitModels.h"
 class RobotInterface {
 public:
     RobotInterface();
@@ -123,6 +124,7 @@ public:
     static bool version5;
     static bool use_data_step;
     static bool get_object_belief;
+    static bool use_regression_models;
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
@@ -146,16 +148,27 @@ public:
     mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[A_PICK+1];
     mutable std::vector<int> simulationDataIndexWithoutObject[A_PICK+1];
     
+    //mutable PyObject* dynamicModels[NUMBER_OF_OBJECTS][A_PICK+1];
+    mutable MultiScikitModels* dynamicModelsC[NUMBER_OF_OBJECTS][A_PICK+1];
+    //mutable PyObject* dynamicFunction;
+    int num_predictions_for_dynamic_function = 18;
+    
+    
     double get_action_range(int action, int action_type) const ;
     void GetObsFromData(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug = false) const; //state is the state reached after performing action
-    int GetGripperStatus(double finger_join_state[]) const;
+    void GetObsFromDynamicModel(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug = false) const; //state is the state reached after performing action
+
+    int GetGripperStatus(GraspingStateRealArm grasping_state) const;
     void GetObsUsingDefaultFunction(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, bool debug = false) const;
-    void GetNextStateAndObsFromData(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, int action, bool debug = false) const;
+    void GetNextStateAndObsFromData(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs,double random_num, int action, bool debug = false) const;
+    void GetNextStateAndObsFromDynamicModel(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug = false) const;
+    
     void GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, int action, bool debug = false) const;
     void GetReward(GraspingStateRealArm initial_grasping_state, GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, int action, double& reward) const;
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
     void getSimulationData(int object_id);
+    void getRegressionModels(int object_id);
     bool isDataEntryValid(double reward, SimulationData simData, int action);
     
 
@@ -163,7 +176,7 @@ public:
     virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
     virtual bool IsValidPick(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs) const = 0;
     virtual void CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const = 0;
-    virtual void GetDefaultPickState(GraspingStateRealArm& grasping_state) const = 0;
+    virtual void GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type = 2) const = 0;
 };
 
 

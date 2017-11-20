@@ -551,7 +551,7 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
    // ros::Rate loop_rate(10); 
      //int action_offset = (action/4) * 4;
     
-    int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+    int gripper_status = GetGripperStatus(grasping_state);
     GraspingStateRealArm initial_grasping_state = grasping_state;
              
     //Get Current Pose of mico target
@@ -1722,11 +1722,16 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
         //TODO Test : Add decrease x action to make sure gripper is always open on open action
         //Do not do it while gathering data or may be do it as it will lead to open action always resulting in open gripper
-                int i = 0;
+        if(action == A_CLOSE)
+        {
+            grasping_state.closeCalled = true;
+        }
+        int i = 0;
         if(action == A_OPEN)
         {
+            grasping_state.closeCalled = false;
             bool touching = true;
-            int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+            int new_gripper_status = GetGripperStatus(grasping_state);
             while(new_gripper_status > 0)
             {    
                 i = i+1;
@@ -1742,7 +1747,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
                 }
                 TakeStepInVrep(A_DECREASE_X, 1, touching, grasping_state, grasping_obs, reward);                 
                 OpenCloseGripperInVrep(action, grasping_state, grasping_obs, reward);
-                new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+                new_gripper_status = GetGripperStatus(grasping_state);
                 
             }
         }

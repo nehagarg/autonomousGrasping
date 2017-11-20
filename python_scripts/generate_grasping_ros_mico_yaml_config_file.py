@@ -420,17 +420,20 @@ def generate_G3DB_ver5_single_belief_files():
                 
                 write_config_in_file(filename, ans)
 
-def generate_G3DB_ver5_cylinder_belief_files():
+def generate_G3DB_ver5_cylinder_belief_files(regression = 'false'):
     global LEARNED_MODEL_NAME
     #LEARNED_MODEL_NAME = 'model.ckpt-693' #for version 11
     LEARNED_MODEL_NAME = 'model.ckpt-965' #for version 12
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     object_list = object_list+['9cm', '8cm', '7cm', '75mm', '85mm']
-    interface_types = ["", "Data"]
-    for filetype in ['_v12_combined_0']: #['', '_v11_combined_0']:
+    interface_types = ["", "Data"] 
+    regression_prefix = ''
+    if(regression !='false'):
+        regression_prefix = 'use_regression/'
+    for filetype in ['']: #['_v12_combined_0']: #['', '_v11_combined_0']:
        for interface_type in interface_types:
            for object_type in object_list:
-                file_prefix = "low_friction_table/vrep_scene_ver5/penalty10/cylinder/Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
+                file_prefix = "low_friction_table/vrep_scene_ver5/penalty10/cylinder/" + regression_prefix+"Vrep" +interface_type + "InterfaceVer5MultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + filetype + '.yaml'
                 ans = create_basic_config(filename)
                 ans = modify_basic_config(filename, ans)
@@ -439,7 +442,15 @@ def generate_G3DB_ver5_cylinder_belief_files():
                     ans["interface_type"] = 1
                 ans["test_object_id"] = object_list.index(object_type)
                 ans["belief_object_ids"] = [2,3,4]
-                
+                if(regression !='false'):
+                    ans['use_regression_models'] = True
+                    ans["object_mapping"] = ["data_low_friction_table_exp_ver5/regression_models/G3DB_1"]
+                    ans["object_mapping"].append("data_low_friction_table_exp_ver5/regression_models/G3DB_84")
+                    ans["object_mapping"].append("data_low_friction_table_exp_ver5/regression_models/Cylinder_9")
+                    ans["object_mapping"].append("data_low_friction_table_exp_ver5/regression_models/Cylinder_8")
+                    ans["object_mapping"].append("data_low_friction_table_exp_ver5/regression_models/Cylinder_7")
+                    ans["object_mapping"].append("data_low_friction_table_exp_ver5/regression_models/Cylinder_75")
+                    ans["object_mapping"].append("data_low_friction_table_exp_ver5/regression_models/Cylinder_85")
                 write_config_in_file(filename, ans)
 
 def generate_G3DB_ver5_cylinder_cup_belief_files():
@@ -475,9 +486,9 @@ def main():
             #generate_config_files_for_penalty100_v10(arg)
             #generate_combined_config_files_for_G3DB(arg)
             #generate_G3DB_belief_files()
-            generate_G3DB_ver5_belief_files(arg)
+            #generate_G3DB_ver5_belief_files(arg)
             #generate_G3DB_ver5_single_belief_files()
-            #generate_G3DB_ver5_cylinder_belief_files()
+            generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
             return
         elif opt == '-h':

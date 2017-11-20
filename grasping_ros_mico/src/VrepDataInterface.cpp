@@ -233,12 +233,18 @@ std::vector<GraspingStateRealArm> VrepDataInterface::InitialStartStateParticles(
 }
 
 
-
-void VrepDataInterface::GetDefaultPickState(GraspingStateRealArm& grasping_state) const {
+//pick_type == 0 grasp failure
+//pick_type == 1 grap_success
+//pick_type == 2 determine from gripper_status
+void VrepDataInterface::GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type) const {
 grasping_state.gripper_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + pick_z_diff;
         grasping_state.gripper_pose.pose.position.x =  pick_x_val; 
         grasping_state.gripper_pose.pose.position.y =  pick_y_val;
-        int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+        int gripper_status = pick_type + 1;
+        if(pick_type == 2)
+        {
+            gripper_status = GetGripperStatus(grasping_state);
+        }
         if(gripper_status == 2) //Object is inside gripper and gripper is closed
         {
             double z_diff_from_cylinder = initial_object_pose_z[grasping_state.object_id] - default_initial_object_pose_z;
@@ -265,7 +271,7 @@ void VrepDataInterface::GetRewardBasedOnGraspStability(GraspingStateRealArm gras
     */
     
     //grasp stability criteria 2
-    int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+    int gripper_status = GetGripperStatus(grasping_state);
     
     if (gripper_status ==2)
     {
@@ -358,7 +364,12 @@ bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const 
 
 bool VrepDataInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
     std::cout << action << std::endl;
-    return Step(state, random_num, action, reward, obs, false);
+    //RobotInterface::use_regression_models = true;
+    double step_start = despot::get_time_second();
+    bool ans = Step(state, random_num, action, reward, obs, false);
+    double step_end = despot::get_time_second();
+    std::cout << "Step time is " << step_end - step_start << std::endl;
+    return ans;
 }
 
 

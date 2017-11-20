@@ -78,13 +78,25 @@ class GraspingObservation : public ObservationClass {
         gripper_pose.pose.orientation.y = initial_state.gripper_pose.pose.orientation.y ;
         gripper_pose.pose.orientation.z = initial_state.gripper_pose.pose.orientation.z  ;
         gripper_pose.pose.orientation.w = initial_state.gripper_pose.pose.orientation.w ;
+        
+        mico_target_pose.pose.position.x  = initial_state.gripper_pose.pose.position.x ;
+        mico_target_pose.pose.position.y  = initial_state.gripper_pose.pose.position.y ;
+        mico_target_pose.pose.position.z  = initial_state.gripper_pose.pose.position.z ;
+        mico_target_pose.pose.orientation.x = initial_state.gripper_pose.pose.orientation.x ;
+        mico_target_pose.pose.orientation.y = initial_state.gripper_pose.pose.orientation.y ;
+        mico_target_pose.pose.orientation.z = initial_state.gripper_pose.pose.orientation.z  ;
+        mico_target_pose.pose.orientation.w = initial_state.gripper_pose.pose.orientation.w ;
+        
+        
+        
+        
         finger_joint_state[0] = initial_state.finger_joint_state[0]  ;
         finger_joint_state[1] = initial_state.finger_joint_state[1] ;
         finger_joint_state[2]= initial_state.finger_joint_state[2] ;
         finger_joint_state[3]= initial_state.finger_joint_state[3] ;
         
-        touch_sensor_reading[0] = initial_state.touch[0];
-        touch_sensor_reading[1] = initial_state.touch[1];
+        touch_sensor_reading[0] = initial_state.touch_value[0];
+        touch_sensor_reading[1] = initial_state.touch_value[1];
         
     }
 };

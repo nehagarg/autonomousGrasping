@@ -7,6 +7,12 @@
 
 #include "RobotInterface.h"
 #include <chrono>
+#include <python2.7/object.h>
+#include <python2.7/tupleobject.h>
+#include <python2.7/intobject.h>
+#include <python2.7/floatobject.h>
+#include <python2.7/listobject.h>
+#include "math.h"
 
 
 std::vector <int> RobotInterface::objects_to_be_loaded;
@@ -15,6 +21,7 @@ bool RobotInterface::low_friction_table;
 bool RobotInterface::version5;
 bool RobotInterface::get_object_belief;
 bool RobotInterface::use_data_step;
+bool RobotInterface::use_regression_models;
 
 
 RobotInterface::RobotInterface() {
@@ -76,8 +83,15 @@ RobotInterface::RobotInterface() {
     {
         int object_id = objects_to_be_loaded[i];
         std::cout << "Loading object " << object_id << " with filename " << object_id_to_filename[object_id] << std::endl;
-        getSimulationData( object_id);
-        std::cout << simulationDataCollectionWithObject[object_id][0].size() << " entries for action 0" << std::endl;
+        if(use_regression_models)
+        {
+            getRegressionModels(object_id);
+        }
+        else
+        {
+            getSimulationData( object_id);
+            std::cout << simulationDataCollectionWithObject[object_id][0].size() << " entries for action 0" << std::endl;
+        }
     }
     
 }
@@ -87,6 +101,88 @@ RobotInterface::RobotInterface(const RobotInterface& orig) {
 
 RobotInterface::~RobotInterface() {
 }
+
+void RobotInterface::getRegressionModels(int object_id) {
+    /*
+    
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('scripts')");
+    std::cout << "Getting regression models" << std::endl;
+    PyObject *pName;
+    pName = PyString_FromString("grasping_dynamic_model");
+    std::cout << "Loded python function" << std::endl;
+    PyObject *pModule = PyImport_Import(pName);
+    std::cout << "Loded python function" << std::endl;
+    if(pModule == NULL)
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"scripts/grasping_dynamic_model\"\n");
+        assert(0==1);
+    }
+    Py_DECREF(pName);
+    
+    dynamicFunction = PyObject_GetAttrString(pModule, "get_model_prediction");
+    PyObject *load_function = PyObject_GetAttrString(pModule, "load_model");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"load_model\"\n");
+    }
+    
+    
+    PyObject *pArgs, *pValue;
+    
+    std::string regression_model_dir =  object_id_to_filename[object_id];
+    
+    for(int i = 0;i<A_PICK+1; i++)
+    {
+        std::string classifier_type = "DTR";
+        if(i==A_PICK)
+        {
+            classifier_type = "linear";
+        }
+        pArgs = PyTuple_New(4);
+        pValue = PyString_FromString(classifier_type.c_str());
+        // pValue reference stolen here: 
+        PyTuple_SetItem(pArgs, 0, pValue);
+        pValue = PyInt_FromLong(i);
+        // pValue reference stolen here: 
+        PyTuple_SetItem(pArgs,1,pValue);
+        pValue = PyString_FromString(regression_model_dir.c_str());
+        // pValue reference stolen here: 
+        PyTuple_SetItem(pArgs,2,pValue);
+        pValue = PyInt_FromLong(num_predictions_for_dynamic_function);
+        // pValue reference stolen here: 
+        PyTuple_SetItem(pArgs,3,pValue);
+        dynamicModels[object_id][i] = PyObject_CallObject(load_function, pArgs);
+        Py_DECREF(pArgs);
+        
+    }
+    Py_DECREF(load_function);
+    Py_DECREF(pModule);
+    */
+    std::string regression_model_dirC =  object_id_to_filename[object_id];
+    for(int i = 0;i<A_PICK+1; i++)
+    {
+        std::string classifier_type_c = "DTR";
+        if(i==A_PICK)
+        {
+            classifier_type_c = "linear";
+        }
+        
+        dynamicModelsC[object_id][i] = new MultiScikitModels(regression_model_dirC, 
+                classifier_type_c,i,num_predictions_for_dynamic_function);
+        
+    }
+            
+}
+
+
+
+
+
 
 bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int action) {
     bool ans = false;
@@ -182,28 +278,29 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     //Get next state
     
     //Check if gripper is closed using finger joint values
-    int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+    int gripper_status = GetGripperStatus(grasping_state);
     
     //Get next state and observation
     if(action < A_CLOSE)
     {
         if(gripper_status == 0) //gripper is open
         {
-            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
+            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, random_num, action, debug);
             
         }
         else
         {
             //State remains same
-            GetObsFromData(grasping_state, grasping_obs, random_num, action, debug);
+            //Giving action as A_CLOSE as that was the last action which resulted in this state
+            GetObsFromData(grasping_state, grasping_obs, random_num, A_CLOSE, debug);
         }
     }
     else if (action == A_CLOSE) //Close gripper
     { 
         if(gripper_status == 0) //gripper is open
         {
-            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
-           
+            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, random_num, action, debug);
+            grasping_state.closeCalled = true;
         }
         else
         {
@@ -215,8 +312,9 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     {
         if(gripper_status > 0) // gripper is closed
         {
-           GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
-           int new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+           GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, random_num, action, debug);
+           grasping_state.closeCalled = false;
+           int new_gripper_status = GetGripperStatus(grasping_state);
            while(new_gripper_status > 0)
            {
                if(debug) {
@@ -231,8 +329,8 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
                     break;
                 }
                grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x - 0.01;
-               GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, action, debug);
-               new_gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+               GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs, random_num, action, debug);
+               new_gripper_status = GetGripperStatus(grasping_state);
            }
         }
         else
@@ -248,7 +346,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
     {
         if(gripper_status > 0)
         {
-            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs,  action, debug);
+            GetNextStateAndObsFromData(grasping_state, grasping_state, grasping_obs,  random_num, action, debug);
         }
         else
         {
@@ -684,10 +782,23 @@ bool sort_by_gripper_pose_next_state_y (SimulationData data1,SimulationData data
     return y1 < y2;
 }
 
+
+void RobotInterface::GetObsFromDynamicModel(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug) const {
+    
+    grasping_obs.getObsFromState(grasping_state);
+    
+}
+
 void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug) const {
     if(action != A_PICK && IsValidState(current_grasping_state)) //State is not terminal
     {
-        int gripper_status = GetGripperStatus(current_grasping_state.finger_joint_state);
+        if(use_regression_models)
+        {
+            GetObsFromDynamicModel(current_grasping_state, grasping_obs, random_num, action, debug);
+            return;
+        }
+        
+        int gripper_status = GetGripperStatus(current_grasping_state);
         if(gripper_status > 0)
         {
             action = A_CLOSE;
@@ -839,33 +950,41 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
     }
 }
 
-//Return value 0 if open
+//Return value 0 if open //Determined by whther close was called or not
 //Return value 1 if closed without object inside it
 //Return value 2 if closed with object inside it
-int RobotInterface::GetGripperStatus(double finger_joint_state[]) const {
+int RobotInterface::GetGripperStatus(GraspingStateRealArm grasping_state) const {
     double degree_readings[4];
     for(int i = 0; i < 4; i++)
     {
-        degree_readings[i] = finger_joint_state[i]*180/3.14;
+        degree_readings[i] = grasping_state.finger_joint_state[i]*180/3.14;
     }
     
     if(version5)
     {
-        if(degree_readings[0] > 57 && degree_readings[2] > 57)
+        if(grasping_state.closeCalled)
         {
-            return 1;
-        }
+            if(degree_readings[0] > 57 && degree_readings[2] > 57)
+            {
+                return 1;
+            }
         
-         if(degree_readings[0] > 1 && degree_readings[2] > 1)
+            else
+            // if(degree_readings[0] > 1 && degree_readings[2] > 1)
+            {
+                return 2;
+            }
+        }
+        else
         {
-            return 2;
+            return 0;
         }
-        
-        return 0;
         
     }
     else
     {
+        if(grasping_state.closeCalled)
+        {
         if(degree_readings[0] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
            degree_readings[1] > 85 &&
            degree_readings[2] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
@@ -874,16 +993,19 @@ int RobotInterface::GetGripperStatus(double finger_joint_state[]) const {
             return 1;
         }
 
-        if(//degree_readings[0] > 2 &&
-           degree_readings[1] > 25 && //Changed from 45 to 25 looking at data
-           //degree_readings[2] > 2 &&
-           degree_readings[3] > 25)  //Changed from 45 to 25 looking at data
+        //if(//degree_readings[0] > 2 &&
+        //   degree_readings[1] > 25 && //Changed from 45 to 25 looking at data
+        //   //degree_readings[2] > 2 &&
+        //   degree_readings[3] > 25)  //Changed from 45 to 25 looking at data
+        else
         {//joint1 > 2 joint2 > 45 return 2
             return 2;
         }
-
-
+        }
+        else
+        {
         return 0;
+        }
     }
 
 }
@@ -891,18 +1013,129 @@ int RobotInterface::GetGripperStatus(double finger_joint_state[]) const {
 void RobotInterface::UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const {
     grasping_state.pre_action = action;
     CheckTouch(grasping_obs.touch_sensor_reading, grasping_state.touch);
-    int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+    grasping_state.touch_value[0] = grasping_obs.touch_sensor_reading[0];
+    grasping_state.touch_value[1] = grasping_obs.touch_sensor_reading[1];
+    if(grasping_state.closeCalled)
+    {
+        if(action==A_OPEN)
+        {
+            grasping_state.closeCalled = false;
+        }
+    }
+    else
+    {
+        if(action==A_CLOSE)
+        {
+            grasping_state.closeCalled = true;
+        }
+    }
+    int gripper_status = GetGripperStatus(grasping_state);
     if (gripper_status == 2){
-        if(reward < -1)
+        if(reward < -1) //Pick leads to failure. So object most probably out of gripper
         {
             gripper_status = 1;
         }
     }
     grasping_state.gripper_status = gripper_status;
+    
 }
 
+void RobotInterface::GetNextStateAndObsFromDynamicModel(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug) const {
 
-void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, int action, bool debug) const {
+    double arg_time_start = despot::get_time_second();
+    std::vector<double> gs_vec = current_grasping_state.getStateAsVector();
+    /*
+    PyObject* x = PyTuple_New(gs_vec.size());
+    for(int i = 0; i < gs_vec.size(); i++)
+    {
+        PyTuple_SetItem(x,i,PyFloat_FromDouble(gs_vec[i]));
+    }
+    
+    PyObject* pArgs;
+    if(action==A_PICK)
+    {
+        pArgs = PyTuple_New(3);
+        PyTuple_SetItem(pArgs,2,PyInt_FromLong(1));
+    }
+    else
+    {
+        pArgs = PyTuple_New(2);
+    }
+    PyTuple_SetItem(pArgs, 0, dynamicModels[current_grasping_state.object_id][action]);
+    Py_INCREF(dynamicModels[current_grasping_state.object_id][action]);
+    PyTuple_SetItem(pArgs, 1, x);
+    std::vector<double> ngs_vec;
+    
+    double call_time_start = despot::get_time_second();
+    PyObject* y =  PyObject_CallObject(dynamicFunction, pArgs);
+    double call_time_end = despot::get_time_second();
+    */
+    double call_time_start_c = despot::get_time_second();
+    std::vector<double> ngs_vec_c = dynamicModelsC[current_grasping_state.object_id][action]->predict(gs_vec);
+    double call_time_end_c = despot::get_time_second();
+    /*
+    int y_size = PyList_Size(y);
+
+    for(int i = 0; i < y_size; i++)
+    {
+        ngs_vec.push_back(PyFloat_AsDouble(PyList_GetItem(y,i)));
+    }
+    std::cout << "[";
+    for(int i = 0; i < ngs_vec.size(); i++)
+    {
+        std::cout<< ngs_vec[i] << "," ;
+    }
+    std::cout << "]" << std::endl;
+    
+    std::cout << "[";
+    for(int i = 0; i < ngs_vec_c.size(); i++)
+    {
+        std::cout<< ngs_vec_c[i] << "," ;
+    }
+    std::cout << "]" << std::endl;
+    */
+    if(action==A_PICK)
+    {
+        assert(ngs_vec_c.size() == 2);
+        double pick_success_prob = ngs_vec_c[1];
+      //  std::cout << "Random num is" << random_num << " pick success prob is " << pick_success_prob << std::endl;
+        if(pick_success_prob >= random_num)
+        {
+            //pick success
+            GetDefaultPickState(next_grasping_state,1);
+        }
+        else
+        {
+            //pick failure
+            GetDefaultPickState(next_grasping_state,0);
+        }
+        
+        
+    }
+    else
+    {
+        assert(ngs_vec_c.size() == num_predictions_for_dynamic_function);
+        next_grasping_state.getStateFromVector(ngs_vec_c);
+        grasping_obs.getObsFromState(next_grasping_state);
+    }
+    double func_end = despot::get_time_second();
+    //std::cout << "Arg time: " << call_time_start_c - arg_time_start << std::endl;
+    //std::cout << "Call time: " << call_time_end - call_time_start << std::endl;
+    //std::cout << "Call time c: " << call_time_end_c - call_time_start_c << std::endl;
+    //std::cout << "Other time: " << func_end - call_time_end_c << std::endl;
+    
+    
+    
+    
+}
+
+void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug) const {
+    if(use_regression_models)
+    {
+        GetNextStateAndObsFromDynamicModel(current_grasping_state, grasping_state, grasping_obs, random_num, action, debug);
+        return;
+    }
+    
     bool stateInObjectData = false;
     bool stateInGripperData = false;
     int object_id = current_grasping_state.object_id;
@@ -1210,6 +1443,7 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     }
     else if (action == A_CLOSE)
     {
+        grasping_state.closeCalled = true;
         if(version5)
         {
             grasping_state.finger_joint_state[0] = 61.15*3.14/180;
@@ -1228,6 +1462,7 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     }
     else if (action == A_OPEN)
     {
+        grasping_state.closeCalled = false;
         grasping_state.finger_joint_state[0] = 0*3.14/180;
         grasping_state.finger_joint_state[1] = 0*3.14/180;
         grasping_state.finger_joint_state[2] = 0*3.14/180;
@@ -1263,7 +1498,7 @@ void RobotInterface::GetObsUsingDefaultFunction(GraspingStateRealArm grasping_st
         grasping_obs.finger_joint_state[i] = grasping_state.finger_joint_state[i];
     }
     
-    int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+    int gripper_status = GetGripperStatus(grasping_state);
     
     if(version5)
     {
@@ -1322,7 +1557,7 @@ bool validState = IsValidState(grasping_state);
     {
         if(validState)
         {
-            int initial_gripper_status = GetGripperStatus(initial_grasping_state.finger_joint_state);
+            int initial_gripper_status = GetGripperStatus(initial_grasping_state);
             if((initial_gripper_status == 0 && action == A_OPEN) || 
               (initial_gripper_status !=0 && action <= A_CLOSE)  ||
               (initial_grasping_state.gripper_pose.pose.position.x <=min_x_i && (action >= A_DECREASE_X && action < A_INCREASE_Y)) ||
@@ -1348,7 +1583,7 @@ bool validState = IsValidState(grasping_state);
                 
                     if(separate_close_reward)
                     {
-                        int gripper_status = GetGripperStatus(grasping_state.finger_joint_state);
+                        int gripper_status = GetGripperStatus(grasping_state);
                         if(gripper_status == 0) //gripper is open
                         {
                             reward = -0.5;
