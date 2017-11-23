@@ -45,7 +45,7 @@ public:
     //bool IsValidState(GraspingStateRealArm grasping_state) const;
     
     std::map<int,double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
-    void LoadObjectInScene(std::string object_id) const;
+    void LoadObjectInScene(std::string object_id, bool force_load = false) const;
     
 
     

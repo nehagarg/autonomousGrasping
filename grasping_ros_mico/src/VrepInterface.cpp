@@ -141,10 +141,24 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
 
 }
 
-void VrepInterface::LoadObjectInScene(std::string object_id) const {
+void VrepInterface::LoadObjectInScene(std::string object_id, bool force_load) const {
     if(target_object_handle != -1)
     {
-        std::cout << "Object already loaded. Assuming properties are set too" << std::endl;
+        
+        if(force_load)
+        {
+
+            //Set target object handle to -1
+            target_object_handle = -1;
+            
+            //Reload Object
+            //The load object python script will automatically remove the object if it is present
+            LoadObjectInScene(object_id, force_load);
+        }
+        else
+        {
+            std::cout << "Object already loaded. Assuming properties are set too" << std::endl;
+        }
     }
     else
     {
@@ -1444,7 +1458,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
                          //SetMicoTargetPose(mico_target_pose);
                          //loop_rate.sleep();
                          //loop_rate.sleep();
-
+                         
+                         grasping_state->closeCalled = false;
                          GatherDataStep(grasping_state, myfile, i,j,k,k1 ,mico_target_pose, object_id);
 
                          //Stop simulation
@@ -1827,7 +1842,10 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         }
         */
         
-        
+        if(RobotInterface::auto_load_object)
+        {
+            LoadObjectInScene(object_id_to_filename[initial_state.object_id], true);
+        }
         int i = 0;
         int j = 7;
         

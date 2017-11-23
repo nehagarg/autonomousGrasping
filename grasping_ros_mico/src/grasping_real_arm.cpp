@@ -117,7 +117,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::use_regression_models = false;
     }
 
-    
+    if(config["auto_load_object"])
+    {
+        RobotInterface::auto_load_object = config["auto_load_object"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::auto_load_object = false;
+    }
+
     
     if(config["belief_object_ids"]) 
     {

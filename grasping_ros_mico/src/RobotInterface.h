@@ -125,6 +125,7 @@ public:
     static bool use_data_step;
     static bool get_object_belief;
     static bool use_regression_models;
+    static bool auto_load_object;
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table

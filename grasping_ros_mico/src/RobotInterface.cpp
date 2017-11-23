@@ -22,7 +22,7 @@ bool RobotInterface::version5;
 bool RobotInterface::get_object_belief;
 bool RobotInterface::use_data_step;
 bool RobotInterface::use_regression_models;
-
+bool RobotInterface::auto_load_object;
 
 RobotInterface::RobotInterface() {
     if(version5)
