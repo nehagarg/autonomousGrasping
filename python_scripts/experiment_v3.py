@@ -40,8 +40,9 @@ def get_gather_data_number(pattern, t):
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
     if(command_prefix == 'gather_data'):
         #num = get_gather_data_number(pattern, t)
-        command = './bin/gather_data ' + pattern + ' ' + t + ' ' + n + ' ' + l
+        command = './bin/gather_data ' + pattern + ' ' + t + ' ' + n 
         command = command + ' ' + ",".join(map(str,[begin_index, end_index, -1, -1]))
+        command = command + ' ' + l
         return command
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
