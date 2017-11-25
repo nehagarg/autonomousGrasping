@@ -24,8 +24,8 @@ def get_model_prediction(models, x,predict_prob = 0):
             
             y_ = model.predict([x])
             y.append(y_[0])
-            #if(len(y) == 16):
-            #    debug_decision_tree(model,[list(x), list(x)])
+            if(len(y) == 15):
+                debug_decision_tree(model,[list(x), list(x)])
         else:
             if(predict_prob == 0):
                 y=model.predict([x])[0].tolist()
@@ -162,33 +162,37 @@ def load_data_file(object_name, data_dir):
     saso_string = "/SASOData_Cylinder_"
     if 'SASO' in object_name:
         saso_string = ""
-        
-    object_file_name1 = data_dir + saso_string + object_name + "_allActions.txt"
-    object_file_name2 = data_dir + saso_string + object_name + "_openAction.txt"
-    print "Loading files" + object_file_name1 + object_file_name2
+    files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if saso_string + object_name in f and f.endswith('.txt') and '_24_' in f]    
+    #object_file_name1 = data_dir + saso_string + object_name + "_allActions.txt"
+    #object_file_name2 = data_dir + saso_string + object_name + "_openAction.txt"
+    #print "Loading files" + object_file_name1 + object_file_name2
     ans={}
-    with open(object_file_name1, 'r') as f:
-        for line in f:
-            sasor = get_data_from_line(line.strip())
-            if sasor['action'] != OPEN_ACTION_ID:
-                if sasor['action']==PICK_ACTION_ID:
-                    #Assuming pick action will always be after a close action
-                    sasor['touch_prev'] = ans[CLOSE_ACTION_ID][-1]['touch']
-                if sasor['action'] not in ans:
-                    ans[sasor['action']]= []
-                if(sasor['reward'] > -999):
-                    ans[sasor['action']].append(sasor)
+    print "Loading files" + " ".join(files)
+    for file in files:
+        with open(file, 'r') as f:
+            for line in f:
+                sasor = get_data_from_line(line.strip())
+                if('openAction' not in file):
+                    if sasor['action'] != OPEN_ACTION_ID:
+                        if sasor['action']==PICK_ACTION_ID:
+                            #Assuming pick action will always be after a close action
+                            sasor['touch_prev'] = ans[CLOSE_ACTION_ID][-1]['touch']
+                        if sasor['action'] not in ans:
+                            ans[sasor['action']]= []
+                        if(sasor['reward'] > -999):
+                            ans[sasor['action']].append(sasor)
+                else:
+                    if sasor['action'] == OPEN_ACTION_ID:
+                        if sasor['action'] not in ans:
+                            ans[sasor['action']]= []
+                        if(sasor['reward'] > -999):
+                            ans[sasor['action']].append(sasor)
                 
-    with open(object_file_name2, 'r') as f:
-        for line in f:
-            sasor = get_data_from_line(line.strip())
-            if sasor['action'] == OPEN_ACTION_ID:
-                if sasor['action'] not in ans:
-                    ans[sasor['action']]= []
-                if(sasor['reward'] > -999):
-                    ans[sasor['action']].append(sasor)
     return ans
-                
+def approx_equal(x1,x2,error):
+    return (x1 - x2) < error and (x1 -x2) > -1*error
+        
+    
 def write_config_in_file(filename, ans):
     
     from yaml import dump
@@ -199,17 +203,140 @@ def write_config_in_file(filename, ans):
     output = dump(ans, Dumper=Dumper)
     f = open(filename, 'w')
     f.write(output)                
-def get_prediction_value(sasor, p):
+def get_prediction_value(sasor, p, rel = True):
     if p < 7:
-        return sasor['next_gripper'][p]
+        if rel:
+            ans = sasor['next_gripper'][p] - sasor['init_gripper'][p]
+        else:
+            ans =  sasor['next_gripper'][p]
+        return round(ans,4)
     if p < 14:
-        return sasor['next_object'][p - 7]
+        if rel:
+            ans = sasor['next_object'][p - 7] -  sasor['init_object'][p - 7]
+        else:
+            ans = sasor['next_object'][p - 7]
+        return round(ans,4)
     if p < 16:
-        return sasor['next_joint_values'][p-14]
+        if rel:
+            ans = sasor['next_joint_values'][p-14] - sasor['init_joint_values'][p-14]
+        else:
+            ans = sasor['next_joint_values'][p-14]
+        return round(ans,5)
     if p < 18:
-        return sasor['touch'][p-16]
-    
+        ans = sasor['touch'][p-16]
+        return round(ans,2)
+def get_default_value(sasor, p): 
+    if(sasor['action'] == 0):
+        if p == 0:
+            return sasor['init_gripper'][p]+0.01
+    if(sasor['action'] == 1):
+        if p == 0:
+            return sasor['init_gripper'][p]+0.08
+    if(sasor['action'] == 2):
+        if p == 0:
+            return sasor['init_gripper'][p]-0.01
+    if(sasor['action'] == 3):
+        if p == 0:
+            return sasor['init_gripper'][p]-0.08
+    if(sasor['action'] == 4):
+        if p == 1:
+            return sasor['init_gripper'][p]+0.01
+    if(sasor['action'] == 5):
+        if p == 1:
+            return sasor['init_gripper'][p]+0.08
+    if(sasor['action'] == 6):
+        if p == 1:
+            return sasor['init_gripper'][p]-0.01
+    if(sasor['action'] == 7):
+        if p == 1:
+            return sasor['init_gripper'][p]-0.08
+    if(sasor['action'] == 8):
+        if p < 16 and p>=15:
+            return 61.15*3.14/180
+    if(sasor['action'] == 8):
+        if p < 16 and p>=15:
+            return 0
+    if p ==16:
+        if sasor['action'] == 8:
+            return 0.91
+        else:
+            return 0.11
+    if p== 17:
+        if sasor['action'] == 8:
+            return 1.01
+        else:
+            return 0.12
+    return get_prediction_value(sasor, p)
 
+def is_correct(p,actual,predicted):
+    error_val = 0.005
+    if p >15:
+        error_val = .05
+    if p > 13:
+        error_val = 2*3.14/180.0
+
+    if actual- predicted < error_val and actual - predicted > -1*error_val:
+        return 1
+    else:
+        return 0
+
+def get_yaml_earth(pred):
+    yaml_out = {}
+    yaml_out['coef'] = pred.coef_.tolist()[0]
+    yaml_out['bf_knot'] = []
+    yaml_out['bf_variable'] = []
+    yaml_out['bf_reverse'] = []
+    yaml_out['bf_type'] = []
+    for bf in pred.basis_:
+        if(not bf.is_pruned()):
+            if('Intercept' in str(bf)):
+                yaml_out['bf_type'] = ['Intercept']
+                yaml_out['bf_knot'].append(0)
+                yaml_out['bf_variable'].append(0)
+                yaml_out['bf_reverse'].append(False)
+            else:
+                yaml_out['bf_type'] = ['Hinge']
+                yaml_out['bf_knot'].append(bf.get_knot())
+                yaml_out['bf_variable'].append(bf.get_variable())
+                yaml_out['bf_reverse'].append(bf.get_reverse())
+            
+            
+    return yaml_out
+    
+    
+def predict_earth(pred,x):
+    import numpy as np
+    y_my = 0
+    val_array = []
+    i = 0
+    for bf in pred.basis_:
+
+        if(not bf.is_pruned()):
+            val = 0
+            if('Intercept' in str(bf)):
+                val = 1.0
+            else:
+                if bf.get_reverse():
+                    val = np.where(x[bf.get_variable()]  > bf.get_knot(), 0.0, bf.get_knot() - x[bf.get_variable()])
+                else:
+                    val = np.where(x[bf.get_variable()] <= bf.get_knot(), 0.0, x[bf.get_variable()] - bf.get_knot())
+            y_my = y_my + pred.coef_[0][i]*val
+            val_array.append(val)
+            i = i+1
+
+             
+
+    if not approx_equal(y_my , pred.predict([x])[0], 0.000001):
+        print "Here"
+        print y_my
+        print pred.predict([x[j]])[0]
+        X , missing= pred._scrub_x([x], None)
+        print X
+        print x
+        B = pred.transform(X, missing)
+        print B
+        print val_array
+        print np.dot(B, l_reg[p].coef_.T)
 """
 object_name : name of the object for which model is being learned e.g 9cm cylinder 1001, 1084 etc
 data_dir : Directory containing SASO*.txt file
@@ -224,7 +351,8 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
     from sklearn import linear_model, tree
     from sklearn.svm import SVR
     from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-    
+    from sklearn.ensemble import AdaBoostRegressor
+    from pyearth import Earth
     import numpy as np
     
     ans = None
@@ -240,6 +368,8 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                 #x_entry = sasor['touch_prev'] + sasor['init_joint_values'] 
                 x_entry = sasor['next_joint_values'] 
                 x_entry =  x_entry + sasor['next_gripper'] + sasor['next_object']
+                x_entry.append(sasor['next_object'][0]-sasor['next_gripper'][0])
+                x_entry.append(sasor['next_object'][1]-sasor['next_gripper'][1])
                 x.append(x_entry)
                 x_index.append(sasor['index'])
                 if action == CLOSE_ACTION_ID :
@@ -254,7 +384,9 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
         for sasor in saso_data[PICK_ACTION_ID]:
             #x_entry = sasor['touch_prev'] + sasor['init_joint_values'] 
             x_entry = sasor['init_joint_values'] 
-            x_entry =  x_entry + sasor['init_gripper'] + sasor['init_object']
+            x_entry =  x_entry + sasor['init_gripper'][0:3] + sasor['init_object'][0:3]
+            x_entry.append(sasor['init_object'][0]-sasor['init_gripper'][0])
+            x_entry.append(sasor['init_object'][1]-sasor['init_gripper'][1])
             x.append(x_entry)
             x_index.append(sasor['index'])
             if sasor['reward'] > 0:
@@ -288,8 +420,9 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
             import graphviz 
             #feature_names=['t1','t2', 'j1', 'j2']
             feature_names=['j1', 'j2'] #Touch not required when object coordinates are known
-            feature_names = feature_names + ['gx', 'gy','gz','gxx','gyy','gzz','gw']
-            feature_names = feature_names + ['ox', 'oy','oz','oxx','oyy','ozz','ow']
+            feature_names = feature_names + ['gx', 'gy','gz','gxx','gyy','gzz','gw'][0:3]
+            feature_names = feature_names + ['ox', 'oy','oz','oxx','oyy','ozz','ow'][0:3]
+            feature_names = feature_names + ['xrel','yrel']
             dot_data = tree.export_graphviz(logistic, out_file=None,
                                     feature_names = feature_names, filled=True) 
             graph = graphviz.Source(dot_data) 
@@ -339,20 +472,28 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
             action = int(action_)
             x = []
             y = []
+            y_c = []
             l_reg = []
+            l_reg_c = []
             x_index = []
             for i in range(0,NUM_PREDICTIONS):
                 y.append([])
+                y_c.append([])
                 l_reg.append('')
+                l_reg_c.append('')
             for sasor in saso_data[action]: 
                 if sasor['reward'] > -999: #discard invalid states
                     x_entry = sasor['init_joint_values'] 
-                    x_entry =  x_entry + sasor['init_gripper'][0:7] + sasor['init_object'][0:7]
+                    x_entry =  x_entry + sasor['init_gripper'][0:3] + sasor['init_object'][0:3]
+                    x_entry.append(sasor['init_object'][0]-sasor['init_gripper'][0])
+                    x_entry.append(sasor['init_object'][1]-sasor['init_gripper'][1])
                     x.append(x_entry)
                     x_index.append(sasor['index'])
                     for p_ in predictions:
                         p = int(p_)
                         y[p].append(get_prediction_value(sasor,p))
+                        y_default = get_default_value(sasor,p)
+                        y_c[p].append(is_correct(p, y[p][-1], y_default))
             print len(x)
             ans[action] = {}
             
@@ -367,10 +508,18 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                         l_reg[p] = SVR( epsilon = 0.2) 
                     elif classifier_type in ['DTR', 'DTRM']:
                          l_reg[p] = DecisionTreeRegressor()
+                    elif classifier_type == 'DTC':
+                         l_reg[p] = DecisionTreeClassifier()
+                    elif classifier_type == 'Earth':
+                         l_reg[p] = Earth()
+                    elif classifier_type == 'AdaLinear':
+                         l_reg[p] = AdaBoostRegressor(linear_model.LinearRegression())
                     else:
                         l_reg[p] = linear_model.LinearRegression()
                     if classifier_type == 'DTRM':
                         l_reg[p].fit(x,np.transpose(np.array(y)))
+                    elif classifier_type == 'DTC':
+                         l_reg[p].fit(x,y_c[p])
                     else:
                         l_reg[p].fit(x,y[p])
                     joblib.dump(l_reg[p], output_dir + '/' + classifier_type+ "-"+repr(action)+"-"+repr(p) +'.pkl') 
@@ -378,32 +527,45 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                 
                 if classifier_type == 'DTRM':
                     print repr(action) + " " + repr(p) + " " + repr(l_reg[p].score(x,np.transpose(np.array(y))))
+                elif classifier_type == 'DTC':
+                    print repr(action) + " " + repr(p) + " " + repr(l_reg[p].score(x,y_c[p]))
                 else:
                     print repr(action) + " " + repr(p) + " " + repr(l_reg[p].score(x,y[p]))
                 print l_reg[p].get_params()
-                if classifier_type not in [ 'SVR', 'DTR', 'DTRM']:
+                if classifier_type not in [ 'SVR', 'DTR', 'DTRM', 'AdaLinear', 'DTC']:
                     print l_reg[p].coef_
-                if classifier_type not in ['DTR', 'DTRM']:
+                if classifier_type not in ['DTR', 'DTRM', 'AdaLinear', 'DTC','Earth']:
                     print l_reg[p].intercept_
-                if classifier_type in ['DTR', 'DTRM']:
-                    print l_reg[p].feature_importances_
-                    import graphviz 
-                    feature_names=['j1', 'j2']
-                    feature_names = feature_names + ['gx', 'gy','gz','gxx','gyy','gzz','gw']
-                    feature_names = feature_names + ['ox', 'oy','oz','oxx','oyy','ozz','ow']
-                    dot_data = tree.export_graphviz(l_reg[p], out_file=None,
-                                    feature_names = feature_names, filled=True) 
-                    graph = graphviz.Source(dot_data) 
-                    graph.render(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p))
-                    yaml_out = {}
-                    yaml_out['max_depth'] = l_reg[p].tree_.max_depth
-                    yaml_out["values"] = l_reg[p].tree_.value.tolist()
-                    yaml_out['n_nodes'] = l_reg[p].tree_.node_count
-                    yaml_out['children_left'] = l_reg[p].tree_.children_left.tolist()
-                    yaml_out['children_right'] = l_reg[p].tree_.children_right.tolist()
-                    yaml_out['feature'] = l_reg[p].tree_.feature.tolist()
-                    yaml_out['threshold'] = l_reg[p].tree_.threshold.tolist()
-                    write_config_in_file(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p)+".yaml", yaml_out)
+                if classifier_type in ['Earth']:
+                    for j in range(0,len(x)):
+                        predict_earth(l_reg[p],x[j])
+                    print l_reg[p].summary()
+                if learned_model is None:    
+                    if classifier_type in ['DTR', 'DTRM','AdaLinear','DTC']:
+
+                        print l_reg[p].feature_importances_
+                        import graphviz 
+                        feature_names=['j1', 'j2']
+                        feature_names = feature_names + ['gx', 'gy','gz','gxx','gyy','gzz','gw'][0:3]
+                        feature_names = feature_names + ['ox', 'oy','oz','oxx','oyy','ozz','ow'][0:3]
+                        feature_names = feature_names + ['xrel','yrel']
+                        dot_data = tree.export_graphviz(l_reg[p], out_file=None,
+                                        feature_names = feature_names, filled=True) 
+                        graph = graphviz.Source(dot_data) 
+                        graph.render(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p))
+                        yaml_out = {}
+                        yaml_out['max_depth'] = l_reg[p].tree_.max_depth
+                        yaml_out["values"] = l_reg[p].tree_.value.tolist()
+                        yaml_out['n_nodes'] = l_reg[p].tree_.node_count
+                        yaml_out['children_left'] = l_reg[p].tree_.children_left.tolist()
+                        yaml_out['children_right'] = l_reg[p].tree_.children_right.tolist()
+                        yaml_out['feature'] = l_reg[p].tree_.feature.tolist()
+                        yaml_out['threshold'] = l_reg[p].tree_.threshold.tolist()
+                        write_config_in_file(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p)+".yaml", yaml_out)
+                    if classifier_type in ['Earth']:
+                        yaml_out = get_yaml_earth(l_reg[p])
+                        write_config_in_file(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p)+".yaml", yaml_out)
+                    
                     
                 if classifier_type == 'DTRM':
                     i = 0
@@ -416,16 +578,19 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                 if debug:
                     for i in range(0,len(x)):
                         y_bar = l_reg[p].predict([x[i]])
-                        error_val = 0.01
-                        if p >15:
-                            error_val = .05
-                        if p > 13:
-                            error_val = 2*3.14/180.0
-
-                        if y_bar - y[p][i] > error_val or y_bar - y[p][i] < -1*error_val:
-                            print x_index[i]
-                            print x[i] 
-                            print repr(y[p][i]) + ' Prediction ' + repr(y_bar)
+                        if classifier_type=='DTC':
+                            if y_bar != y_c[p][i]:
+                                print x_index[i]
+                                print x[i] 
+                                print y_c[p][i]
+                                print y[p][i]
+                                print l_reg[p].predict_proba([x[i]])
+                        else:
+                            if is_correct(p,y_bar,y[p][i]) == 0:
+                                print x_index[i]
+                                print x[i] 
+                                print repr(y[p][i]) + ' Prediction ' + repr(y_bar)
+                        
                         
     return ans    
         
@@ -455,8 +620,9 @@ def main():
     grasping_ros_mico_path = rospack.get_path('grasping_ros_mico')
     classifier_type = 'linear'
     output_dir = grasping_ros_mico_path +'/scripts/decision_trees'
-    #output_dir = 'data_low_friction_table_exp_ver5/regression_models'
+    output_dir = 'data_low_friction_table_exp_ver5/regression_models'
     
+    #data_dir = grasping_ros_mico_path + "/data_low_friction_table_exp_ver5"
     data_dir = grasping_ros_mico_path + "/data_low_friction_table_exp_ver5"
     
     train_type = 'pick_success_probability'
@@ -492,12 +658,17 @@ def main():
     #output_dir = output_dir+"/"+object_name
           
     if(action == 'train'):
-        train_object_name = object_name
-        if os.path.exists(data_dir + "/SASOData_0-005_Cylinder_" + object_name + "_allActions.txt"):
-            train_object_name = "/SASOData_0-005_Cylinder_" + object_name
+        #train_object_name = object_name
+        #test_object_name = object_name
+        #if os.path.exists(data_dir + "/SASOData_0-005_Cylinder_" + object_name + "_allActions.txt"):
+        #    train_object_name = "/SASOData_0-005_Cylinder_" + object_name
         
+        train_object_name = 'SASOData_0-005_' + object_name
+        test_object_name =  'SASOData_' + object_name
+        data_dir = data_dir + "/" + object_name
+        output_dir = output_dir + "/" + object_name
         ans = train(train_object_name, data_dir, output_dir, train_type, classifier_type)
-        train(object_name, data_dir, output_dir, train_type, classifier_type,ans, True)    
+        train(test_object_name, data_dir, output_dir, train_type, classifier_type,ans, True)    
     
     #test()
     #test_dataGenerator(1,logfileName)   
