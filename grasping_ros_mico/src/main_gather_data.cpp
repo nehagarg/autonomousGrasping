@@ -27,7 +27,7 @@ public:
 
 
 void GatherSimulationData(std::string val, double epsi, int action_type, 
-        int min_x, int max_x, int min_y, int max_y, int object_state_id)
+        int min_x, int max_x, int min_y, int max_y, int object_state_id, bool generate_default)
 {
     //GraspingRealArm* model = new GraspingRealArm(-1);
     RobotInterface::low_friction_table = true;
@@ -40,8 +40,17 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
         start_index = -10000;
     }
     VrepInterface* vrepInterfacePointer = new VrepInterface(start_index);    
-    vrepInterfacePointer->epsilon = epsi;
-    vrepInterfacePointer->LoadObjectInScene(val);
+    //vrepInterfacePointer->epsilon = epsi;
+    if(!generate_default)
+    {
+        vrepInterfacePointer->LoadObjectInScene(val);
+    }
+    else
+    {
+        //TODO replace with loading object properties
+        vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
+        vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
+    }
     //Expanding valid state for object for data collection
     vrepInterfacePointer->min_x_o = vrepInterfacePointer->min_x_o - 0.1;
     vrepInterfacePointer->max_x_o = vrepInterfacePointer->max_x_o + 0.1;
@@ -58,7 +67,7 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
     }
     */
     std::cout<< "Gathering data" << std::endl;
-    vrepInterfacePointer->GatherData(val, action_type, min_x, max_x, min_y, max_y, object_state_id);
+    vrepInterfacePointer->GatherData(val, action_type, epsi, min_x, max_x, min_y, max_y, object_state_id, generate_default);
     //vrepInterfacePointer->GatherJointData(0);
     //model->GatherJointData(0);
     //model->GatherGripperStateData(0);
@@ -79,7 +88,7 @@ int main(int argc, char* argv[]) {
     int max_x = -1;
     int min_y=-1;
     int max_y = -1;
-    
+    bool generate_default = false;
     //6 27 48
     //3 24 45
     //0 21 42
@@ -127,17 +136,24 @@ int main(int argc, char* argv[]) {
        std::cout << "Object state is  : " << object_state_id << std::endl;
         
     }
+    
+    if(argc >=7)
+    {
+        generate_default = true;
+       std::cout << "Generating defualt " << std::endl;
+        
+    }
     std::cout << "In main" << std::endl;
     ros::init(argc,argv,"gather_data" + to_string(getpid()));
     
-    GatherSimulationData(val, epsilon, action_type, min_x, max_x, min_y, max_y, object_state_id);
+    GatherSimulationData(val, epsilon, action_type, min_x, max_x, min_y, max_y, object_state_id, generate_default);
     return 0;
     
     //test_python();
     //return 0;
    
  //return RosWithoutDisplayTUI().run(argc, argv);
-  
+  //./bin/gather_data Cylinder_9 0 0.005 0,1,-1,-1 24 true
  // return RosTUI().run(argc, argv);
 }
 

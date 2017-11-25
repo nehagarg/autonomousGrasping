@@ -13,6 +13,8 @@
 #include <python2.7/floatobject.h>
 #include <python2.7/listobject.h>
 #include "math.h"
+#include "grasping_real_arm.h"
+#include "Display/parameters.h"
 
 
 std::vector <int> RobotInterface::objects_to_be_loaded;
@@ -104,7 +106,7 @@ RobotInterface::~RobotInterface() {
 
 void RobotInterface::getRegressionModels(int object_id) {
     /*
-    
+        
     Py_Initialize();
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("sys.path.append('scripts')");
@@ -179,14 +181,96 @@ void RobotInterface::getRegressionModels(int object_id) {
             
 }
 
+bool RobotInterface::isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const{
+    GraspingStateRealArm initDummyState;
+    for(int i = 0; i < 4; i++)
+    {
+        initDummyState.finger_joint_state[i] = simData.current_finger_joint_state[i];
+    }
+    initDummyState.gripper_pose = simData.current_gripper_pose;
+    initDummyState.object_pose = simData.current_object_pose;
+    initDummyState.object_id = object_id;
+    GraspingStateRealArm nextState(initDummyState);
+    
+    if(action==A_OPEN || action==A_PICK)
+    {
+        nextState.closeCalled = true;
+    }
+    
+    GraspingStateRealArm initState(nextState);
+    GraspingObservation graspingObs;
+    
+    GetNextStateAndObsUsingDefaulFunction(nextState, graspingObs, action);
+
+    double reward;
+    GetReward(initState, nextState, graspingObs, action, reward);
+    UpdateNextStateValuesBasedAfterStep(nextState, graspingObs, reward, action);
+    //std::vector<double> nextState_vec = nextState.getStateAsVector();
+
+    
+    
+    GraspingStateRealArm nextSimDataState;
+    
+    for(int i = 0; i < 4; i++)
+    {
+        nextSimDataState.finger_joint_state[i] = simData.next_finger_joint_state[i];
+    }
+    nextSimDataState.gripper_pose = simData.next_gripper_pose;
+    nextSimDataState.object_pose = simData.next_object_pose;
+    nextSimDataState.object_id = object_id;
+    for(int i = 0; i < 2; i++)
+    {
+        nextSimDataState.touch_value[i] = simData.touch_sensor_reading[i];
+    }
+    
+    if(action==A_CLOSE || action == A_PICK)
+    {
+        nextSimDataState.closeCalled = true;
+    }
+    if(action == A_OPEN)
+    {
+        nextSimDataState.closeCalled = false;
+    }
+    GraspingObservation simDataObs;
+    simDataObs.getObsFromState(nextSimDataState);
+    
+    GetReward(initState, nextSimDataState, simDataObs, action, reward);
+    UpdateNextStateValuesBasedAfterStep(nextSimDataState, simDataObs, reward, action);
+    
+    //std::vector<double> nextSimDataState_vec = nextSimDataState.getStateAsVector();
+    bool defaultState = true;
+    if(action == A_PICK)
+    {
+        //Only compare pick validity
+        bool predictedPick = IsValidPick(nextState, graspingObs);
+        bool simDataPick = IsValidPick(nextSimDataState, simDataObs);
+        if(predictedPick != simDataPick)
+        {
+            defaultState = false;
+        }
+    }
+    else
+    {
+        defaultState = nextState.stateEqual(nextSimDataState);
+        
+    }
+    if(!defaultState)
+    {
+        PrintObs(nextState, graspingObs, std::cout);
+        simData.PrintSimulationData(std::cout);
+        PrintAction(action);
+    }
+    return defaultState;
+    
+
+    
+    
+}
 
 
-
-
-
-bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int action) {
+bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int action) const{
     bool ans = false;
-    if(reward != -1000 && reward != -2000)
+    if(reward != -1000 && reward != -2000 && reward != -3000)
     {
         ans = true;
         /*if ((simData.current_object_pose.pose.position.z - default_initial_object_pose_z) 
@@ -204,17 +288,15 @@ bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int
     
 }
 
-void RobotInterface::getSimulationData(int object_id) {
-
+std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::string simulationFileName, bool readOpenAction, bool checkDefault) const{
    
+    std::vector<int> ans ;
     //Read simualtion data with object
     SimulationDataReader simDataReader;
     std::ifstream simulationDataFile;
     
-    //simulationDataFile.open("data/simulationData1_allParts.txt");
-    std::string simulationFileName = object_id_to_filename[object_id]+"allActions.txt";
     simulationDataFile.open(simulationFileName);
-    //int t_count = 0;    
+    int i = 0;
     while(!simulationDataFile.eof())
     {
         SimulationData simData; double reward; int action;
@@ -229,43 +311,41 @@ void RobotInterface::getSimulationData(int object_id) {
         //std::cout << reward << " " << action << "*";
         if (isDataEntryValid(reward, simData, action))  //(reward != -1000 && reward != -2000)
         {
-            if(action!= A_OPEN)
+            if(readOpenAction ||(!readOpenAction && action!= A_OPEN))
             {
-                //TODO also filter the states where the nexxt state and observation is same as given by defulat state
-                simulationDataCollectionWithObject[object_id][action].push_back(simData);
-                
-                simulationDataIndexWithObject[object_id][action].push_back(simulationDataIndexWithObject[object_id][action].size());
-                
+                if(!checkDefault || !isDataEntrySameAsDefault(simData, action, object_id))
+                {
+                    //TODO also filter the states where the nexxt state and observation is same as given by defulat state
+                    simulationDataCollectionWithObject[object_id][action].push_back(simData);
+
+                    simulationDataIndexWithObject[object_id][action].push_back(simulationDataIndexWithObject[object_id][action].size());
+                    ans.push_back(i);
+                }
             }
-        }  
+        } 
+        i++;
     }
     //std::cout << std::endl;
     simulationDataFile.close();
+    return ans;
+}
+
+std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int object_id) {
+
+   std::map<std::string, std::vector<int> > ans;
+    //Read simualtion data with object
+    SimulationDataReader simDataReader;
+    std::ifstream simulationDataFile;
     
+    //simulationDataFile.open("data/simulationData1_allParts.txt");
+    std::string simulationFileName = object_id_to_filename[object_id]+"allActions.txt";
+    ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, false, false);
+    
+    simulationFileName = object_id_to_filename[object_id]+"openAction.txt";
+    ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, true, false);
     //simulationDataFile.open("data/simulationData_1_openAction.txt");
-    simulationDataFile.open(object_id_to_filename[object_id]+"openAction.txt");
-   
+    return ans;
     
-    while(!simulationDataFile.eof())
-    {
-        SimulationData simData; double reward; int action;
-        //simData.current_gripper_pose.pose.position.x = temp_read;
-        //simDataReader.parseSimulationDataLine(simulationDataFile, simData, action, reward);
-        simDataReader.parseSimulationDataLineTableData(simulationDataFile, simData, action, reward);
-        
-        //std::cout << reward << " ";
-        if (isDataEntryValid(reward, simData, action))//(reward != -1000 && reward != -2000)
-        {
-            
-            //TODO also filter the states where the nexxt state and observation is same as given by defulat state
-            simulationDataCollectionWithObject[object_id][action].push_back(simData);
-            simulationDataIndexWithObject[object_id][action].push_back(simulationDataIndexWithObject[object_id][action].size());
-                
-            
-        }  
-    }
-    //std::cout << std::endl;
-    simulationDataFile.close();
 }
 
 
@@ -1098,6 +1178,10 @@ void RobotInterface::GetNextStateAndObsFromDynamicModel(GraspingStateRealArm cur
     {
         assert(ngs_vec_c.size() == 2);
         double pick_success_prob = ngs_vec_c[1];
+        /*if(pick_success_prob >= 0.5)
+        {
+            pick_success_prob = 1.0;
+        }*/
       //  std::cout << "Random num is" << random_num << " pick success prob is " << pick_success_prob << std::endl;
         if(pick_success_prob >= random_num)
         {
@@ -1116,8 +1200,9 @@ void RobotInterface::GetNextStateAndObsFromDynamicModel(GraspingStateRealArm cur
     {
         assert(ngs_vec_c.size() == num_predictions_for_dynamic_function);
         next_grasping_state.getStateFromVector(ngs_vec_c);
-        grasping_obs.getObsFromState(next_grasping_state);
+        
     }
+    grasping_obs.getObsFromState(next_grasping_state);
     double func_end = despot::get_time_second();
     //std::cout << "Arg time: " << call_time_start_c - arg_time_start << std::endl;
     //std::cout << "Call time: " << call_time_end - call_time_start << std::endl;

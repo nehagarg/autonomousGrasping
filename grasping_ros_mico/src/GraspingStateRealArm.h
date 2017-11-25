@@ -15,7 +15,7 @@ class GraspingStateRealArm : public despot::State {
     public:
         geometry_msgs::PoseStamped gripper_pose;
         geometry_msgs::PoseStamped object_pose;
-        double finger_joint_state[4]; //For finger configuration
+        double finger_joint_state[4]; //For finger configuration radians
         int object_id ;
         //double x_change = 0.0; //difference in x coordinate after taking an action
         //double y_change = 0.0; // change in y coordinate after taking an action
@@ -112,24 +112,48 @@ class GraspingStateRealArm : public despot::State {
         ans.push_back(gripper_pose.pose.position.x);
         ans.push_back(gripper_pose.pose.position.y);
         ans.push_back(gripper_pose.pose.position.z);
-        ans.push_back(gripper_pose.pose.orientation.x);
-        ans.push_back(gripper_pose.pose.orientation.y);
-        ans.push_back(gripper_pose.pose.orientation.z);
-        ans.push_back(gripper_pose.pose.orientation.w);
+        //ans.push_back(gripper_pose.pose.orientation.x);
+        //ans.push_back(gripper_pose.pose.orientation.y);
+        //ans.push_back(gripper_pose.pose.orientation.z);
+        //ans.push_back(gripper_pose.pose.orientation.w);
         ans.push_back(object_pose.pose.position.x);
         ans.push_back(object_pose.pose.position.y);
         ans.push_back(object_pose.pose.position.z);
-        ans.push_back(object_pose.pose.orientation.x);
-        ans.push_back(object_pose.pose.orientation.y);
-        ans.push_back(object_pose.pose.orientation.z);
-        ans.push_back(object_pose.pose.orientation.w);
-        
+        //ans.push_back(object_pose.pose.orientation.x);
+        //ans.push_back(object_pose.pose.orientation.y);
+        //ans.push_back(object_pose.pose.orientation.z);
+        //ans.push_back(object_pose.pose.orientation.w);
+        ans.push_back(object_pose.pose.position.x - gripper_pose.pose.position.x);
+        ans.push_back(object_pose.pose.position.y - gripper_pose.pose.position.y);
         return ans;
         
     }
     
-    void getStateFromVector(std::vector<double> ans)
+    void getStateFromVector(std::vector<double> ans, bool rel=true)
     {
+        if(rel)
+        {
+            gripper_pose.pose.position.x  = gripper_pose.pose.position.x + ans[0];
+            gripper_pose.pose.position.y  = gripper_pose.pose.position.y + ans[1] ;
+            gripper_pose.pose.position.z  = gripper_pose.pose.position.z + ans[2] ;
+            gripper_pose.pose.orientation.x = gripper_pose.pose.orientation.x + ans[3] ;
+            gripper_pose.pose.orientation.y = gripper_pose.pose.orientation.y + ans[4] ;
+            gripper_pose.pose.orientation.z = gripper_pose.pose.orientation.z + ans[5]  ;
+            gripper_pose.pose.orientation.w = gripper_pose.pose.orientation.w + ans[6] ;
+            object_pose.pose.position.x = object_pose.pose.position.x + ans[7] ;
+            object_pose.pose.position.y = object_pose.pose.position.y + ans[8] ;
+            object_pose.pose.position.z = object_pose.pose.position.z + ans[9] ;
+            object_pose.pose.orientation.x = object_pose.pose.orientation.x + ans[10]  ;
+            object_pose.pose.orientation.y = object_pose.pose.orientation.y + ans[11] ;
+            object_pose.pose.orientation.z = object_pose.pose.orientation.z + ans[12]  ; 
+            object_pose.pose.orientation.w = object_pose.pose.orientation.w + ans[13] ;
+            finger_joint_state[0] = finger_joint_state[0] + ans[14];
+            finger_joint_state[2] = finger_joint_state[2] + ans[15] ;
+            touch_value[0] = ans[16];
+            touch_value[1] = ans[17];
+        }
+        else
+        {
         gripper_pose.pose.position.x  = ans[0];
         gripper_pose.pose.position.y  = ans[1] ;
         gripper_pose.pose.position.z  = ans[2] ;
@@ -148,9 +172,114 @@ class GraspingStateRealArm : public despot::State {
         finger_joint_state[2]= ans[15] ;
         touch_value[0] = ans[16];
         touch_value[1] = ans[17];
+        }
         
     }
     
+    bool touchEqual(GraspingStateRealArm gs)
+    {
+        bool ans = true;
+        for(int i = 0; i < 2; i++)
+        {
+            if(touch[i]!=gs.touch[i])
+            {
+                ans = false;
+            }
+            if(!approx_equal(touch_value[i], gs.touch_value[i], 0.5))
+            {
+                ans = false;
+            }
+        }
+        return ans;
+    }
+    
+    bool jointEqual(GraspingStateRealArm gs)
+    {
+        bool ans = true;
+        if(gripper_status != gs.gripper_status)
+            {
+                std::cout << "gripper status do not match" 
+                            << gripper_status << "," << gs.gripper_status << std::endl;
+                ans = false;
+            }
+        for(int i = 0; i < 4; i=i+2)
+        {
+
+            
+            if(!approx_equal(finger_joint_state[i], gs.finger_joint_state[i], 2*3.14/180.0))
+            {
+                std::cout << "joint " << i << std::endl;
+                ans = false;
+            }
+        }
+        return ans;
+    }
+    
+    bool gripperPoseEqual(GraspingStateRealArm gs)
+    {
+        return poseEqual(gripper_pose, gs.gripper_pose);
+    }
+    
+    bool objectPoseEqual(GraspingStateRealArm gs)
+    {
+        return poseEqual(object_pose, gs.object_pose);
+    }
+    
+    bool poseEqual(geometry_msgs::PoseStamped pose1, geometry_msgs::PoseStamped pose2)
+    {
+        bool ans = true;
+        if(!approx_equal(pose1.pose.position.x, pose2.pose.position.x, 0.005))
+        {
+            ans = false;
+        }
+        if(!approx_equal(pose1.pose.position.y, pose2.pose.position.y, 0.005))
+        {
+            ans = false;
+        }
+        if(!approx_equal(pose1.pose.position.z, pose2.pose.position.z, 0.005))
+        {
+            ans = false;
+        }
+        double gripper_quaternion_distance = 1 - pow(((pose1.pose.orientation.x*pose2.pose.orientation.x)+
+                                                  (pose1.pose.orientation.y*pose2.pose.orientation.y)+
+                                                  (pose1.pose.orientation.z*pose2.pose.orientation.z)+
+                                                  (pose1.pose.orientation.w*pose2.pose.orientation.w)), 2);
+        if(gripper_quaternion_distance > 0.01)
+        {
+            ans = false;
+        }
+        
+        return ans;
+    }
+    
+    bool stateEqual(GraspingStateRealArm gs)
+    {
+        bool a1 = touchEqual(gs);
+        if(!a1)
+        {
+            std::cout << "Touch not equal" << std::endl;
+        }
+        bool a2 = jointEqual(gs);
+        if(!a2)
+        {
+            std::cout << "Joint not equal" << std::endl;
+        }
+        bool a3 = objectPoseEqual(gs);
+        if(!a3)
+        {
+            std::cout << "Object pose equal" << std::endl;
+        }
+        bool a4 = gripperPoseEqual(gs);
+        if(!a4)
+        {
+            std::cout << "Gripper pose equal" << std::endl;
+        }
+        return a1 && a2 && a3 && a4;
+    }
+    static bool approx_equal(double x,double y,double e)
+    {
+        return ((x-y < e) && (x-y > -e));
+    }
     
     
 };

@@ -43,9 +43,13 @@ MultiScikitModels::MultiScikitModels(std::string model_dir, std::string classifi
                m = new LinearScikitModel(classifier_type,model_filename);
                 
             }
-            else
+            if(classifier_type == "DTR" or classifier_type == "DTRM")
             {
                m = new DecisionTreeScikitModel(classifier_type,model_filename);
+            }
+            if(classifier_type == "Earth")
+            {
+                m = new EarthModel(classifier_type, model_filename);
             }
             m->loadModel(model_filename);
             models.push_back(m);
@@ -106,6 +110,19 @@ void LinearScikitModel::loadModel(std::string yaml_file) {
             
 }
 
+void EarthModel::loadModel(std::string yaml_file) {
+    YAML::Node model_params = YAML::LoadFile(yaml_file);
+    for(int i = 0; i < model_params["coef"].size(); i++)
+    {
+        coeff.push_back(model_params["coef"][i].as<double>());
+        bf_knot.push_back(model_params["bf_knot"][i].as<double>());
+        bf_variable.push_back(model_params["bf_variable"][i].as<int>());
+        bf_type.push_back(model_params["bf_type"][i].as<std::string>());
+        bf_reverse.push_back(model_params["bf_reverse"][i].as<bool>());
+    }
+}
+
+
 int DecisionTreeScikitModel::apply(std::vector<double> x) {
     int node_id = 0;
     while(feature[node_id]>=0)
@@ -146,5 +163,48 @@ std::vector<double>  LinearScikitModel::predict(std::vector<double> x) {
         ngs_vec.push_back(prob);
         
         return ngs_vec;
+}
+
+std::vector<double> EarthModel::predict(std::vector<double> x) {
+    std::vector<double> ngs_vec;
+    double ans = 0.0;
+    for(int i = 0; i < coeff.size(); i++)
+    {
+        double val;
+        if(bf_type[i]=="Intercept")
+        {
+            val = 1.0;
+        }
+        else
+        {
+            if(bf_reverse[i])
+            {
+                if(x[bf_variable[i]]>bf_knot[i])
+                {
+                    val = 0.0;   
+                }
+                else
+                {
+                    val = bf_knot[i] - x[bf_variable[i]];
+                }
+                    
+            }
+            else
+            {
+                if(x[bf_variable[i]]<=bf_knot[i])
+                {
+                    val = 0.0;  
+                }
+                else
+                {
+                     val = x[bf_variable[i]] - bf_knot[i];
+                }
+            }
+        }
+        ans = ans + (coeff[i]*val);
+    }
+    
+    ngs_vec.push_back(ans);
+    return ngs_vec;
 }
 

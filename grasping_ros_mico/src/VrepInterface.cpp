@@ -993,7 +993,7 @@ void VrepInterface::GatherGripperStateData(int object_id) const {
     
     myfile.close();
 }
-void VrepInterface::GatherJointData(int object_id) const {
+void VrepInterface::GatherJointData(int object_id, double epsi) const {
     std::ofstream myfile;
     //myfile.open ("data_table_exp/jointData_0.txt");
     //myfile.open ("data_low_friction_table_exp/jointData_0.txt");
@@ -1032,9 +1032,9 @@ void VrepInterface::GatherJointData(int object_id) const {
 
     
     
-    int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    int i_loop_max = (int)((max_x_i - min_x_i)/epsi) + 1; //20
     int i_loop_min = 0; 
-    int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    int j_loop_max = (int)((max_y_i - min_y_i)/epsi) + 1;//16;
     int j_loop_min = 0;//16;
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
     {
@@ -1071,8 +1071,8 @@ void VrepInterface::GatherJointData(int object_id) const {
                 mico_target_pose.pose.position.y = min_y_i + 0.01*(j+2);
                 SetMicoTargetPose(mico_target_pose);
             }*/
-            mico_target_pose.pose.position.x = min_x_i + epsilon*i;
-            mico_target_pose.pose.position.y = min_y_i + epsilon*j;
+            mico_target_pose.pose.position.x = min_x_i + epsi*i;
+            mico_target_pose.pose.position.y = min_y_i + epsi*j;
             SetMicoTargetPose(mico_target_pose);
 
             WaitForArmToStabilize();
@@ -1240,7 +1240,9 @@ void VrepInterface::GatherDataStep(GraspingStateRealArm* grasping_state,
                     
 }
 
-void VrepInterface::GatherData(std::string object_id, int action_type, int min_x, int max_x, int min_y, int max_y, int object_state_id) const {
+void VrepInterface::GatherData(std::string object_id, int action_type, double gap,
+        int min_x, int max_x, int min_y, int max_y, 
+        int object_state_id, bool generate_default) const {
     //return;
 
     std::ofstream myfile;
@@ -1248,7 +1250,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     if(version5)
     {
         filename = "data_for_regression/" + object_id + "/SASOData_";
-        if (epsilon == 0.01)
+        if (gap == 0.01)
         {
         //filename = "data_low_friction_table_exp_ver5/SASOData_";
 
@@ -1309,10 +1311,22 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     GraspingStateRealArm initial_state ;
     initial_state.object_id = 0;
     
+    
+    if(generate_default)
+    {
+        std::vector<int> line_nos = getSimulationDataFromFile(initial_state.object_id, filename, action_type==1);
+        filename = filename+ ".Usedlinenos";
+        myfile.open(filename);
+        for(int i = 0; i < line_nos.size(); i++)
+        {
+            myfile<< line_nos[i] << std::endl;
+        }
+        return;
+    }
+    
     //Set Object pose
     start_state_index = object_state_id;
     CreateObjectStartState(initial_state);
-    
     
     /*if(initial_state.object_id == -1)
     {
@@ -1342,11 +1356,11 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
     vrep_common::simRosStopSimulation stop_srv;
     //vrep_common::simRosSetIntegerSignal set_integer_signal_srv;
     
-    int i_loop_max = (int)((max_x_i - min_x_i)/epsilon) + 1; //20
+    int i_loop_max = (int)((max_x_i - min_x_i)/gap) + 1; //20
     if(max_x > -1 && max_x < i_loop_max) i_loop_max = max_x;
     int i_loop_min = 0;  //20
     if(min_x > -1) i_loop_min = min_x;
-    int j_loop_max = (int)((max_y_i - min_y_i)/epsilon) + 1;//16;
+    int j_loop_max = (int)((max_y_i - min_y_i)/gap) + 1;//16;
     if  (max_y > -1 && max_y < j_loop_max) j_loop_max = max_y;
     int j_loop_min = 0;//16;
     if(min_y > -1) j_loop_min = min_y;
@@ -1365,8 +1379,10 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
         std::cout << "Not gathering data" << std::endl;
         return;
     }
+    
+    
     //int l_loop = 2;
-   
+    
     
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
         {
@@ -1416,8 +1432,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, int min_x
                 //SetMicoTargetPose(mico_target_pose);
                 //For some wierd reason this should be set after setting joints
                 //Otherwise it gets reset
-                mico_target_pose.pose.position.x = min_x_i + epsilon*i;
-                mico_target_pose.pose.position.y = min_y_i + epsilon*j;
+                mico_target_pose.pose.position.x = min_x_i + gap*i;
+                mico_target_pose.pose.position.y = min_y_i + gap*j;
 
 
                 vrep_common::simRosSetObjectPose set_object_pose_srv;

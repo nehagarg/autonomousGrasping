@@ -363,12 +363,12 @@ bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const 
 }
 
 bool VrepDataInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {
-    std::cout << action << std::endl;
+    //std::cout << action << std::endl;
     //RobotInterface::use_regression_models = true;
     double step_start = despot::get_time_second();
     bool ans = Step(state, random_num, action, reward, obs, false);
     double step_end = despot::get_time_second();
-    std::cout << "Step time is " << step_end - step_start << std::endl;
+    std::cout << "Time is " << step_end - step_start << std::endl;
     return ans;
 }
 

@@ -71,6 +71,24 @@ private:
     double intercept;
 };
 
+class EarthModel : public ScikitModels {
+    
+public:
+    EarthModel(std::string model_type, std::string yaml_file): ScikitModels(model_type, yaml_file) {};
+    virtual ~EarthModel() {
+    }
+
+    virtual void loadModel(std::string yaml_file);
+
+    virtual std::vector<double> predict(std::vector<double> x);
+private:
+    std::vector<double>coeff;
+    std::vector<double>bf_knot;
+    std::vector<int>bf_variable;
+    std::vector<bool>bf_reverse;
+    std::vector<std::string> bf_type;
+
+};
 
 #endif	/* SCIKITMODELS_H */
 

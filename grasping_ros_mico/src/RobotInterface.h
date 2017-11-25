@@ -168,10 +168,11 @@ public:
     void GetReward(GraspingStateRealArm initial_grasping_state, GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, int action, double& reward) const;
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
-    void getSimulationData(int object_id);
+    std::map< std::string, std::vector<int> > getSimulationData(int object_id);
+    std::vector<int> getSimulationDataFromFile(int object_id, std::string fileName, bool readOpenAction, bool checkDefault=true) const;
     void getRegressionModels(int object_id);
-    bool isDataEntryValid(double reward, SimulationData simData, int action);
-    
+    bool isDataEntryValid(double reward, SimulationData simData, int action) const;
+    bool isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const;
 
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
     virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
