@@ -47,7 +47,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
     if('grasping_dynamic_model' in command_prefix):
         [classifier_type, task_type] = t.split('%')
         out_file_name = 'data_for_regression/' + pattern + "/"
-        out_file_name = classifier_type + "-" + task_type + ".log"
+        out_file_name = out_file_name + classifier_type + "-" + task_type + ".log"
         command = 'python scripts/grasping_dynamic_model.py '
         command = command + '-c ' + classifier_type
         command = command + ' -t ' + task_type
