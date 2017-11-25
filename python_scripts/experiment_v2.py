@@ -240,7 +240,7 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = '1001-84_weighted')
     object_list = object_list+['9cm', '8cm']
     belief_type = 'UNIFORM_WITH_STATE_IN'
     dir_prefix = './results/despot_logs/low_friction_table/multiObjectType/'
-    if type=='cylinder':
+    if type in ['cylinder', 'cylinder_regression']:
         config_file_name = 'Ver5MultiCylinderObject'
         config_file_prefix = 'cylinder'
         dir_name = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty10'
@@ -258,6 +258,9 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = '1001-84_weighted')
         dir_name = dir_prefix + 'belief_uniform_g3db_1_84_reward100_penalty10'
         belief_name = '1001-84'
         object_list = get_grasping_object_name_list('coffee_yogurt_cup')
+    if 'regression' in type:
+        config_file_prefix = config_file_prefix + "/use_regression"
+        dir_name = dir_name + "/use_regression"
     if 'weighted' in type:
         config_file_prefix = config_file_prefix + "/weighted_belief"
         dir_name = dir_name + "/icp_score_weighted"
@@ -273,6 +276,8 @@ def generate_grasping_params_file(object_list, config_file_name, dir_name, belie
             if 'Ver5' in config_file_name:
                 interface_type = interface_type + "_ver5"
                 filename_prefix = 'low_friction_table/vrep_scene_ver5/penalty10/uniform_' + belief_name
+            if 'regression' in dir_name:
+                filename_prefix = filename_prefix + '/use_regression'
             interface_type_ = "" if 'vrep' in interface_type  else "Data"
             dir_extenstion = "/simulator" if 'vrep' in interface_type  else ""
             for object_type in object_list:
