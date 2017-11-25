@@ -167,8 +167,13 @@ def load_data_file(object_name, data_dir):
     #object_file_name2 = data_dir + saso_string + object_name + "_openAction.txt"
     #print "Loading files" + object_file_name1 + object_file_name2
     ans={}
+    #bad_list = ['data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_37-38--1--1_allActions.txt']
+    #bad_list.append('data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_10-11--1--1_allActions.txt')
     print "Loading files" + " ".join(files)
     for file in files:
+        print file
+        #if  file in bad_list:
+        #    continue
         with open(file, 'r') as f:
             for line in f:
                 sasor = get_data_from_line(line.strip())
@@ -355,7 +360,11 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
     if classifier_type == 'Earth':
         from pyearth import Earth
     import numpy as np
-    
+    have_graphviz = True
+    try:
+        import graphviz
+    except:
+        have_graphviz = False
     ans = None
     saso_data = load_data_file(object_name, data_dir)
     if train_type =='gripper_status':
@@ -418,16 +427,17 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
             write_config_in_file(output_dir + '/' +  classifier_type + '-' + action_str+".yaml", yaml_out)
         else:
             print logistic.feature_importances_
-            import graphviz 
+             
             #feature_names=['t1','t2', 'j1', 'j2']
             feature_names=['j1', 'j2'] #Touch not required when object coordinates are known
             feature_names = feature_names + ['gx', 'gy','gz','gxx','gyy','gzz','gw'][0:3]
             feature_names = feature_names + ['ox', 'oy','oz','oxx','oyy','ozz','ow'][0:3]
             feature_names = feature_names + ['xrel','yrel']
-            dot_data = tree.export_graphviz(logistic, out_file=None,
-                                    feature_names = feature_names, filled=True) 
-            graph = graphviz.Source(dot_data) 
-            graph.render(output_dir + '/' +  classifier_type + '-' + action_str ) 
+            if have_graphviz:
+                dot_data = tree.export_graphviz(logistic, out_file=None,
+                                        feature_names = feature_names, filled=True) 
+                graph = graphviz.Source(dot_data) 
+                graph.render(output_dir + '/' +  classifier_type + '-' + action_str ) 
             yaml_out = {}
             yaml_out["max_depth"] = logistic.tree_.max_depth
             yaml_out["values"] = logistic.tree_.value
@@ -545,15 +555,16 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                     if classifier_type in ['DTR', 'DTRM','AdaLinear','DTC']:
 
                         print l_reg[p].feature_importances_
-                        import graphviz 
+                        
                         feature_names=['j1', 'j2']
                         feature_names = feature_names + ['gx', 'gy','gz','gxx','gyy','gzz','gw'][0:3]
                         feature_names = feature_names + ['ox', 'oy','oz','oxx','oyy','ozz','ow'][0:3]
                         feature_names = feature_names + ['xrel','yrel']
-                        dot_data = tree.export_graphviz(l_reg[p], out_file=None,
-                                        feature_names = feature_names, filled=True) 
-                        graph = graphviz.Source(dot_data) 
-                        graph.render(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p))
+                        if have_graphviz:
+                            dot_data = tree.export_graphviz(l_reg[p], out_file=None,
+                                            feature_names = feature_names, filled=True) 
+                            graph = graphviz.Source(dot_data) 
+                            graph.render(output_dir + '/' + classifier_type+"-"+repr(action)+"-"+repr(p))
                         yaml_out = {}
                         yaml_out['max_depth'] = l_reg[p].tree_.max_depth
                         yaml_out["values"] = l_reg[p].tree_.value.tolist()
