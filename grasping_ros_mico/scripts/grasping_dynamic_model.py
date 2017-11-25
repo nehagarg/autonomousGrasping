@@ -352,7 +352,8 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
     from sklearn.svm import SVR
     from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
     from sklearn.ensemble import AdaBoostRegressor
-    from pyearth import Earth
+    if classifier_type == 'Earth':
+        from pyearth import Earth
     import numpy as np
     
     ans = None
