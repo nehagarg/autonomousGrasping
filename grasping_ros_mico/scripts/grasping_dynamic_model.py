@@ -1,6 +1,7 @@
 
 import os
 from sklearn.externals import joblib
+from sklearn.utils import check_array
 
 PICK_ACTION_ID = 10
 OPEN_ACTION_ID = 9
@@ -167,15 +168,31 @@ def load_data_file(object_name, data_dir):
     #object_file_name2 = data_dir + saso_string + object_name + "_openAction.txt"
     #print "Loading files" + object_file_name1 + object_file_name2
     ans={}
-    #bad_list = ['data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_37-38--1--1_allActions.txt']
-    #bad_list.append('data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_10-11--1--1_allActions.txt')
+    bad_list = ['data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_37-38--1--1_allActions.txt']#238
+    bad_list.append('data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_10-11--1--1_allActions.txt')#211
+    bad_list.append('data_for_regression/Cylinder_8/SASOData_0-005_Cylinder_8_24_26-27--1--1_allActions.txt') #77
+    bad_list.append('data_for_regression/Cylinder_8/SASOData_0-005_Cylinder_8_24_33-34--1--1_allActions.txt') #84
+    bad_list.append('data_for_regression/Cylinder_7/SASOData_0-005_Cylinder_7_24_19-20--1--1_openAction.txt') #620
+    bad_list.append('data_for_regression/Cylinder_7/SASOData_0-005_Cylinder_7_24_32-33--1--1_openAction.txt') #633
+    #data_for_regression/Cylinder_75/SASOData_0-005_Cylinder_75_24_15-16--1--1_allActions.txt #166
+    #data_for_regression/Cylinder_75/SASOData_0-005_Cylinder_75_24_24-25--1--1_allActions.txt #175
+    #data_for_regression/Cylinder_75/SASOData_0-005_Cylinder_75_24_26-27--1--1_allActions.txt #177
+    #data_for_regression/Cylinder_75/SASOData_0-005_Cylinder_75_24_30-31--1--1_allActions.txt #181
+    #data_for_regression/Cylinder_75/SASOData_0-005_Cylinder_75_24_32-33--1--1_openAction.txt #683
+    #data_for_regression/Cylinder_75/SASOData_Cylinder_75_24_18-19--1--1_allActions.txt #419
+    #data_for_regression/Cylinder_85/SASOData_0-005_Cylinder_85_24_26-27--1--1_allActions.txt #227
+    
     print "Loading files" + " ".join(files)
     for file in files:
         print file
-        #if  file in bad_list:
+        #if  file not in bad_list:
         #    continue
+        file_nan_count = 0
         with open(file, 'r') as f:
             for line in f:
+                if 'nan' in line:
+                    file_nan_count = file_nan_count + 1
+                    continue
                 sasor = get_data_from_line(line.strip())
                 if('openAction' not in file):
                     if sasor['action'] != OPEN_ACTION_ID:
@@ -192,7 +209,9 @@ def load_data_file(object_name, data_dir):
                             ans[sasor['action']]= []
                         if(sasor['reward'] > -999):
                             ans[sasor['action']].append(sasor)
-                
+        
+        print file_nan_count        
+        assert(file_nan_count < 5)                    
     return ans
 def approx_equal(x1,x2,error):
     return (x1 - x2) < error and (x1 -x2) > -1*error
@@ -505,6 +524,14 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                         y[p].append(get_prediction_value(sasor,p))
                         y_default = get_default_value(sasor,p)
                         y_c[p].append(is_correct(p, y[p][-1], y_default))
+                        try:
+                            check_array(x)
+                            check_array(y[p])
+                        except:
+                            print x[-1]
+                            print y[p][-1]
+                            print sasor['index']
+                            assert(0==1)
             print len(x)
             ans[action] = {}
             
