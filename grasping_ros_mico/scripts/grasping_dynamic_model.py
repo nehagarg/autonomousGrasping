@@ -524,6 +524,7 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                         y[p].append(get_prediction_value(sasor,p))
                         y_default = get_default_value(sasor,p)
                         y_c[p].append(is_correct(p, y[p][-1], y_default))
+                        """
                         try:
                             check_array(x)
                             check_array(y[p])
@@ -532,6 +533,8 @@ def train(object_name, data_dir, output_dir, train_type, classifier_type,learned
                             print y[p][-1]
                             print sasor['index']
                             assert(0==1)
+                        """
+                            
             print len(x)
             ans[action] = {}
             
