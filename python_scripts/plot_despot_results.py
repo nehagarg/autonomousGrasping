@@ -1,4 +1,6 @@
 import numpy as np
+#import matplotlib
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from log_file_parser import ParseLogFile
 import os
@@ -749,7 +751,7 @@ def get_list_input(sampled_scenarios, command):
 def main():
     plot_graph = 'no'
     csv_name_prefix = 'multi_object'
-    
+    plot_sucess_failure_cases=False
     dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
     global PROBLEM_NAME    
     opts, args = getopt.getopt(sys.argv[1:],"hpqt:d:f:",["dir=","csv_prefix="])
