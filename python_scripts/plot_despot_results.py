@@ -272,7 +272,7 @@ def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, c
     plt.title(title)
     ax.set_xticklabels(xlabel)
     plt.legend(legend)
-    #fig.savefig(fig_name)
+    fig.savefig(fig_name)
     plt.show()
 
 
@@ -526,7 +526,7 @@ def plot_graph_from_csv(csv_file, plt_error):
         plt_title = line[0]
         xlabels = line[1:]
         for line in f:
-            if ('S0-' in line) or ('S1' in line) or ('T5S' in line) or ('T10S' in line):
+            if ('L11' in line) or ('S0-' in line) or ('S1' in line) or ('T5S' in line) or ('T10S' in line):
                 continue
             data = line.rstrip('\n').split(",")
             legend.append(data[0].replace('S3-50', 'S3'))
@@ -656,6 +656,7 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
         
         
         print "dir_name is: " + dir_name
+        print inputs
         #if data_type == 'reward':
         #    generate_average_reward_csv_for_vrep_multi_object_cases(csv_file_names_for_generation[0], dir_name, pattern, time_steps, sampled_scenarios, learning_versions, combined_policy_versions, begin_index, end_index, index_step)
         #if data_type == 'success_cases':
@@ -692,7 +693,7 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     cur_dir = os.getcwd()
     os.chdir(dir_name)
     num_cases = 81
-    plt.subplots(1,5)
+    fig, ax = plt.subplots(1,5)
     for j in range(0,5):
         x = []
         y = []
@@ -725,7 +726,8 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
         plt.subplot(1,5,j+1)
         plot_scatter_graph(y, x, colors)
     os.chdir(cur_dir)
-    plt.show()
+    #plt.show()
+    fig.savefig("figure_1.png")
     
         
     
@@ -747,9 +749,10 @@ def get_list_input(sampled_scenarios, command):
 def main():
     plot_graph = 'no'
     csv_name_prefix = 'multi_object'
+    
     dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
     global PROBLEM_NAME    
-    opts, args = getopt.getopt(sys.argv[1:],"hpt:d:f:",["dir=","csv_prefix="])
+    opts, args = getopt.getopt(sys.argv[1:],"hpqt:d:f:",["dir=","csv_prefix="])
     #print opts
     for opt, arg in opts:
       # print opt
@@ -758,6 +761,8 @@ def main():
          sys.exit()
       elif opt == '-p':
           plot_graph='yes'
+      elif opt == '-q':
+          plot_sucess_failure_cases=True
       elif opt in ("-d", "--dir"):
          dir_name = arg
       elif opt in ("-f", "--csv_prefix"):
@@ -787,9 +792,12 @@ def main():
         #input_patterns = ['test', 'train', 'grasp_objects','9cm', '8cm', '7cm', '75mm', '85mm']
         #if input_pattern in input_patterns:
         pattern = input_pattern
-        get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
-
-        #get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
+        if(plot_sucess_failure_cases):
+            get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
+        else:
+            get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
+            
+        
 
 if __name__ == '__main__':
     main()    
