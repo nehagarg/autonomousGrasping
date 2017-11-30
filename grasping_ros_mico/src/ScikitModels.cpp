@@ -57,7 +57,7 @@ MultiScikitModels::MultiScikitModels(std::string model_dir, std::string classifi
     }
 }
 
-std::vector<double> MultiScikitModels::predict(std::vector<double> x) {
+std::vector<double> MultiScikitModels::predict(std::vector<double> x, bool debug) {
     
     if(models.size() ==1)
     {
@@ -140,13 +140,13 @@ int DecisionTreeScikitModel::apply(std::vector<double> x) {
 
 }
 
-std::vector<double>  DecisionTreeScikitModel::predict(std::vector<double> x) {
+std::vector<double>  DecisionTreeScikitModel::predict(std::vector<double> x, bool debug) {
     int node_id = apply(x);
     return value[node_id];
     
 }
 
-std::vector<double>  LinearScikitModel::predict(std::vector<double> x) {
+std::vector<double>  LinearScikitModel::predict(std::vector<double> x, bool debug) {
 
     std::vector<double> ngs_vec;
     double prob = intercept;
@@ -165,7 +165,7 @@ std::vector<double>  LinearScikitModel::predict(std::vector<double> x) {
         return ngs_vec;
 }
 
-std::vector<double> EarthModel::predict(std::vector<double> x) {
+std::vector<double> EarthModel::predict(std::vector<double> x, bool debug) {
     std::vector<double> ngs_vec;
     double ans = 0.0;
     for(int i = 0; i < coeff.size(); i++)

@@ -15,7 +15,7 @@ public:
     ScikitModels(const ScikitModels& orig);
     virtual ~ScikitModels();
     virtual void loadModel(std::string yaml_file) = 0;
-    virtual std::vector<double>  predict(std::vector<double> x) = 0;
+    virtual std::vector<double>  predict(std::vector<double> x, bool debug=false) = 0;
 private:
     std::string model_type;
     
@@ -26,7 +26,7 @@ public:
     MultiScikitModels(std::string model_dir,  std::string classifier_type, int action, int num_predictions);
     virtual ~MultiScikitModels() {
     }
-    virtual  std::vector<double>  predict(std::vector<double> x);
+    virtual  std::vector<double>  predict(std::vector<double> x, bool debug=false);
 private:
     std::vector<ScikitModels*> models;
 };
@@ -38,7 +38,7 @@ public:
 
     void loadModel(std::string yaml_file);
 
-    std::vector<double>  predict(std::vector<double> x);
+    std::vector<double>  predict(std::vector<double> x, bool debug=false);
 
 
 private:
@@ -62,7 +62,7 @@ public:
     
     void loadModel(std::string yaml_file);
 
-    std::vector<double> predict(std::vector<double> x);
+    std::vector<double> predict(std::vector<double> x, bool debug=false);
 
 
 
@@ -80,7 +80,7 @@ public:
 
     virtual void loadModel(std::string yaml_file);
 
-    virtual std::vector<double> predict(std::vector<double> x);
+    virtual std::vector<double> predict(std::vector<double> x, bool debug=false);
 private:
     std::vector<double>coeff;
     std::vector<double>bf_knot;
