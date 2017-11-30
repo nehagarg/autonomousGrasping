@@ -43,6 +43,8 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         command = './bin/gather_data ' + pattern + ' ' + t + ' ' + n 
         command = command + ' ' + ",".join(map(str,[begin_index, end_index, -1, -1]))
         command = command + ' ' + l
+        if c != 'None':
+            command = command + ' ' + c
         return command
     if('grasping_dynamic_model' in command_prefix):
         [classifier_type, task_type] = t.split('%')

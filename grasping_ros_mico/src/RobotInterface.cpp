@@ -288,21 +288,29 @@ bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int
     
 }
 
-std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::string simulationFileName, bool readOpenAction, bool checkDefault) const{
+std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::string simulationFileName, bool readOpenAction, bool checkDefault, std::string nonDefaultFilename) const{
    
     std::vector<int> ans ;
     //Read simualtion data with object
     SimulationDataReader simDataReader;
     std::ifstream simulationDataFile;
-    
+    std::ofstream myfile;
     simulationDataFile.open(simulationFileName);
+    if(checkDefault)
+    {
+        myfile.open(nonDefaultFilename);
+    }
     int i = 0;
     while(!simulationDataFile.eof())
     {
         SimulationData simData; double reward; int action;
+        std::string line;
+        std::getline(simulationDataFile, line);
+        std::istringstream iss(line);
+        //TODO check for nan
         //simData.current_gripper_pose.pose.position.x = temp_read;
        // simDataReader.parseSimulationDataLine(simulationDataFile, simData, action, reward);
-        simDataReader.parseSimulationDataLineTableData(simulationDataFile, simData, action, reward);
+        simDataReader.parseSimulationDataLineTableData(iss, simData, action, reward);
         /*t_count++;
         if(t_count > 10)
         {
@@ -320,6 +328,10 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
 
                     simulationDataIndexWithObject[object_id][action].push_back(simulationDataIndexWithObject[object_id][action].size());
                     ans.push_back(i);
+                    if(checkDefault)
+                    {
+                        myfile << line << std::endl;
+                    }
                 }
             }
         } 
@@ -327,6 +339,7 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
     }
     //std::cout << std::endl;
     simulationDataFile.close();
+    myfile.close();
     return ans;
 }
 
@@ -1151,7 +1164,7 @@ void RobotInterface::GetNextStateAndObsFromDynamicModel(GraspingStateRealArm cur
     double call_time_end = despot::get_time_second();
     */
     double call_time_start_c = despot::get_time_second();
-    std::vector<double> ngs_vec_c = dynamicModelsC[current_grasping_state.object_id][action]->predict(gs_vec);
+    std::vector<double> ngs_vec_c = dynamicModelsC[current_grasping_state.object_id][action]->predict(gs_vec, debug);
     double call_time_end_c = despot::get_time_second();
     /*
     int y_size = PyList_Size(y);

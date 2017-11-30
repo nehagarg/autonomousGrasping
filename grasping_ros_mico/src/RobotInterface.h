@@ -98,7 +98,7 @@ public:
     double default_initial_object_pose_z_low_friction_table = 1.0998;
     double default_min_z_o = 1.1200 ; //for objects on high friction table
     double default_initial_object_pose_z = 1.1248; // for objects on high friction table //1.7066; //for amazon shelf
-    double max_x_o_difference = 0.01;
+    //double max_x_o_difference = 0.01; //Not being used anywhere
     
     double pick_z_diff = 0.12; 
     double pick_x_val = 0.2879;
@@ -169,7 +169,7 @@ public:
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
     std::map< std::string, std::vector<int> > getSimulationData(int object_id);
-    std::vector<int> getSimulationDataFromFile(int object_id, std::string fileName, bool readOpenAction, bool checkDefault=true) const;
+    std::vector<int> getSimulationDataFromFile(int object_id, std::string fileName, bool readOpenAction, bool checkDefault=true, std::string nonDefaultFilename="") const;
     void getRegressionModels(int object_id);
     bool isDataEntryValid(double reward, SimulationData simData, int action) const;
     bool isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const;

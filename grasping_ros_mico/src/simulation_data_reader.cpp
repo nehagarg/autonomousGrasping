@@ -86,7 +86,7 @@ SimulationDataReader::~SimulationDataReader() {
     
 }
 
-void SimulationDataReader::parseSimulationDataLineTableData(std::ifstream& simulationDataFile, SimulationData& simData, int& action, double& reward) {
+void SimulationDataReader::parseSimulationDataLineTableData(std::istream& simulationDataFile, SimulationData& simData, int& action, double& reward) {
     int i;
     simulationDataFile >> i;
     //std::cout << i << " ";
@@ -95,7 +95,7 @@ void SimulationDataReader::parseSimulationDataLineTableData(std::ifstream& simul
     parseSimulationDataLine(simulationDataFile, simData, action, reward);
 }
 
-void SimulationDataReader::parseSimulationDataLine(std::ifstream& simulationDataFile, SimulationData& simData, int& action, double& reward)
+void SimulationDataReader::parseSimulationDataLine(std::istream& simulationDataFile, SimulationData& simData, int& action, double& reward)
 {
     char c; double temp_read;
     simulationDataFile >> simData.current_gripper_pose.pose.position.x;

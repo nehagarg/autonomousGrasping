@@ -33,9 +33,9 @@ public:
     SimulationDataReader(const SimulationDataReader& orig);
     virtual ~SimulationDataReader();
     
-    void parseSimulationDataLineTableData(std::ifstream& simulationDataFile, SimulationData& simData, int& action, double& reward);
+    void parseSimulationDataLineTableData(std::istream& simulationDataFile, SimulationData& simData, int& action, double& reward);
 
-    void parseSimulationDataLine(std::ifstream& simulationDataFile, SimulationData& simData, int& action, double& reward);
+    void parseSimulationDataLine(std::istream& simulationDataFile, SimulationData& simData, int& action, double& reward);
 private:
 
 };

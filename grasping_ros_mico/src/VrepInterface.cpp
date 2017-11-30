@@ -1247,9 +1247,12 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
 
     std::ofstream myfile;
     std::string filename;
+    std::string file_dir;
+    std::string filename_suffix;
     if(version5)
     {
-        filename = "data_for_regression/" + object_id + "/SASOData_";
+        file_dir = "data_for_regression/";
+        filename =  object_id + "/SASOData_";
         if (gap == 0.01)
         {
         //filename = "data_low_friction_table_exp_ver5/SASOData_";
@@ -1303,6 +1306,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
         k_look_max_value = A_COLLISIONCHECK + 1;
         k1_loop_max_value = 0;
     }
+    filename_suffix = filename;
+    filename = file_dir + filename;
     std::cout << "filename is " << filename << std::endl;
     
     //myfile.open ("data_table_exp/SASOData_Cuboid_7cm_allActions.txt");
@@ -1314,13 +1319,19 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     
     if(generate_default)
     {
-        std::vector<int> line_nos = getSimulationDataFromFile(initial_state.object_id, filename, action_type==1);
-        filename = filename+ ".Usedlinenos";
-        myfile.open(filename);
+        std::string filename_pruned = "data_low_friction_table_exp_ver5/pruned_data_files/";
+        filename_pruned = filename_pruned + filename_suffix;
+        std::vector<int> line_nos = getSimulationDataFromFile(initial_state.object_id, filename, action_type==1, true, filename_pruned);
+        std::string filename_lineno = filename+ ".Usedlinenos";
+        myfile.open(filename_lineno);
         for(int i = 0; i < line_nos.size(); i++)
         {
             myfile<< line_nos[i] << std::endl;
         }
+        myfile.close();
+        
+        
+        
         return;
     }
     
