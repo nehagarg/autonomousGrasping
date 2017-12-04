@@ -39,23 +39,25 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
     {
         start_index = -10000;
     }
-    VrepInterface* vrepInterfacePointer = new VrepInterface(start_index);    
+    VrepInterface* vrepInterfacePointer = new VrepInterface(start_index); 
+    RobotInterface::object_id_to_filename.push_back(val);
     //vrepInterfacePointer->epsilon = epsi;
     if(!generate_default)
     {
-        vrepInterfacePointer->LoadObjectInScene(val);
+        vrepInterfacePointer->LoadObjectInScene(0);
     }
     else
     {
+        vrepInterfacePointer->graspObjects[0] = vrepInterfacePointer->getGraspObject(val);
         //TODO replace with loading object properties
-        vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
-        vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
+        //vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
+        //vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
     }
     //Expanding valid state for object for data collection
-    vrepInterfacePointer->min_x_o = vrepInterfacePointer->min_x_o - 0.1;
-    vrepInterfacePointer->max_x_o = vrepInterfacePointer->max_x_o + 0.1;
-    vrepInterfacePointer->min_y_o = vrepInterfacePointer->min_y_o - 0.1;
-    vrepInterfacePointer->max_y_o = vrepInterfacePointer->max_y_o + 0.1;
+    vrepInterfacePointer->graspObjects[0]->min_x_o = vrepInterfacePointer->graspObjects[0]->min_x_o - 0.1;
+    vrepInterfacePointer->graspObjects[0]->max_x_o = vrepInterfacePointer->graspObjects[0]->max_x_o + 0.1;
+    vrepInterfacePointer->graspObjects[0]->min_y_o = vrepInterfacePointer->graspObjects[0]->min_y_o - 0.1;
+    vrepInterfacePointer->graspObjects[0]->max_y_o = vrepInterfacePointer->graspObjects[0]->max_y_o + 0.1;
     /*vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
     vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
     if (val > 1000)
@@ -139,6 +141,7 @@ int main(int argc, char* argv[]) {
     
     if(argc >=7)
     {
+        //Whether to generate the pruned data file or not
         generate_default = true;
        std::cout << "Generating defualt " << std::endl;
         

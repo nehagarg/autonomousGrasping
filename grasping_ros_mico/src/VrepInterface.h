@@ -26,6 +26,7 @@
 #include "vrep_common/simRosCallScriptFunction.h"
 
 #include "VrepDataInterface.h"
+#include "GraspObject.h"
 
 class VrepInterface : public VrepDataInterface {
 public:
@@ -46,7 +47,7 @@ public:
     //bool IsValidState(GraspingStateRealArm grasping_state) const;
     
     std::map<int,double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
-    void LoadObjectInScene(std::string object_id, bool force_load = false) const;
+    void LoadObjectInScene(int object_id, bool force_load = false) const;
     
 
     

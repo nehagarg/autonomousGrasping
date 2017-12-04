@@ -1,22 +1,35 @@
-import sys
-import getopt
+#import sys
+#import getopt
 import os
 import rospy
 from vrep_common.srv import *
 
 import yaml
 
+def get_pruned_saso_files(object_name, data_dir):
+    files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if 'SASOData_0-005_' + object_name in f and f.endswith('.txt') and '_24_' in f]
+    files_prefix = ["_".join(x.split('_')[0:-1]) for x in files]
+    return files_prefix;
+
 def get_object_properties(object_id, object_property_dir):
-    if 'G3DB' not in object_id:
-        mesh_properties = get_object_properties_for_pure_shape(object_id)
+    object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
+    if not os.path.exists(object_properties_filename):
+        mesh_properties = get_default_object_properties(object_id)
     else:
         object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
         with open(object_properties_filename,'r') as stream:
             mesh_properties = yaml.load(stream)
-        mesh_properties['signal_name'] = 'mesh_location'
-        mesh_properties['mesh_name'] = "g3db_meshes" + mesh_properties['mesh_name']
+        if 'G3DB' in object_id:
+            #mesh_properties['signal_name'] = 'mesh_location'
+            mesh_properties['mesh_name'] = "g3db_meshes/" + mesh_properties['mesh_name']
     return mesh_properties
-    
+
+def get_default_object_properties(object_id):
+    if 'G3DB' not in object_id:
+        return get_object_properties_for_pure_shape(object_id)
+    else:
+        return {}
+
 def get_object_properties_for_pure_shape(object_id_str):
     ans = {}
     ans['signal_name'] = 'pure_shape'
@@ -61,6 +74,7 @@ def update_object(action, mesh_properties):
             #6 is for customization script
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  [], action)
             mesh_properties["object_initial_pose_z"] = resp1.outputFloats[2]
+            mesh_properties["object_pose"] = resp1.outputFloats
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
     
@@ -68,7 +82,7 @@ def update_object(action, mesh_properties):
         try:
             #6 is for customization script
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  
-            [mesh_properties['signal_name'], mesh_properties['mesh_name']], action)
+            [mesh_properties['signal_name'], os.path.abspath(mesh_properties['mesh_name'])], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
    

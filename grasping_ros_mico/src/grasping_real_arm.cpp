@@ -175,6 +175,9 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         robotInterface->invalid_state_penalty = config["invalid_state_penalty"].as<int>();
     }
     
+    /*
+    // This will be loaded from object property file, so not loading here to 
+    //avoid overriding property file values
     if(config["object_min_z"])
     {
         for(int i = 0; i < config["object_min_z"].size();i++)
@@ -204,7 +207,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
             robotInterface->initial_object_pose_z.push_back(robotInterface->default_initial_object_pose_z);
         }
     }
-    
+    */
     if(config["separate_close_reward"])
     {
         robotInterface->separate_close_reward = config["separate_close_reward"].as<bool>();

@@ -60,15 +60,6 @@ model parameters
 // joint stable threshold
 #define JOINT_STABLE_THRES 0.93
 
-enum { //action
-        A_INCREASE_X = 0 ,
-        A_DECREASE_X = 1 ,
-        A_INCREASE_Y = 2 ,
-        A_DECREASE_Y = 3,
-        A_CLOSE = 4,
-        A_OPEN = 5,
-        A_PICK = 6
-};
 
 enum { // status of the gripper
 	G_OPEN = 0,

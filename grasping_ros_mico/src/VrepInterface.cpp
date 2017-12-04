@@ -141,7 +141,8 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
 
 }
 
-void VrepInterface::LoadObjectInScene(std::string object_id, bool force_load) const {
+void VrepInterface::LoadObjectInScene(int object_id, bool force_load) const {
+    
     if(target_object_handle != -1)
     {
         
@@ -162,44 +163,17 @@ void VrepInterface::LoadObjectInScene(std::string object_id, bool force_load) co
     }
     else
     {
-        PyObject *pName;
-        pName = PyString_FromString("load_objects_in_vrep");
-        PyObject *pModule = PyImport_Import(pName);
-        if(pModule == NULL)
+        
+        if(graspObjects[object_id] == NULL)
         {
-            PyErr_Print();
-            fprintf(stderr, "Failed to load \"load objects in vrep\"\n");
-            assert(0==1);
+            //This will load object properties
+            graspObjects[object_id] = getGraspObject(object_id_to_filename[object_id]);
         }
-        Py_DECREF(pName);
+        
+        //This will add object in scene
+        graspObjects[object_id]->loadObject(true);
 
-        PyObject *load_function = PyObject_GetAttrString(pModule, "add_object_in_scene");
-        if (!(load_function && PyCallable_Check(load_function)))
-        {
-            if (PyErr_Occurred())
-                    PyErr_Print();
-                fprintf(stderr, "Cannot find function \"add_object_in_scene\"\n");
-        }
-
-        PyObject *pArgs, *pValue;
-        pArgs = PyTuple_New(2);
-        pValue = PyString_FromString(object_id.c_str());
-        /* pValue reference stolen here: */
-        PyTuple_SetItem(pArgs, 0, pValue);
-        pValue = PyString_FromString(object_property_dir.c_str());
-        /* pValue reference stolen here: */
-        PyTuple_SetItem(pArgs, 1, pValue);
-
-        PyObject* object_properties = PyObject_CallObject(load_function, pArgs);
-        Py_DECREF(pArgs);
-        Py_DECREF(load_function);
-        Py_DECREF(pModule);
-
-        PyObject* value1 = PyDict_GetItemString(object_properties, "object_min_z");
-        min_z_o.push_back(PyFloat_AsDouble(value1));
-        value1 = PyDict_GetItemString(object_properties, "object_initial_pose_z");
-        initial_object_pose_z.push_back(PyFloat_AsDouble(value1));
-        Py_DECREF(object_properties);
+        
         vrep_common::simRosGetObjectHandle object_handle_srv;
         object_handle_srv.request.objectName = "Cup";
         if(sim_get_object_handle_client.call(object_handle_srv))
@@ -1871,7 +1845,7 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         
         if(RobotInterface::auto_load_object)
         {
-            LoadObjectInScene(object_id_to_filename[initial_state.object_id], true);
+            LoadObjectInScene(initial_state.object_id, true);
         }
         int i = 0;
         int j = 7;
@@ -1970,7 +1944,7 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     }
     
     PyTuple_SetItem(pArgs, 0, object_list);
-    pValue = PyString_FromString(object_pointcloud_dir.c_str());
+    pValue = PyString_FromString(GraspObject::object_pointcloud_dir.c_str());
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 1, pValue);
 

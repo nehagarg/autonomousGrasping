@@ -152,9 +152,9 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     //So adding a default object pose . When object pose from kinect is available should compute offeset from defalut pose
     
     initial_state.object_pose = initial_state.gripper_pose;
-    initial_state.object_pose.pose.position.x = initial_object_x;
-    initial_state.object_pose.pose.position.y = initial_object_y;
-    initial_state.object_pose.pose.position.z = initial_object_pose_z[initial_state.object_id];
+    initial_state.object_pose.pose.position.x = graspObjects[initial_state.object_id]->initial_object_x;
+    initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y;
+    initial_state.object_pose.pose.position.z = graspObjects[initial_state.object_id]->initial_object_pose_z;
     AdjustRealObjectPoseToSimulatedPose(initial_state.object_pose);
     
 

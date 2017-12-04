@@ -89,8 +89,8 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
     }
     if(start_state_index == -3)
     {//Position that mimics real arm object slipping
-      initial_state.object_pose.pose.position.y = initial_object_y + 0.07 ;
-      initial_state.object_pose.pose.position.x = initial_object_x + 0.03;
+      initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y + 0.07 ;
+      initial_state.object_pose.pose.position.x = graspObjects[initial_state.object_id]->initial_object_x + 0.03;
       return;
     }     
     if (start_state_index >= 0 ) 
@@ -110,8 +110,8 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
         {
         int i = (start_state_index_mod % 49) / 7;
         int j = (start_state_index_mod % 49) % 7;
-        initial_state.object_pose.pose.position.y = initial_object_y -0.03 + (j*0.01);
-        initial_state.object_pose.pose.position.x = initial_object_x -0.03 + (i*0.01);
+        initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y -0.03 + (j*0.01);
+        initial_state.object_pose.pose.position.x = graspObjects[initial_state.object_id]->initial_object_x -0.03 + (i*0.01);
         }
         else
         {
@@ -138,8 +138,8 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
                 i = 0;
                 j = 8 - (((actual_index - 24))%8);
             }
-            initial_state.object_pose.pose.position.y = initial_object_y -0.04 + (j*0.01);
-            initial_state.object_pose.pose.position.x = initial_object_x -0.04 + (i*0.01);
+            initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y -0.04 + (j*0.01);
+            initial_state.object_pose.pose.position.x = graspObjects[initial_state.object_id]->initial_object_x -0.04 + (i*0.01);
         }
     }
     else
@@ -151,10 +151,10 @@ void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, st
             
              if(IsValidState(initial_state))
             {
-               if((initial_state.object_pose.pose.position.x <= initial_object_x + 0.03) &&
-                 (initial_state.object_pose.pose.position.x >= initial_object_x - 0.03) &&
-                 (initial_state.object_pose.pose.position.y <= initial_object_y + 0.03) &&
-                 (initial_state.object_pose.pose.position.y >= initial_object_y - 0.03))
+               if((initial_state.object_pose.pose.position.x <= graspObjects[initial_state.object_id]->initial_object_x + 0.03) &&
+                 (initial_state.object_pose.pose.position.x >= graspObjects[initial_state.object_id]->initial_object_x - 0.03) &&
+                 (initial_state.object_pose.pose.position.y <= graspObjects[initial_state.object_id]->initial_object_y + 0.03) &&
+                 (initial_state.object_pose.pose.position.y >= graspObjects[initial_state.object_id]->initial_object_y - 0.03))
             {
                 break;
             }
@@ -218,8 +218,8 @@ std::vector<GraspingStateRealArm> VrepDataInterface::InitialStartStateParticles(
            
             GraspingStateRealArm grasping_state(start);
             
-            grasping_state.object_pose.pose.position.y = initial_object_y -0.03 + (j*0.01);
-            grasping_state.object_pose.pose.position.x = initial_object_x -0.03 + (i*0.01);
+            grasping_state.object_pose.pose.position.y = graspObjects[grasping_state.object_id]->initial_object_y -0.03 + (j*0.01);
+            grasping_state.object_pose.pose.position.x = graspObjects[grasping_state.object_id]->initial_object_x -0.03 + (i*0.01);
             if(IsValidState(grasping_state))
             {
                particles.push_back(grasping_state);
@@ -247,7 +247,7 @@ grasping_state.gripper_pose.pose.position.z = grasping_state.gripper_pose.pose.p
         }
         if(gripper_status == 2) //Object is inside gripper and gripper is closed
         {
-            double z_diff_from_cylinder = initial_object_pose_z[grasping_state.object_id] - default_initial_object_pose_z;
+            double z_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_pose_z - graspObjects[grasping_state.object_id]->default_initial_object_pose_z;
             grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + 0.03;
             grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y;
             grasping_state.object_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + z_diff_from_cylinder;
@@ -298,7 +298,7 @@ bool isValidPick = true;
     
     //if object and tip are far from each other set false
     double distance = 0;
-    double z_diff_from_cylinder = initial_object_pose_z[grasping_state.object_id] - default_initial_object_pose_z;
+    double z_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_pose_z - graspObjects[grasping_state.object_id]->default_initial_object_pose_z;
     distance = distance + pow(grasping_state.gripper_pose.pose.position.x - grasping_state.object_pose.pose.position.x, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_state.object_pose.pose.position.y, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_state.object_pose.pose.position.z + z_diff_from_cylinder, 2);
@@ -351,11 +351,11 @@ bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const 
     
         
     //Check object is in its range
-    if(grasping_state.object_pose.pose.position.x < min_x_o ||
-       grasping_state.object_pose.pose.position.x > max_x_o ||
-       grasping_state.object_pose.pose.position.y < min_y_o ||
-       grasping_state.object_pose.pose.position.y > max_y_o ||
-       grasping_state.object_pose.pose.position.z < min_z_o[object_id]) // Object has fallen
+    if(grasping_state.object_pose.pose.position.x < graspObjects[grasping_state.object_id]->min_x_o ||
+       grasping_state.object_pose.pose.position.x > graspObjects[grasping_state.object_id]->max_x_o ||
+       grasping_state.object_pose.pose.position.y < graspObjects[grasping_state.object_id]->min_y_o ||
+       grasping_state.object_pose.pose.position.y > graspObjects[grasping_state.object_id]->max_y_o ||
+       grasping_state.object_pose.pose.position.z < graspObjects[grasping_state.object_id]->min_z_o) // Object has fallen
     {
         return false;
     }

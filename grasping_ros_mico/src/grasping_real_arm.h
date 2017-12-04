@@ -46,7 +46,7 @@ public:
     virtual ~GraspingRealArm();
 
     int NumActions() const {
-        return robotInterface->A_PICK + 1;
+        return A_PICK + 1;
     };
     
      /* Deterministic simulative model.*/
@@ -89,7 +89,7 @@ public:
     /* Bound-related functions.*/
     double GetMaxReward() const { return reward_max;}
     ValuedAction GetMinRewardAction() const {
-        return ValuedAction(robotInterface->A_OPEN, -1);
+        return ValuedAction(A_OPEN, -1);
          
                 
     };
