@@ -1,5 +1,6 @@
 import sys
 import getopt
+import os
 import matplotlib.pyplot as plt
 import scipy
 import numpy as np
@@ -53,8 +54,8 @@ def get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_j
         color = 'green'
         if reward < 0:
             color = 'red'
-        #if rel_x < 0 or rel_x > 0.3 or rel_y > 0.1 or rel_y < -0.1:
-        if reward < -999:
+        if rel_x < 0 or rel_x > 0.3 or rel_y > 0.1 or rel_y < -0.1 or reward < -999:
+        #if reward < -999:
                 
                 color = None
         #if float(touch_values[0]) > 5 or float(touch_values[1]) > 5:
@@ -111,58 +112,69 @@ def get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_j
         #    color ='blue'
     return color
     
-def plot_pick_success(command_file, action_id= 10):
+def plot_pick_success(object_file_name, action_id= 10):
     y = []
     x = []
     colors = []
     index = [0,0]
     reward_index = 0
-    with open(command_file, 'r') as f:
-        for line in f:
-            sasor = line.strip().split('*')
-            init_state = sasor[0].split('|')
-            init_state_gripper = init_state[0].split(' ')[2:]
-            init_state_object = init_state[1].split(' ')
-            action = int(sasor[1])
-            reward = float(sasor[-1])
-            rel_x = float(init_state_object[0]) - float(init_state_gripper[0])
-            rel_y = float(init_state_object[1]) - float(init_state_gripper[1])
-            touch_values = sasor[-2].split('|')[-1].split(' ')
-            finger_joint_values = sasor[2].split('|')[-1].split(' ')
-            index_line = init_state[0].split(' ')[0:2]
-            if(index_line == index):
-                if reward < reward_index:
-                    reward_index = reward
-            else:
-                reward_index = 0
-                index[0] = index_line[0]
-                index[1] = index_line[1]
-                
-            if init_state[0].split(' ')[0] == '7' and init_state[0].split(' ')[1] == '2':
-                if action == action_id:
-                    print reward
-            ver = 'ver4'
-            if 'ver5' in command_file:
-                ver = 'ver5'
-            if action == action_id:
-                if reward_index < -999:
-                    reward = reward_index
-                color = get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_joint_values, ver)
-                if action_id == 10 and rel_x < 0.04 and color == 'red':
-                    print '---------'
-                    print init_state
-                    print '----------'
-                if action_id == 8 and rel_x < 0.04 and color =='yellow':
-                    print line
-                if color is not None: #color=='green':
-                    y.append(rel_y)
-                    x.append(rel_x)
-                    colors.append(color)
-                    if color == 'green' and action_id != 8:
-                            print init_state
+    
+    if(os.path.isdir(object_file_name)):
+        files = [os.path.join(object_file_name, f) for f in os.listdir(object_file_name) if f.endswith('.txt')]
+    elif(not os.path.exists(object_file_name)):
+        obj_dir_name = os.path.dirname(object_file_name)
+        file_prefix = os.path.basename(object_file_name)
+        files = [os.path.join(obj_dir_name, f) for f in os.listdir(obj_dir_name) if f.startswith(file_prefix) and f.endswith('.txt')]
+    else:
+        files = [object_file_name]
+    for command_file in files:
+        print command_file
+        with open(command_file, 'r') as f:
+            for line in f:
+                sasor = line.strip().split('*')
+                init_state = sasor[0].split('|')
+                init_state_gripper = init_state[0].split(' ')[2:]
+                init_state_object = init_state[1].split(' ')
+                action = int(sasor[1])
+                reward = float(sasor[-1])
+                rel_x = float(init_state_object[0]) - float(init_state_gripper[0])
+                rel_y = float(init_state_object[1]) - float(init_state_gripper[1])
+                touch_values = sasor[-2].split('|')[-1].split(' ')
+                finger_joint_values = sasor[2].split('|')[-1].split(' ')
+                index_line = init_state[0].split(' ')[0:2]
+                if(index_line == index):
+                    if reward < reward_index:
+                        reward_index = reward
                 else:
-                    if action_id == 10:
+                    reward_index = 0
+                    index[0] = index_line[0]
+                    index[1] = index_line[1]
+
+                if init_state[0].split(' ')[0] == '7' and init_state[0].split(' ')[1] == '2':
+                    if action == action_id:
+                        print reward
+                ver = 'ver4'
+                if 'ver5' in command_file:
+                    ver = 'ver5'
+                if action == action_id:
+                    if reward_index < -999:
+                        reward = reward_index
+                    color = get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_joint_values, ver)
+                    if action_id == 10 and rel_x < 0.04 and color == 'red':
+                        print '---------'
                         print init_state
+                        print '----------'
+                    if action_id == 8 and rel_x < 0.04 and color =='yellow':
+                        print line
+                    if color is not None: #color=='green':
+                        y.append(rel_y)
+                        x.append(rel_x)
+                        colors.append(color)
+                        if color == 'green' and action_id != 8:
+                                print init_state
+                    else:
+                        if action_id == 10:
+                            print init_state
                     
                         
                 
