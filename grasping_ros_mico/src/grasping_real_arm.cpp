@@ -125,7 +125,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
         RobotInterface::auto_load_object = false;
     }
-
+    
+    if(config["use_pruned_data"])
+    {
+        RobotInterface::use_pruned_data = config["use_pruned_data"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_pruned_data = false;
+    }
     
     if(config["belief_object_ids"]) 
     {

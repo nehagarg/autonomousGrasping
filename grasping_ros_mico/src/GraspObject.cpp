@@ -40,6 +40,9 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("sys.path.append('python_scripts')");
     PyRun_SimpleString("sys.path.append('scripts')");
+    char ** argv;
+    //std::cout << "Initialized python 1" << std::endl;
+    PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
     loadObject(load_in_vrep);
 }
 
@@ -105,11 +108,14 @@ std::vector<std::string> GraspObject::getSASOFilenames(bool use_pruned_data) {
     if(!use_pruned_data)
     {
         ans.push_back(data_dir_name + "SASOData_Cylinder_" + getOldSasoFilename() + "cm_");
+        std::cout << "Reading normal files" << std::endl;
     }
     else
     {
         std::string data_dir = data_dir_name + "/pruned_data_files/" + object_name;
+        
         PyObject* object_file_list = callPythonFunction("get_pruned_saso_files", object_name, data_dir);
+        std::cout << "Reading pruned files " << PyList_Size(object_file_list) << std::endl;
         for(int i = 0; i < PyList_Size(object_file_list); i++)
         {
             ans.push_back(PyString_AsString(PyList_GetItem(object_file_list, i)));
@@ -163,10 +169,10 @@ PyObject* GraspObject::callPythonFunction(std::string function_name, std::string
 
     PyObject *pArgs, *pValue;
     pArgs = PyTuple_New(2);
-    pValue = PyString_FromString(object_name.c_str());
+    pValue = PyString_FromString(arg1.c_str());
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 0, pValue);
-    pValue = PyString_FromString(GraspObject::object_property_dir.c_str());
+    pValue = PyString_FromString(arg2.c_str());
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 1, pValue);
 

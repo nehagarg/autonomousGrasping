@@ -341,7 +341,8 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
             exit(0);
         }*/
         //std::cout << reward << " " << action << "*";
-        if (isDataEntryValid(reward, simData, action))  //(reward != -1000 && reward != -2000)
+        if (isDataEntryValid(reward, simData, action) && !line.empty() 
+                && (line.find("nan")== std::string::npos))  //(reward != -1000 && reward != -2000)
         {
             if(readOpenAction ||(!readOpenAction && action!= A_OPEN))
             {
@@ -361,7 +362,11 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
         } 
         i++;
     }
-    //std::cout << std::endl;
+    for(int j = 0; j < A_PICK + 1; j++)
+    {
+      std::cout << "(" << j << "," << graspObjects[object_id]->simulationDataCollectionWithObject[j].size() << ")";  
+    }
+    std::cout << std::endl;
     simulationDataFile.close();
     myfile.close();
     return ans;
@@ -381,7 +386,7 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
         //simulationDataFile.open("data/simulationData1_allParts.txt");
         std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
         ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, false, false);
-
+        
         simulationFileName = sasoFilenames[i]+"openAction.txt";
         ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, true, false);
         //simulationDataFile.open("data/simulationData_1_openAction.txt");
