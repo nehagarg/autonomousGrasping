@@ -7,7 +7,8 @@ try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dumper
-from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, get_switching_threshold, LEARNED_MODEL_NAME, get_grasping_object_name_list
+from grasping_object_list import get_grasping_object_name_list
+from generate_grasping_ros_mico_yaml_config_file import get_learning_version_from_filename, get_switching_threshold, ConfigFileGenerator
 import re
 
 def generate_commands(yaml_config):
@@ -234,8 +235,29 @@ def generate_params_file(file_name, problem_type):
     output = yaml.dump(ans, Dumper = Dumper)
     f = open(file_name, 'w')
     f.write(output)
-
-def generate_cylinder_g3db_mixed_belief_ver5_commands(type = '1001-84_weighted'):
+def generate_ver5_command_files(type = 'cylinder_pruned'):
+    cfg = ConfigFileGenerator(type)
+    belief_type = 'UNIFORM_WITH_STATE_IN'
+    dir_prefix = './results/despot_logs/'
+    cfg.belief_type = "belief_uniform_"
+    for distribution_type in ["", "fixed_distribution/"]:
+        cfg.distribution_type = distribution_type
+        gsf = cfg.generate_setup_files()
+        for filename,filetype,interface_type,object_type in gsf:
+            ans = get_default_params()
+            ans['output_dir'] = dir_prefix +  os.path.dirname(filename)           
+            ans['file_name_prefix'] = 'Table_scene_' + object_type 
+            ans['config_file'] = 'config_files/' + filename.replace(cfg.belief_type, "").replace(cfg.distribution_type, "")
+            ans['additional_params'] = '--number=-2 -l CAP'
+            ans['belief_type'] = belief_type
+            if 'fixed_distribution' in filename:
+                    ans['additional_params'] = '-l CAP --number='
+            ans = modify_params_file_for_learning(filename, 'despot_without_display', ans)
+            output = yaml.dump(ans, Dumper = Dumper)
+            f = open(filename, 'w')
+            f.write(output)
+    
+def generate_cylinder_g3db_mixed_belief_ver5_commands_old(type = '1001-84_weighted'):
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     object_list = object_list+['9cm', '8cm']
     belief_type = 'UNIFORM_WITH_STATE_IN'
@@ -267,10 +289,10 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands(type = '1001-84_weighted')
         belief_name = belief_name + "/weighted_belief"
     generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix)
     
-def generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix):
-    #for filetype in ['']:
+def generate_grasping_params_file_old(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix):
+    for filetype in ['']:
     #for filetype in ['','_learning_v13', '_combined_0_v13']:
-    for filetype in ['','_v12_learning', '_v12_combined_0']:
+    #for filetype in ['','_v12_learning', '_v12_combined_0']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             if 'Ver5' in config_file_name:

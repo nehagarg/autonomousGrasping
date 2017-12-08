@@ -1,3 +1,4 @@
+import os
 import sys
 import re
 import getopt
@@ -34,6 +35,13 @@ def get_min_z_o(id):
 
 
 def get_g3db_belief_ver5_low_friction_table_config(ans):
+    ans["object_mapping"] = get_grasping_object_name_list('all_cylinders')
+    ans["low_friction_table"] = True
+    ans["belief_object_ids"] = [0,1,2]
+    ans["version5"] = True
+    ans["auto_load_object"] = True
+    
+def get_g3db_belief_ver5_low_friction_table_config_old_version(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp_ver5/SASOData_Cylinder_1001cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_1084cm_")
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_9cm_")
@@ -85,8 +93,8 @@ def create_basic_config(filename):
     ans["object_mapping"].append("data_table_exp/SASOData_Cuboid_7cm_")
     ans["object_mapping"].append("data_table_exp/SASOData_Cylinder_75mm_")
     ans["object_mapping"].append("data_table_exp/SASOData_Cylinder_85mm_")
-    ans["object_min_z"] = [1.1200]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
-    ans["object_initial_pose_z"] = [1.1248]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+    #ans["object_min_z"] = [1.1200]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
+    #ans["object_initial_pose_z"] = [1.1248]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     
     ans["low_friction_table"] = False
     ans["test_object_id"] = len(ans["object_mapping"])
@@ -162,7 +170,7 @@ def modify_basic_config(filename, ans):
     if 'pocman' in filename:
         return get_pocman_config(filename)
     
-    if 'Ver5' in filename:
+    if 'ver5' in filename:
             get_g3db_belief_ver5_low_friction_table_config(ans)
             return ans
         
@@ -420,7 +428,13 @@ def generate_G3DB_ver5_single_belief_files():
                 
                 write_config_in_file(filename, ans)
 
-def generate_G3DB_ver5_cylinder_belief_files(regression = 'false'):
+def generate_G3DB_ver5_cylinder_belief_files(dynamic_model='regression'):
+    global LEARNED_MODEL_NAME
+    LEARNED_MODEL_NAME = 'model.ckpt-965' #for version 12
+    object_list = get_grasping_object_name_list('all_cylinders')
+    interface_types = ["", "Data"] 
+    
+def generate_G3DB_ver5_cylinder_belief_files_old(regression = 'false'):
     global LEARNED_MODEL_NAME
     #LEARNED_MODEL_NAME = 'model.ckpt-693' #for version 11
     LEARNED_MODEL_NAME = 'model.ckpt-965' #for version 12
@@ -471,8 +485,54 @@ def generate_G3DB_ver5_cylinder_cup_belief_files():
                 ans["belief_object_ids"] = [0,2,3]
                 
                 write_config_in_file(filename, ans)
+
+class ConfigFileGenerator():
+    def __init__(self, type, get_config=True):
+        self.use_pruned_data = False
+        if('cylinder' in type):
+            self.belief_name = 'cylinder_7_8_9'
+            self.object_list = get_grasping_object_name_list('all_cylinders')
+        if('pruned' in type):
+            self.use_pruned_data = True
+        if get_config:
+            self.belief_type=""
+            self.distribution_type = ""
+        self.interface_types = ["", "simulator/"]
+        self.filetypes = [''] #Con contain learning and combined policy dir paths
     
+    def generate_setup_files(self):
+        for filetype in self.filetypes:
+            for interface_type in self.interface_types:
+                for object_type in self.object_list:
+                    file_prefix = "low_friction_table/vrep_scene_ver5/multiObjectType/"
+                    file_prefix = file_prefix + self.belief_type + self.belief_name + '_reward100_penalty10'
+                    if(self.use_pruned_data):
+                        file_prefix = file_prefix + "/use_pruned_data"
+                    file_prefix = file_prefix + "/" + interface_type
+                    file_prefix = file_prefix + self.distribution_type
+                    if not os.path.exists(file_prefix):
+                        print "Creating path " + file_prefix
+                        os.mkdir(file_prefix)
+                    file_prefix = file_prefix+filetype
+                    filename = file_prefix+object_type + ".yaml"
+                    yield filename,filetype,interface_type,object_type
+
+def generate_ver5_config_files(type = 'cylinder_pruned'):
+    cfg = ConfigFileGenerator(type)
+    gsf = cfg.generate_setup_files()
+    for filename,filetype,interface_type,object_type in gsf:
+        ans = create_basic_config(filename)
+        ans = modify_basic_config(filename, ans)
+        if(cfg.use_pruned_data):
+            ans["use_pruned_data"] = True
+        ans["interface_type"] = 1
+        if interface_type == 'simulator/':
+            ans["interface_type"] = 0
+        ans["test_object_id"] = ans["object_mapping"].index(object_type)
+        write_config_in_file(filename, ans)
     
+                    
+            
 def main():
     opts, args = getopt.getopt(sys.argv[1:],"g:hm:s:")
     global LEARNED_MODEL_NAME
@@ -488,8 +548,9 @@ def main():
             #generate_G3DB_belief_files()
             #generate_G3DB_ver5_belief_files(arg)
             #generate_G3DB_ver5_single_belief_files()
-            generate_G3DB_ver5_cylinder_belief_files('true')
+            #generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
+            generate_ver5_config_files()
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
