@@ -7,8 +7,8 @@ from vrep_common.srv import *
 import yaml
 
 def get_pruned_saso_files(object_name, data_dir):
-    files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if 'SASOData_0-005_' + object_name in f and f.endswith('.txt') and '_24_' in f]
-    files_prefix = ["_".join(x.split('_')[0:-1]) for x in files]
+    files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if 'SASOData_' + object_name in f and f.endswith('.txt') and '_24_' in f]
+    files_prefix = list(set(["_".join(x.split('_')[0:-1]) + "_" for x in files]))
     return files_prefix;
 
 def get_object_properties(object_id, object_property_dir):
