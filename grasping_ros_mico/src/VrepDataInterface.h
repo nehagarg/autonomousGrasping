@@ -38,7 +38,10 @@ public:
     
 
     bool IsValidState(GraspingStateRealArm grasping_state) const;
-
+    
+    static bool IsValidStateStatic(GraspingStateRealArm grasping_state, 
+            GraspObject* grasp_object, double min_x_i, double max_x_i, 
+            double min_y_i, double max_y_i, double gripper_out_y_diff);
 
     virtual bool StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const;
 

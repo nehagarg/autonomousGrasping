@@ -326,7 +326,9 @@ bool isValidPick = true;
     return isValidPick;
 }
 
-bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const {
+bool VrepDataInterface::IsValidStateStatic(GraspingStateRealArm grasping_state, 
+        GraspObject* grasp_object, double min_x_i, double max_x_i, 
+        double min_y_i, double max_y_i, double gripper_out_y_diff) {
     bool isValid = true;
     int object_id = grasping_state.object_id;
     //Check gripper is in its range
@@ -351,15 +353,21 @@ bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const 
     
         
     //Check object is in its range
-    if(grasping_state.object_pose.pose.position.x < graspObjects[grasping_state.object_id]->min_x_o ||
-       grasping_state.object_pose.pose.position.x > graspObjects[grasping_state.object_id]->max_x_o ||
-       grasping_state.object_pose.pose.position.y < graspObjects[grasping_state.object_id]->min_y_o ||
-       grasping_state.object_pose.pose.position.y > graspObjects[grasping_state.object_id]->max_y_o ||
-       grasping_state.object_pose.pose.position.z < graspObjects[grasping_state.object_id]->min_z_o) // Object has fallen
+    if(grasping_state.object_pose.pose.position.x < grasp_object->min_x_o ||
+       grasping_state.object_pose.pose.position.x > grasp_object->max_x_o ||
+       grasping_state.object_pose.pose.position.y < grasp_object->min_y_o ||
+       grasping_state.object_pose.pose.position.y > grasp_object->max_y_o ||
+       grasping_state.object_pose.pose.position.z < grasp_object->min_z_o) // Object has fallen
     {
         return false;
     }
     return isValid;
+}
+
+bool VrepDataInterface::IsValidState(GraspingStateRealArm grasping_state) const {
+    return IsValidStateStatic(grasping_state, 
+            graspObjects[grasping_state.object_id],
+            min_x_i, max_x_i, min_y_i, max_y_i, gripper_out_y_diff);
 }
 
 bool VrepDataInterface::StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const {

@@ -288,11 +288,32 @@ bool RobotInterface::isDataEntrySameAsDefault(SimulationData simData, int action
 }
 
 
-bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int action) const{
+bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int action, int object_id) const{
     bool ans = false;
     if(reward != -1000 && reward != -2000 && reward != -3000)
     {
-        ans = true;
+        
+        
+        GraspingStateRealArm initDummyState;
+        for(int i = 0; i < 4; i++)
+        {
+            initDummyState.finger_joint_state[i] = simData.current_finger_joint_state[i];
+        }
+        initDummyState.gripper_pose = simData.current_gripper_pose;
+        initDummyState.object_pose = simData.current_object_pose;
+        initDummyState.object_id = object_id;
+        GraspingStateRealArm nextState(initDummyState);
+    
+        if(action==A_OPEN || action==A_PICK)
+        {
+            nextState.closeCalled = true;
+        }
+        if(VrepDataInterface::IsValidStateStatic(nextState, graspObjects[object_id],
+                min_x_i, max_x_i, min_y_i, max_y_i, gripper_out_y_diff))
+        {
+            ans = true;
+        }
+        
         /*if ((simData.current_object_pose.pose.position.z - default_initial_object_pose_z) 
                 < max_x_o_difference)
         {
@@ -341,7 +362,7 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
             exit(0);
         }*/
         //std::cout << reward << " " << action << "*";
-        if (isDataEntryValid(reward, simData, action) && !line.empty() 
+        if (isDataEntryValid(reward, simData, action, object_id) && !line.empty() 
                 && (line.find("nan")== std::string::npos))  //(reward != -1000 && reward != -2000)
         {
             if(readOpenAction ||(!readOpenAction && action!= A_OPEN))

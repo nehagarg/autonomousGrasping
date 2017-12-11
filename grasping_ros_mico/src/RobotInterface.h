@@ -166,7 +166,7 @@ public:
     std::map< std::string, std::vector<int> > getSimulationData(int object_id);
     std::vector<int> getSimulationDataFromFile(int object_id, std::string fileName, bool readOpenAction, bool checkDefault=true, std::string nonDefaultFilename="") const;
     void getRegressionModels(int object_id);
-    bool isDataEntryValid(double reward, SimulationData simData, int action) const;
+    bool isDataEntryValid(double reward, SimulationData simData, int action, int object_id) const;
     bool isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const;
     GraspObject* getGraspObject(std::string object_name) const;
 
