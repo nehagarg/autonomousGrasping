@@ -1815,18 +1815,27 @@ void VrepInterface::CreateStartState(GraspingStateRealArm& initial_state, std::s
         
     
             //Stop Simulation if its already running
-        vrep_common::simRosStopSimulation stop_srv;
-        if(sim_stop_client.call(stop_srv) ){
-                        if(stop_srv.response.result ==0)
-                        {
-                             std::cout << "Simulation already stopped" << std::endl;
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "ERROR: Failed to stop simualtion" << std::endl ;
-                        assert(0==1);
-                    }
+    int stop_count = 0;
+    vrep_common::simRosStopSimulation stop_srv;
+    if(sim_stop_client.call(stop_srv) ){
+        while(stop_srv.response.result !=0)
+        {
+            sim_stop_client.call(stop_srv);
+            sleep(1);
+             std::cout << "Stopping simulation" << std::endl;
+             stop_count++;
+             if(stop_count > 10)
+             {
+                 break;
+             }
+        }
+    }
+
+    if(!sim_stop_client.call(stop_srv) )
+    {
+        std::cout << "ERROR: Failed to stop simualtion" << std::endl ;
+        assert(0==1);
+    }
        /* //Start simulation as starting simulation after setting griiper pose leads to unstable non pure shape
         vrep_common::simRosStartSimulation start_srv;
         if(sim_start_client.call(start_srv) )
