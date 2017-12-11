@@ -8,7 +8,7 @@ import math
 import sys
 import getopt
 import subprocess
-from generate_grasping_ros_mico_yaml_config_file import get_grasping_object_name_list
+from grasping_object_list import get_grasping_object_name_list
 
 
 PROBLEM_NAME = "vrep"
@@ -305,7 +305,7 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
         patterns = ['*' + test_pattern + '*.log' for test_pattern in object_list]
     else:
         object_list = get_grasping_object_name_list(test_pattern)
-        patterns = ['*' + test_pattern + '*.log' for test_pattern in object_list]
+        patterns = ['*' + test_pattern + '_*.log' for test_pattern in object_list]
     
     reward_file_size = end_index * len(patterns)
     max_success_cases = index_step *  len(patterns)
