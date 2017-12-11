@@ -302,10 +302,10 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
         patterns = ['*85mm*.log', '*75mm*.log']
     elif test_pattern == 'grasp_objects':
         object_list = get_grasping_object_name_list()
-        patterns = ['*' + test_pattern + '*.log' for test_pattern in object_list]
+        patterns = ['*' + t + '*.log' for t in object_list]
     else:
         object_list = get_grasping_object_name_list(test_pattern)
-        patterns = ['*' + test_pattern + '_*.log' for test_pattern in object_list]
+        patterns = ['*' + t + '_*.log' for t in object_list]
     
     reward_file_size = end_index * len(patterns)
     max_success_cases = index_step *  len(patterns)
