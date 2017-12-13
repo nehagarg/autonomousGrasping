@@ -50,7 +50,13 @@ def update_object(action, mesh_properties):
         call_function = rospy.ServiceProxy('/vrep/simRosCallScriptFunction', simRosCallScriptFunction)
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-    
+    if(action == 'get_size'):
+        try:
+            #6 is for customization script
+            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  [], action)
+            mesh_properties["object_size"] = resp1.outputFloats
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
     if(action == 'set_size'):
         try:
             #6 is for customization script

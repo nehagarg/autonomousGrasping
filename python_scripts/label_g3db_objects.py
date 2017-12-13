@@ -1,13 +1,17 @@
 import sys
 import getopt
 import os
-import rospy
 from vrep_common.srv import *
 
 import yaml
+try:
+    from yaml import CDumper as Dumper
+except ImportError:
+    from yaml import Dump 
     
 from PySide.QtCore import *
 from PySide.QtGui import *
+import numpy as np
 
 import load_objects_in_vrep as ol
 
@@ -62,6 +66,14 @@ class MainWindow(QWidget):
         self.setWindowTitle(os.path.basename(self.lo.object_file_names[self.lo.mesh_file_id]))
         prettyData =  yaml.dump(self.lo.yaml_out, default_flow_style=False)
         self.plainTextEdit.setPlainText(str(prettyData))
+        """
+        #Only for debugging
+        while os.path.exists(self.lo.get_output_file_name()):
+            self.handleNextButton()
+            self.savePropertiesFileButton.setText("Save Again")
+            if(self.lo.mesh_file_id < len(self.lo.object_file_names) - 1):
+                break
+        """
         if os.path.exists(self.lo.get_output_file_name()):
             self.savePropertiesFileButton.setText("Save Again")
         else:
@@ -101,25 +113,84 @@ class LabelObject:
         self.output_dir = dir_name
         self.mesh_file_id = 0
         self.yaml_out = {}
-        
-    def load_next_object(self):
+        self.size_clusters = {}
+        self.size_lists = {}
+        self.duplicate_file_name = os.path.dirname(object_file_name) + "/duplicate_list.yaml"
+        if not os.path.exists(self.duplicate_file_name):
+            self.detect_duplicates_for_object_class()
+        else:
+            with open(self.duplicate_file_name, 'r') as f:
+                (self.size_lists, self.size_clusters) = yaml.load(f)
+                
+    def load_next_object(self, detect_duplicates = True):
         #load object
         self.yaml_out = {}
         self.yaml_out['mesh_name'] = self.object_file_names[self.mesh_file_id]
         self.yaml_out['signal_name'] = 'mesh_location'
         self.yaml_out['object_use_label'] = 'S'
         ol.update_object('load_object', self.yaml_out)
-        
+                
         #get object properties
         self.output_file_name = self.get_output_filename(self.object_file_names[self.mesh_file_id],self.output_dir)
+        
+        #Check for duplicates
+        if(detect_duplicates):
+            object_class = self.get_object_class_from_mesh_name(os.path.basename(self.object_file_names[self.mesh_file_id]))
+            if object_class in self.size_clusters.keys():
+                for j in range(0,len(self.size_clusters[object_class])):
+                    cluster = self.size_clusters[object_class][j]
+                    mesh_name = os.path.basename(self.object_file_names[self.mesh_file_id])
+                    if  mesh_name in cluster:
+                        mesh_index = cluster.index(mesh_name)
+                        self.duplicate_mesh_name = cluster[0]
+                        self.duplicate_mesh_index = mesh_index
+                        self.duplicate_mesh_size = self.size_lists[object_class][j]
+        else:
+            self.duplicate_mesh_name = os.path.basename(self.object_file_names[self.mesh_file_id])
+            self.duplicate_mesh_index = 0
+            
         if(os.path.exists(self.output_file_name)):
             with open(self.output_file_name, 'r') as f:
                 self.yaml_out = yaml.load(f)
         else:
             self.yaml_out['mesh_name'] = os.path.basename(self.object_file_names[self.mesh_file_id])
+        self.yaml_out['duplicate_mesh_name'] = self.duplicate_mesh_name
+        self.yaml_out['duplicate_mesh_index'] = self.duplicate_mesh_index
+        self.yaml_out['duplicate_mesh_size'] = self.duplicate_mesh_size
             
-            
-                
+    def detect_duplicates_for_object_class(self):
+        self.size_lists = {}
+        self.size_clusters = {}
+        for i in range(0,len(self.object_file_names)):
+            self.mesh_file_id = i
+            object_class = self.get_object_class_from_mesh_name(os.path.basename(self.object_file_names[self.mesh_file_id]))
+            self.load_next_object(False)
+            object_size = {}
+            ol.update_object("get_size", object_size)
+            if(object_class in self.size_lists.keys()):
+                match_found = False
+                for j in range(0,len(self.size_lists[object_class])):
+                    size = self.size_lists[object_class][j]
+                    try:
+                        np.testing.assert_almost_equal(size, object_size["object_size"],4)
+                        self.size_clusters[object_class][j].append(self.yaml_out['mesh_name'])
+                        match_found=True
+                    except AssertionError:
+                        pass
+                if not match_found:
+                    self.size_lists[object_class].append(object_size["object_size"])
+                    self.size_clusters[object_class].append([self.yaml_out['mesh_name']])
+            else:
+                self.size_lists[object_class] = [object_size["object_size"]]
+                self.size_clusters[object_class] = [[self.yaml_out['mesh_name']]]
+        
+        output = yaml.dump((self.size_lists,self.size_clusters ), Dumper = Dumper)
+        with open(self.duplicate_file_name, 'w') as f:
+            f.write(output)                
+    
+    def get_object_class_from_mesh_name(self, object_file_name):
+        return object_file_name.split('-')[0]
+    
     def get_object_filenames(self, object_file_name):
         ans = []
         if(os.path.isdir(object_file_name)):
@@ -145,10 +216,7 @@ class LabelObject:
         return self.get_output_filename(self.object_file_names[self.mesh_file_id], self.output_dir)
 
     def save_properties_file(self, output_str):
-        try:
-            from yaml import CDumper as Dumper
-        except ImportError:
-            from yaml import Dump
+        
         if(output_str is not None):
             self.yaml_out = yaml.load(output_str)
         output = yaml.dump(self.yaml_out, Dumper = Dumper)
