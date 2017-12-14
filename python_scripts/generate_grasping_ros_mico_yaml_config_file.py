@@ -489,11 +489,14 @@ def generate_G3DB_ver5_cylinder_cup_belief_files():
 class ConfigFileGenerator():
     def __init__(self, type, get_config=True):
         self.use_pruned_data = False
+        self.use_discretized_data = False
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('all_cylinders')
         if('pruned' in type):
             self.use_pruned_data = True
+        if('discretize' in type):
+            self.use_discretized_data = True
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -508,6 +511,8 @@ class ConfigFileGenerator():
                     file_prefix = file_prefix + self.belief_type + self.belief_name + '_reward100_penalty10'
                     if(self.use_pruned_data):
                         file_prefix = file_prefix + "/use_pruned_data"
+                    if(self.use_discretized_data):
+                        file_prefix = file_prefix + "/use_discretized_data"
                     file_prefix = file_prefix + "/" + interface_type
                     file_prefix = file_prefix + self.distribution_type
                     if not os.path.exists(file_prefix):
@@ -517,7 +522,9 @@ class ConfigFileGenerator():
                     filename = file_prefix+object_type + ".yaml"
                     yield filename,filetype,interface_type,object_type
 
-def generate_ver5_config_files(type = 'cylinder_pruned'):
+#type = 'cylinder_pruned'
+#type = 'cylinder_discretize'
+def generate_ver5_config_files(type = 'cylinder'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files()
     for filename,filetype,interface_type,object_type in gsf:
@@ -525,6 +532,8 @@ def generate_ver5_config_files(type = 'cylinder_pruned'):
         ans = modify_basic_config(filename, ans)
         if(cfg.use_pruned_data):
             ans["use_pruned_data"] = True
+        if(cfg.use_discretized_data):
+            ans["use_discretized_data"] = True
         ans["interface_type"] = 1
         if interface_type == 'simulator/':
             ans["interface_type"] = 0

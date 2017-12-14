@@ -120,6 +120,7 @@ public:
     static bool use_regression_models;
     static bool auto_load_object;
     static bool use_pruned_data;
+    static bool use_discretized_data;
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
@@ -165,6 +166,7 @@ public:
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
     std::map< std::string, std::vector<int> > getSimulationData(int object_id);
     std::vector<int> getSimulationDataFromFile(int object_id, std::string fileName, bool readOpenAction, bool checkDefault=true, std::string nonDefaultFilename="") const;
+    void discretizeData(int object_id);
     void getRegressionModels(int object_id);
     bool isDataEntryValid(double reward, SimulationData simData, int action, int object_id) const;
     bool isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const;

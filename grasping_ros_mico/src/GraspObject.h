@@ -12,6 +12,7 @@
 #include "simulation_data_reader.h"
 #include "ScikitModels.h"
 #include "Python.h"
+#include "GraspingStateRealArm.h"
 class GraspObject {
 public:
     GraspObject(std::string object_name, std::string data_dir_name_, bool low_friction, bool load_in_vrep=false);
@@ -20,16 +21,20 @@ public:
     void SetObject_name(std::string object_name);
     std::string GetObject_name() const;
     std::string getRegressionModelDir();
-    std::vector<std::string> getSASOFilenames(bool use_pruned_data);
+    std::vector<std::string> getSASOFilenames(bool use_pruned_data, bool dicretize_data = false);
     void loadObject(bool load_in_vrep = false);
+    std::pair<int, int> getDiscretizationIndex(double x1, double y1);
+    std::vector<SimulationData> getSimulationData(geometry_msgs::PoseStamped object_pose, geometry_msgs::PoseStamped gripper_pose, int action, bool use_next = false);
     
     static std::string object_property_dir ;
     static std::string object_pointcloud_dir ;
     
     std::vector<SimulationData> simulationDataCollectionWithObject[A_PICK+1];
-    std::vector<int> simulationDataIndexWithObject[A_PICK+1];
+    //std::vector<int> simulationDataIndexWithObject[A_PICK+1];
     PyObject* dynamicModels[A_PICK+1];
     MultiScikitModels* dynamicModelsC[A_PICK+1];
+    std::map< std::pair<int,int>, std::vector<int> > discretizedSimulationDataInitState[A_PICK+1];
+    std::map< std::pair<int,int>, std::vector<int> > discretizedSimulationDataNextState[A_PICK+1];
     
     
     double min_x_o ;
@@ -44,10 +49,13 @@ public:
     double default_initial_object_pose_z;
     double default_min_z_o;
     
+    double discretization_step;
+    
 private:
     
     std::string object_name;
     std::string data_dir_name;
+    std::string regression_data_dir_name;
     
     double min_x_o_low_friction_table = 0.4319;
     double min_x_o_high_friction_table = 0.4586;

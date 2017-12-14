@@ -235,7 +235,10 @@ def generate_params_file(file_name, problem_type):
     output = yaml.dump(ans, Dumper = Dumper)
     f = open(file_name, 'w')
     f.write(output)
-def generate_ver5_command_files(type = 'cylinder_pruned'):
+
+#type = 'cylinder_pruned'
+#type = 'cylinder_discretize'
+def generate_ver5_command_files(type = 'cylinder_discretize'):
     cfg = ConfigFileGenerator(type)
     belief_type = 'UNIFORM_WITH_STATE_IN'
     dir_prefix = './results/despot_logs/'

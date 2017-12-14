@@ -135,6 +135,16 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::use_pruned_data = false;
     }
     
+    if(config["use_discretized_data"])
+    {
+        RobotInterface::use_discretized_data = config["use_discretized_data"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_discretized_data = false;
+    }
+    
+    
     if(config["belief_object_ids"]) 
     {
         for(int i = 0; i < config["belief_object_ids"].size(); i++)

@@ -26,6 +26,7 @@ bool RobotInterface::use_data_step;
 bool RobotInterface::use_regression_models;
 bool RobotInterface::auto_load_object;
 bool RobotInterface::use_pruned_data;
+bool RobotInterface::use_discretized_data;
 
 RobotInterface::RobotInterface() {
     if(version5)
@@ -93,7 +94,11 @@ RobotInterface::RobotInterface() {
         else
         {
             getSimulationData( object_id);
-            std::cout << graspObjects[object_id]->simulationDataCollectionWithObject[0].size() << " entries for action 0" << std::endl;
+            //std::cout << graspObjects[object_id]->simulationDataCollectionWithObject[0].size() << " entries for action 0" << std::endl;
+            if(use_discretized_data)
+            {
+                discretizeData(object_id);
+            }
         }
     }
     
@@ -199,6 +204,29 @@ void RobotInterface::getRegressionModels(int object_id) {
         
     }
             
+}
+
+void RobotInterface::discretizeData(int object_id) {
+    for(int i = 0;i<A_PICK+1; i++)
+    {
+        int num_entries = (graspObjects[object_id]->simulationDataCollectionWithObject[i]).size();
+        for(int j=0; j< num_entries; j++)
+        {
+           double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[i][j].current_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[i][j].current_gripper_pose.pose.position.x;
+           double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[i][j].current_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[i][j].current_gripper_pose.pose.position.y;
+           (graspObjects[object_id]->discretizedSimulationDataInitState[i][graspObjects[object_id]->getDiscretizationIndex(x1,y1)]).push_back(j);
+           x1 = graspObjects[object_id]->simulationDataCollectionWithObject[i][j].next_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[i][j].next_gripper_pose.pose.position.x;
+           y1 = graspObjects[object_id]->simulationDataCollectionWithObject[i][j].next_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[i][j].next_gripper_pose.pose.position.y;
+           (graspObjects[object_id]->discretizedSimulationDataNextState[i][graspObjects[object_id]->getDiscretizationIndex(x1,y1)]).push_back(j);
+
+        }
+        std::cout<< (graspObjects[object_id]->discretizedSimulationDataInitState[i]).size() << " discretized init state entries" << std::endl;
+        std::cout<< (graspObjects[object_id]->discretizedSimulationDataNextState[i]).size() << " discretized next state entries" << std::endl;
+        /*for(auto elem: graspObjects[object_id]->discretizedSimulationDataInitState[i])
+        {
+            std::cout << elem.first.first << "," << elem.first.second << "=>" << elem.second.size() << " entries\n";
+        }*/
+    }
 }
 
 bool RobotInterface::isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const{
@@ -339,6 +367,7 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
     simulationDataFile.open(simulationFileName);
     if(!simulationDataFile.good())
     {
+        std::cout << simulationFileName << "is not good" << std::endl;
         return ans;
     }
     if(checkDefault)
@@ -372,7 +401,7 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
                     //TODO also filter the states where the nexxt state and observation is same as given by defulat state
                     graspObjects[object_id]->simulationDataCollectionWithObject[action].push_back(simData);
 
-                    graspObjects[object_id]->simulationDataIndexWithObject[action].push_back(graspObjects[object_id]->simulationDataIndexWithObject[action].size());
+                    //graspObjects[object_id]->simulationDataIndexWithObject[action].push_back(graspObjects[object_id]->simulationDataIndexWithObject[action].size());
                     ans.push_back(i);
                     if(checkDefault)
                     {
@@ -400,7 +429,7 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
     SimulationDataReader simDataReader;
     std::ifstream simulationDataFile;
     
-    std::vector<std::string> sasoFilenames = graspObjects[object_id]->getSASOFilenames(use_pruned_data);
+    std::vector<std::string> sasoFilenames = graspObjects[object_id]->getSASOFilenames(use_pruned_data, use_discretized_data);
     
     for(int i = 0; i < sasoFilenames.size(); i++)
     {
@@ -974,22 +1003,30 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
         //tempData.next_object_pose.pose.position.y = tempData.next_object_pose.pose.position.y + 0.01;
         //xy_upper_bound = upper_bound(x_lower_bound, x_upper_bound, tempData, sort_by_object_relative_pose_next_state_y);
 
-        int len_simulation_data = ((std::vector<SimulationData>)(graspObjects[object_id]->simulationDataCollectionWithObject[action])).size();
-
-        for(int i = 0; i < len_simulation_data; i++)
+        
+        if(use_discretized_data)
         {
-            double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_gripper_pose.pose.position.x;
-            double x2 = current_grasping_state.object_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x;
-            if(abs(x1-x2) <= 0.005)
-            {
-                double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_gripper_pose.pose.position.y;
-                double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
-                if(abs(y1-y2) <= 0.005)
-                {
-                    tempDataVector.push_back(graspObjects[object_id]->simulationDataCollectionWithObject[action][i]);
-                }
-            }
+            tempDataVector = graspObjects[object_id]->getSimulationData(current_grasping_state.object_pose, current_grasping_state.gripper_pose, action, true);
+        }
+        else
+        {
+            int len_simulation_data = ((std::vector<SimulationData>)(graspObjects[object_id]->simulationDataCollectionWithObject[action])).size();
 
+            for(int i = 0; i < len_simulation_data; i++)
+            {
+                double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_gripper_pose.pose.position.x;
+                double x2 = current_grasping_state.object_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x;
+                if(abs(x1-x2) <= 0.005)
+                {
+                    double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_gripper_pose.pose.position.y;
+                    double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
+                    if(abs(y1-y2) <= 0.005)
+                    {
+                        tempDataVector.push_back(graspObjects[object_id]->simulationDataCollectionWithObject[action][i]);
+                    }
+                }
+
+            }
         }
         xy_lower_bound = tempDataVector.begin();
         xy_upper_bound = tempDataVector.end();
@@ -1015,10 +1052,14 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
                 double x1 = (*it).next_gripper_pose.pose.position.x - (*it).next_object_pose.pose.position.x;
                 double x2 = current_grasping_state.gripper_pose.pose.position.x - current_grasping_state.object_pose.pose.position.x;
                 temp_distance = temp_distance + pow(x1 - x2, 2);
-                double y1 = (*it).next_gripper_pose.pose.position.y - (*it).next_object_pose.pose.position.y;
-                double y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
-                temp_distance = temp_distance + pow(y1 - y2, 2);
-                temp_distance = pow(temp_distance, 0.5);
+                if(temp_distance < min_distance)
+                {
+                    double y1 = (*it).next_gripper_pose.pose.position.y - (*it).next_object_pose.pose.position.y;
+                    double y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
+                    temp_distance = temp_distance + pow(y1 - y2, 2);
+                }
+                //Not taking sqaure root to save time
+                //temp_distance = pow(temp_distance, 0.5);
                 if(temp_distance < min_distance)
                 {
                     min_distance = temp_distance;
@@ -1298,30 +1339,42 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
     //tempData.current_gripper_pose = current_grasping_state.gripper_pose;
     //tempData.current_object_pose = current_grasping_state.object_pose;
     double step_start_t1 = despot::get_time_second();
-    for(int i = 0; i < graspObjects[object_id]->simulationDataCollectionWithObject[action].size(); i++)
+    if(use_discretized_data)
     {
-        double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_gripper_pose.pose.position.x;
-        double x2 = current_grasping_state.object_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x;
-        if(abs(x1-x2) <= 0.005)
+        tempDataVector = graspObjects[object_id]->getSimulationData(current_grasping_state.object_pose, current_grasping_state.gripper_pose, action, false);
+        
+    }
+    else
+    {
+        for(int i = 0; i < graspObjects[object_id]->simulationDataCollectionWithObject[action].size(); i++)
         {
-            double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_gripper_pose.pose.position.y;
-            double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
-            if(abs(y1-y2) <= 0.005)
+            double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_gripper_pose.pose.position.x;
+            double x2 = current_grasping_state.object_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x;
+            if(abs(x1-x2) <= 0.005)
             {
-               /* if(debug)
+                double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_gripper_pose.pose.position.y;
+                double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
+                if(abs(y1-y2) <= 0.005)
                 {
-                    std::cout << "Pushing particle with difference(" << abs(x1-x2) << ", " << abs(y1-y2) << ")" << std::endl;
-                    std::cout << "x1 = " << x1 << " x2 = " << x2 << " y1 = " << y1 << " y2 = " << y2 << std::endl;
-                    simulationDataCollectionWithObject[object_id][action][i].PrintSimulationData();
-                    PrintState(current_grasping_state);
-                }*/
-                tempDataVector.push_back(graspObjects[object_id]->simulationDataCollectionWithObject[action][i]);
-            }
-        } 
-       
+                   /* if(debug)
+                    {
+                        std::cout << "Pushing particle with difference(" << abs(x1-x2) << ", " << abs(y1-y2) << ")" << std::endl;
+                        std::cout << "x1 = " << x1 << " x2 = " << x2 << " y1 = " << y1 << " y2 = " << y2 << std::endl;
+                        simulationDataCollectionWithObject[object_id][action][i].PrintSimulationData();
+                        PrintState(current_grasping_state);
+                    }*/
+                    tempDataVector.push_back(graspObjects[object_id]->simulationDataCollectionWithObject[action][i]);
+                }
+            } 
+
+        }
     }
     //sort(simulationDataCollectionWithObject[action].begin(), simulationDataCollectionWithObject[action].end(), sort_by_object_relative_pose_initial_state_x);
      double step_start_t1_1 = despot::get_time_second();
+     if(debug)
+        {
+            std::cout << "Temp data size" << tempDataVector.size();
+        }
      //tempData.current_object_pose.pose.position.x = tempData.current_object_pose.pose.position.x - 0.005;
     //x_lower_bound = lower_bound(simulationDataCollectionWithObject[action].begin(), simulationDataCollectionWithObject[action].end(), tempData, sort_by_object_relative_pose_initial_state_x);
     //tempData.current_object_pose.pose.position.x = tempData.current_object_pose.pose.position.x + 0.01;    
@@ -1350,9 +1403,17 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             double temp_distance = 0;
             if(action == A_PICK)
             {
-                for(int i = 0; i < 4; i++)
+                int inc = 1;
+                if (version5)
                 {
-                temp_distance = pow(((*it).current_finger_joint_state[i] - current_grasping_state.finger_joint_state[i]), 2);
+                    inc = 2;
+                }
+                for(int i = 0; i < 4; i=i+inc)
+                {
+                    if(temp_distance < min_distance)
+                    {
+                        temp_distance = temp_distance + pow(((*it).current_finger_joint_state[i] - current_grasping_state.finger_joint_state[i]), 2);
+                    }
                 }
             }
             else{
@@ -1368,11 +1429,16 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
                 double x1 = (*it).current_gripper_pose.pose.position.x - (*it).current_object_pose.pose.position.x;
                 double x2 = current_grasping_state.gripper_pose.pose.position.x - current_grasping_state.object_pose.pose.position.x;
                 temp_distance = temp_distance + pow(x1 - x2, 2);
-                double y1 = (*it).current_gripper_pose.pose.position.y - (*it).current_object_pose.pose.position.y;
-                double y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
-                temp_distance = temp_distance + pow(y1 - y2, 2);
+                if(temp_distance < min_distance)
+                {
+                    double y1 = (*it).current_gripper_pose.pose.position.y - (*it).current_object_pose.pose.position.y;
+                    double y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
+                    temp_distance = temp_distance + pow(y1 - y2, 2);
+                }
             }
-            temp_distance = pow(temp_distance, 0.5);
+            //Not taking square root to save time
+            //temp_distance = pow(temp_distance, 0.5);
+            
             if(temp_distance < min_distance)
             {
                 min_distance = temp_distance;
@@ -1563,10 +1629,12 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
         GetNextStateAndObsUsingDefaulFunction(grasping_state, grasping_obs, action);
     }
     double step_start_t5 = despot::get_time_second();
-    //std::cout << "T112 " << step_start_t1_1 - step_start_t1 << " T212 " << step_start_t2 - step_start_t1_1 <<
-    //        " T23 " << step_start_t3 - step_start_t2 << 
-    //       " T34 " << step_start_t4 - step_start_t3 << " T45 " << step_start_t5 - step_start_t4 << std::endl;  
-
+    if(debug)
+    {
+        std::cout << "T112 " << step_start_t1_1 - step_start_t1 << " T212 " << step_start_t2 - step_start_t1_1 <<
+            " T23 " << step_start_t3 - step_start_t2 << 
+           " T34 " << step_start_t4 - step_start_t3 << " T45 " << step_start_t5 - step_start_t4 << std::endl;  
+    }
 }
 
 void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, int action, bool debug) const {

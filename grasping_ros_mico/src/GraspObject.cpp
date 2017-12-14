@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <iosfwd>
-
+#include "math.h"
 #include "GraspObject.h"
 
 std::string GraspObject::object_property_dir = "g3db_object_labels";
@@ -17,6 +17,8 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     
     object_name = object_name_;
     data_dir_name = data_dir_name_;
+    regression_data_dir_name = "data_for_regression";
+    discretization_step = 0.01;
     if(low_friction)
     {
         min_x_o = min_x_o_low_friction_table;
@@ -103,19 +105,32 @@ std::string GraspObject::getRegressionModelDir() {
     return data_dir_name + "/regression_models/" + object_name;
 }
 
-std::vector<std::string> GraspObject::getSASOFilenames(bool use_pruned_data) {
+std::vector<std::string> GraspObject::getSASOFilenames(bool use_pruned_data, bool discretize_data) {
     std::vector<std::string> ans;
-    if(!use_pruned_data)
+    if(!use_pruned_data && !discretize_data)
     {
-        ans.push_back(data_dir_name + "SASOData_Cylinder_" + getOldSasoFilename() + "cm_");
+        
+        
+        ans.push_back(data_dir_name + "/SASOData_Cylinder_" + getOldSasoFilename() + "cm_");
         std::cout << "Reading normal files" << std::endl;
+                
     }
     else
     {
-        std::string data_dir = data_dir_name + "/pruned_data_files/" + object_name;
+        std::string data_dir;
+        if(discretize_data)
+        {
+            data_dir = regression_data_dir_name + "/" + object_name;
+            std::cout << "Reading discretized files ";
+        }
+        else
+        {
+            data_dir = data_dir_name + "/pruned_data_files/" + object_name;
+            std::cout << "Reading pruned files ";
+        }
         
         PyObject* object_file_list = callPythonFunction("get_pruned_saso_files", object_name, data_dir);
-        std::cout << "Reading pruned files " << PyList_Size(object_file_list) << std::endl;
+        std::cout << PyList_Size(object_file_list) << std::endl;
         for(int i = 0; i < PyList_Size(object_file_list); i++)
         {
             ans.push_back(PyString_AsString(PyList_GetItem(object_file_list, i)));
@@ -183,6 +198,34 @@ PyObject* GraspObject::callPythonFunction(std::string function_name, std::string
     
     return object_properties;
 }
+
+std::pair<int, int> GraspObject::getDiscretizationIndex(double x1, double y1) {
+    int x1_index = (int)(round(x1/discretization_step));
+    int y1_index = (int)(round(y1/discretization_step));
+    return std::make_pair(x1_index, y1_index);
+}
+
+std::vector<SimulationData> GraspObject::getSimulationData(geometry_msgs::PoseStamped object_pose, geometry_msgs::PoseStamped gripper_pose, int action, bool use_next) {
+    std::vector<SimulationData> tempDataVector;
+    double x1 = object_pose.pose.position.x - gripper_pose.pose.position.x;
+    double y1 = object_pose.pose.position.y - gripper_pose.pose.position.y;
+    std::pair<int, int> d_index = getDiscretizationIndex(x1,y1);
+    std::vector<int> simulationDataIndices;
+    if(use_next)
+    {
+        simulationDataIndices = discretizedSimulationDataNextState[action][d_index];
+    }
+    else
+    {
+        simulationDataIndices = discretizedSimulationDataInitState[action][d_index];
+    }
+    for(int i = 0; i < simulationDataIndices.size(); i++)
+    {
+        tempDataVector.push_back(simulationDataCollectionWithObject[action][simulationDataIndices[i]]);
+    }
+    return tempDataVector;
+}
+
 
 
 
