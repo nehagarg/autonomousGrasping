@@ -1,0 +1,6 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 16_bottle_opener_final-06-Mar-2016-12-27-06.obj
+duplicate_mesh_size: !!python/tuple [0.19635999202728271, 0.04511000216007233, 0.03164000064134598]
+mesh_name: 16_bottle_opener_final-06-Mar-2016-12-27-06.obj
+object_use_label: T
+signal_name: mesh_location

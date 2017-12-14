@@ -1,0 +1,6 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 76_mirror_final-10-Dec-2015-08-18-13.obj
+duplicate_mesh_size: !!python/tuple [0.1674799919128418, 0.11688999831676483, 0.3403699994087219]
+mesh_name: 76_mirror_final-10-Dec-2015-08-18-13.obj
+object_use_label: S
+signal_name: mesh_location

@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 91_peppershaker_final-18-Dec-2015-15-43-48.obj
+duplicate_mesh_size: !!python/tuple [0.027620000764727592, 0.02761000022292137, 0.14680999517440796]
+mesh_name: 91_peppershaker_final-18-Dec-2015-15-43-48.obj
+object_use_label: D
+remarks: unstable because too thin
+signal_name: mesh_location

@@ -1,0 +1,13 @@
+actions:
+- {rotate_z: 90}
+- reorient_bounding_box
+- {set_size_abs_z: 0.07}
+- {set_size_xy_y: 0.05-0.085}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 18_garbage_box_final-20-Jan-2016-07-48-08.obj
+duplicate_mesh_size: !!python/tuple [0.5662100315093994, 0.9436900019645691, 0.24014000594615936]
+mesh_name: 18_garbage_box_final-20-Jan-2016-07-48-08.obj
+object_use_label: S
+signal_name: mesh_location

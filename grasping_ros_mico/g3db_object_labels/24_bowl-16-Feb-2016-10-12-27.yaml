@@ -1,0 +1,8 @@
+actions: [set_size, set_mass, move_to_table]
+duplicate_mesh_index: 0
+duplicate_mesh_name: 24_bowl-16-Feb-2016-10-12-27.obj
+duplicate_mesh_size: !!python/tuple [0.11765000224113464, 0.11755000054836273, 0.06805000454187393]
+mesh_name: 24_bowl-16-Feb-2016-10-12-27.obj
+object_use_label: S
+signal_name: mesh_location
+size_abs_xyz_y: 0.1

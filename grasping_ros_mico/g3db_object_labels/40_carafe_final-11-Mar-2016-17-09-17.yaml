@@ -1,0 +1,6 @@
+actions: [set_size_z, set_size_y, set_mass, move_to_table]
+mesh_name: 40_carafe_final-11-Mar-2016-17-09-17.obj
+object_use_label: S
+signal_name: mesh_location
+size_abs_xy_y: 0.06-0.09
+size_abs_z: 0.14421

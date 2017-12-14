@@ -1,0 +1,5 @@
+actions: [set_size, set_mass, move_to_table]
+mesh_name: 109_crab_final-02-Mar-2016-13-27-22.obj
+object_use_label: S
+signal_name: mesh_location
+size_abs_xyz_z: 0.05113

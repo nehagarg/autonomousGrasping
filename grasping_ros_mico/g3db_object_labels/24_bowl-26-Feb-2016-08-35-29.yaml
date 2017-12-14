@@ -1,0 +1,5 @@
+actions: [set_size, set_mass, move_to_table]
+mesh_name: 24_bowl-26-Feb-2016-08-35-29.obj
+object_use_label: S
+signal_name: mesh_location
+size_abs_xy_y: 0.10733

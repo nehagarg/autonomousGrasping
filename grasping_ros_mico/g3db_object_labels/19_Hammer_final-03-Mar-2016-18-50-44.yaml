@@ -1,0 +1,6 @@
+duplicate_mesh_index: 3
+duplicate_mesh_name: 19_Hammer_final-03-Mar-2016-18-50-31.obj
+duplicate_mesh_size: !!python/tuple [0.3434000015258789, 0.6007999777793884, 0.07395000010728836]
+mesh_name: 19_Hammer_final-03-Mar-2016-18-50-44.obj
+object_use_label: T
+signal_name: mesh_location

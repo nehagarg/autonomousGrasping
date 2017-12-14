@@ -1,0 +1,6 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 48_bottle_and_plug_final-16-Mar-2016-13-19-26.obj
+duplicate_mesh_size: !!python/tuple [0.07284999638795853, 0.07284000515937805, 0.17903000116348267]
+mesh_name: 48_bottle_and_plug_final-16-Mar-2016-13-19-26.obj
+object_use_label: S
+signal_name: mesh_location

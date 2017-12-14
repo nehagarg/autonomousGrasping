@@ -1,0 +1,7 @@
+duplicate_mesh_index: 3
+duplicate_mesh_name: 30_fruit_juicer_final-09-Mar-2016-19-35-40.obj
+duplicate_mesh_size: !!python/tuple [0.07413000613451004, 0.07412999868392944, 0.22144000232219696]
+mesh_name: 30_fruit_juicer_final-10-Mar-2016-10-26-13.obj
+object_use_label: D
+remarks: duplicate of 30_fruit_juicer_final-09-Mar-2016-19-35-40.obj
+signal_name: mesh_location

@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 71_vase2_final-12-Nov-2015-12-17-38.obj
+duplicate_mesh_size: !!python/tuple [0.22735999524593353, 0.2261900007724762, 0.3805600106716156]
+mesh_name: 71_vase2_final-12-Nov-2015-12-17-38.obj
+object_use_label: D
+remarks: need to adjust z to grasp
+signal_name: mesh_location

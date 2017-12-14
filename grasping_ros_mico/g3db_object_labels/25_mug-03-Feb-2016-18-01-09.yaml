@@ -1,0 +1,15 @@
+actions:
+- [noop]
+- - {rotate_z: 180}
+  - reorient_bound_box
+- - {rotate_z: 180}
+  - reorient_bound_box
+  - {set_size_abs_z: 0.08}
+  - set_mass
+  - move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 25_mug-03-Feb-2016-18-01-09.obj
+duplicate_mesh_size: !!python/tuple [0.0853399932384491, 0.0637499988079071, 0.09224999696016312]
+mesh_name: 25_mug-03-Feb-2016-18-01-09.obj
+object_use_label: S
+signal_name: mesh_location

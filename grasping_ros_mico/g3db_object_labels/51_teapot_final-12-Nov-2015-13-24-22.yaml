@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 51_teapot_final-12-Nov-2015-13-24-22.obj
+duplicate_mesh_size: !!python/tuple [0.18671000003814697, 0.1798900067806244, 0.2729800045490265]
+mesh_name: 51_teapot_final-12-Nov-2015-13-24-22.obj
+object_use_label: Z
+remarks: canbe side grasped but need to adjust gripper z coordinate
+signal_name: mesh_location

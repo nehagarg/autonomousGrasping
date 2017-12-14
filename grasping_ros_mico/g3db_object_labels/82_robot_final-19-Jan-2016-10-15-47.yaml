@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 82_robot_final-19-Jan-2016-10-15-47.obj
+duplicate_mesh_size: !!python/tuple [0.15995000302791595, 0.15082000195980072, 0.3403799831867218]
+mesh_name: 82_robot_final-19-Jan-2016-10-15-47.obj
+object_use_label: D
+remarks: unstable
+signal_name: mesh_location
