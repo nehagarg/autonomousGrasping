@@ -1,0 +1,12 @@
+actions:
+- {rotate_x: 90}
+- reorient_bounding_box
+- {set_size_abs_xyz_z: 0.19783}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 44_towelstand_final-15-Mar-2016-15-53-08.obj
+duplicate_mesh_size: !!python/tuple [0.22304999828338623, 0.4685800075531006, 0.2075900137424469]
+mesh_name: 44_towelstand_final-15-Mar-2016-15-53-08.obj
+object_use_label: S
+signal_name: mesh_location

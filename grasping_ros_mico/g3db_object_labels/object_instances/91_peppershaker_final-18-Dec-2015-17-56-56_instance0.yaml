@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 91_peppershaker_final-18-Dec-2015-17-56-56.obj
+duplicate_mesh_size: !!python/tuple [0.0799500048160553, 0.0799500048160553, 0.18601000308990479]
+mesh_name: 91_peppershaker_final-18-Dec-2015-17-56-56.obj
+object_use_label: S
+signal_name: mesh_location

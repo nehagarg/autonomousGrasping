@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 109_crab_final-01-Mar-2016-15-53-28.obj
+duplicate_mesh_size: !!python/tuple [0.1946299970149994, 0.17101000249385834, 0.05861999839544296]
+mesh_name: 109_crab_final-01-Mar-2016-15-53-28.obj
+object_use_label: S
+signal_name: mesh_location

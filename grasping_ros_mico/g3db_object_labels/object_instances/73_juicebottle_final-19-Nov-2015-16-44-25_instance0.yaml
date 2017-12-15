@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 73_juicebottle_final-19-Nov-2015-16-44-25.obj
+duplicate_mesh_size: !!python/tuple [0.06605000048875809, 0.06604000180959702, 0.18920999765396118]
+mesh_name: 73_juicebottle_final-19-Nov-2015-16-44-25.obj
+object_use_label: S
+signal_name: mesh_location

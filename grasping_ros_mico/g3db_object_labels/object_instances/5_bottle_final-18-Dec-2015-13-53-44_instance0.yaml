@@ -1,0 +1,12 @@
+actions:
+- {rotate_y: 90}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.06819752793937206}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 5_bottle_final-18-Dec-2015-13-53-44.obj
+duplicate_mesh_size: !!python/tuple [0.2047100067138672, 0.4381900131702423, 0.1826300024986267]
+mesh_name: 5_bottle_final-18-Dec-2015-13-53-44.obj
+object_use_label: S
+signal_name: mesh_location

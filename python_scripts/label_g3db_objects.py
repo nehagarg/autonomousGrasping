@@ -2,6 +2,7 @@ import sys
 import getopt
 import os
 from vrep_common.srv import *
+import random
 
 import yaml
 try:
@@ -34,16 +35,17 @@ class MainWindow(QWidget):
         
         self.plainTextEdit = QPlainTextEdit(self)
         self.plainTextEdit.setMinimumSize(200,300)
-        """
+        
         self.addFormLayout = QFormLayout()
         self.fieldNameButton = QComboBox( self)
-        self.fieldNameButton.addItem("Size")
-        self.fieldNameText = QLineEdit(self)
+        self.fieldNameButton.currentIndexChanged.connect(self.handleInstanceChange)
+        #self.fieldNameButton.addItem("Size")
+        self.fieldNameText = QPlainTextEdit(self)
         self.addFormLayout.addRow(self.fieldNameButton, self.fieldNameText)
-        """
+        
         self.hLayoutT = QHBoxLayout()
         self.hLayoutT.addWidget(self.plainTextEdit)
-        #self.hLayoutT.addLayout(self.addFormLayout)
+        self.hLayoutT.addLayout(self.addFormLayout)
         
         
                
@@ -60,12 +62,27 @@ class MainWindow(QWidget):
         self.verticalLayout.addLayout(self.hLayout)
         self.setLayout(self.verticalLayout)
         self.loadObject()
-        
-    def loadObject(self):
-        self.lo.load_next_object()
+
+    def loadObject(self, instance = None):
+        self.lo.load_next_object(instance)
         self.setWindowTitle(os.path.basename(self.lo.object_file_names[self.lo.mesh_file_id]))
         prettyData =  yaml.dump(self.lo.yaml_out, default_flow_style=False)
         self.plainTextEdit.setPlainText(str(prettyData))
+        
+        if(instance is None):
+            self.fieldNameButton.clear()
+            num_instances = 1
+            if 'actions' in self.lo.yaml_out:
+                if(type(self.lo.yaml_out['actions'][0])==list):
+                    num_instances = len(self.lo.yaml_out['actions'])
+            for i in range(0,num_instances):
+                self.fieldNameButton.addItem(repr(i))
+
+            self.fieldNameButton.setCurrentIndex(0)
+        
+        prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
+        self.fieldNameText.setPlainText(str(prettyData))
+        
         """
         #Only for debugging
         while os.path.exists(self.lo.get_output_file_name()):
@@ -79,6 +96,11 @@ class MainWindow(QWidget):
         else:
             self.savePropertiesFileButton.setText("Save")
         #self.plainTextEdit.appendPlainText(str(prettyData))
+    
+    def handleInstanceChange(self):
+        text = self.fieldNameButton.currentIndex()
+        print text
+        self.loadObject(text)
         
     def handleAddButton(self):
         pass
@@ -111,6 +133,8 @@ class LabelObject:
     def __init__(self, object_file_name, dir_name):
         self.object_file_names = sorted(self.get_object_filenames(object_file_name))
         self.output_dir = dir_name
+        self.object_instance_dir = "object_instances"
+        
         self.mesh_file_id = 0
         self.yaml_out = {}
         self.size_clusters = {}
@@ -122,14 +146,24 @@ class LabelObject:
             with open(self.duplicate_file_name, 'r') as f:
                 (self.size_lists, self.size_clusters) = yaml.load(f)
                 
-    def load_next_object(self, detect_duplicates = True):
+    def load_next_object(self, instance = 0, detect_duplicates = True):
         #load object
         self.yaml_out = {}
         self.yaml_out['mesh_name'] = self.object_file_names[self.mesh_file_id]
         self.yaml_out['signal_name'] = 'mesh_location'
         self.yaml_out['object_use_label'] = 'S'
         ol.update_object('load_object', self.yaml_out)
-                
+        self.load_object_properties(detect_duplicates)
+        self.instance_yaml = {"-" : "-"}
+        if(instance is not None):
+            instance_file_name = self.get_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(instance)
+            if(os.path.exists(instance_file_name)):
+                with open(instance_file_name, 'r') as f:
+                    self.instance_yaml = yaml.load(f)
+                    #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
+                    ol.add_object_from_properties(self.instance_yaml)
+        
+    def load_object_properties(self, detect_duplicates = True):
         #get object properties
         self.output_file_name = self.get_output_filename(self.object_file_names[self.mesh_file_id],self.output_dir)
         
@@ -157,14 +191,68 @@ class LabelObject:
         self.yaml_out['duplicate_mesh_name'] = self.duplicate_mesh_name
         self.yaml_out['duplicate_mesh_index'] = self.duplicate_mesh_index
         self.yaml_out['duplicate_mesh_size'] = self.duplicate_mesh_size
+    
+               
+    def generate_object_instance_configs(self):
+        
+        check_keys = set()
+        for i in range(0,len(self.object_file_names)):
+            self.mesh_file_id = i
+            self.load_object_properties()
+            check_keys.update(self.yaml_out.keys())
+            self.object_instance_file_dir = self.get_instance_file_dir(self.output_file_name)
+            if self.yaml_out['object_use_label'] == 'S':
+                if int(self.yaml_out['duplicate_mesh_index']) == 0:
+                    if 'actions' not in self.yaml_out.keys():
+                        self.yaml_out['actions'] = ['noop']
+                    action_lists = self.yaml_out['actions']
+                    if type(action_lists[0])!=list:
+                        action_lists = [self.yaml_out['actions']]
+                    updated_action_lists = []    
+                    for action_list in action_lists:
+                        for j in range(0,len(action_list)):
+                            action_ = action_list[j]
+                            if(type(action_) ==  dict):
+                                action = action_.keys()[0]
+                                action_value = action_[action]
+                                print action_
+                                check_keys.add(action)
+                                if(type(action_value)== str and '-' in action_value):
+                                    minmax = action_value.split('-')
+                                    min_val = float(minmax[0])
+                                    max_val = float(minmax[1])
+                                    val = random.uniform(min_val, max_val)
+                                    action_list[j][action] = val
+                            else:
+                                check_keys.add(action_)
+                                
+                        updated_action_lists.append(action_list)
+                    for j in range(0,len(updated_action_lists)):
+                        action_list = updated_action_lists[j]
+                        object_instance_file_name = self.object_instance_file_dir + "/" + self.get_instance_file_name(j)
+                        yaml_val = self.yaml_out
+                        if(action_list[0]!='noop'):
+                            yaml_val['actions'] = action_list
+                        else:
+                            yaml_val['actions'] = []
+                        self.save_yaml(object_instance_file_name, self.yaml_out)        
+                        
+        print check_keys    
             
+            
+    def get_instance_file_dir(self, object_file_dir):
+        return os.path.dirname(object_file_dir) + "/" + self.object_instance_dir
+    
+    def get_instance_file_name(self, i):
+        return self.yaml_out['mesh_name'].split('.')[0] + "_instance" + repr(i) + '.yaml'
+    
     def detect_duplicates_for_object_class(self):
         self.size_lists = {}
         self.size_clusters = {}
         for i in range(0,len(self.object_file_names)):
             self.mesh_file_id = i
             object_class = self.get_object_class_from_mesh_name(os.path.basename(self.object_file_names[self.mesh_file_id]))
-            self.load_next_object(False)
+            self.load_next_object(None, False)
             object_size = {}
             ol.update_object("get_size", object_size)
             if(object_class in self.size_lists.keys()):
@@ -219,8 +307,11 @@ class LabelObject:
         
         if(output_str is not None):
             self.yaml_out = yaml.load(output_str)
-        output = yaml.dump(self.yaml_out, Dumper = Dumper)
-        with open(self.output_file_name, 'w') as f:
+        self.save_yaml(self.output_file_name, self.yaml_out)
+        
+    def save_yaml(self, output_file_name, yaml_val):
+        output = yaml.dump(yaml_val, Dumper = Dumper)
+        with open(output_file_name, 'w') as f:
             f.write(output )
             
 def label_object(object_file_name, dir_name, app):
@@ -258,12 +349,16 @@ def label_object(object_file_name, dir_name, app):
             f.write(os.path.basename(object_file_name) + ' ' + label )
         remove_object()
 
+def generate_object_instance_configs(object_file_name, dir_name):
+    lo = LabelObject(object_file_name, dir_name)
+    lo.generate_object_instance_configs()
+    
 def main():
 
     dir_name = './'
-    opts, args = getopt.getopt(sys.argv[1:],"ho:",["outdir=",])
+    opts, args = getopt.getopt(sys.argv[1:],"hgo:",["outdir=",])
     app = QApplication([])
-    openWindow = True
+    generate_object_instances = False
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -271,11 +366,16 @@ def main():
          sys.exit()
       elif opt in ("-o", "--outdir"):
          dir_name = arg
+      elif opt == '-g':
+          generate_object_instances = True
     object_file_name = args[0]
     
-    currentState = MainWindow(object_file_name, dir_name)
-    currentState.show()
-    app.exec_()
+    if(generate_object_instances):
+        generate_object_instance_configs(object_file_name, dir_name)
+    else:
+        currentState = MainWindow(object_file_name, dir_name)
+        currentState.show()
+        app.exec_()
     
     #label_object(object_file_name, dir_name, False)
     

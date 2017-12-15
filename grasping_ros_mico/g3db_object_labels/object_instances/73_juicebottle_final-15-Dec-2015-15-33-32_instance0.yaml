@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xyz_y: 0.0657503989969225}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 73_juicebottle_final-15-Dec-2015-15-33-32.obj
+duplicate_mesh_size: !!python/tuple [0.09870000183582306, 0.09874999523162842, 0.17825999855995178]
+mesh_name: 73_juicebottle_final-15-Dec-2015-15-33-32.obj
+object_use_label: S
+signal_name: mesh_location

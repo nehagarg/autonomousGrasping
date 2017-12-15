@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xyz_y: 0.07206672969104659}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 48_bottle_and_plug_final-04-Dec-2015-07-36-02.obj
+duplicate_mesh_size: !!python/tuple [0.10328000038862228, 0.10328000038862228, 0.17379000782966614]
+mesh_name: 48_bottle_and_plug_final-04-Dec-2015-07-36-02.obj
+object_use_label: S
+signal_name: mesh_location

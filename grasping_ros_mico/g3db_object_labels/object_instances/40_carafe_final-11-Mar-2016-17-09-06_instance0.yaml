@@ -1,0 +1,11 @@
+actions:
+- {set_size_abs_z: 0.14421}
+- {set_size_abs_xy_y: 0.07272816142106386}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 40_carafe_final-11-Mar-2016-17-09-06.obj
+duplicate_mesh_size: !!python/tuple [0.22562000155448914, 0.22504998743534088, 0.36059999465942383]
+mesh_name: 40_carafe_final-11-Mar-2016-17-09-06.obj
+object_use_label: S
+signal_name: mesh_location

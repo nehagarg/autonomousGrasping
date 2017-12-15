@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 92_shell_final-25-Feb-2016-20-10-26.obj
+duplicate_mesh_size: !!python/tuple [0.1893799901008606, 0.13655999302864075, 0.12112000584602356]
+mesh_name: 92_shell_final-25-Feb-2016-20-10-26.obj
+object_use_label: S
+signal_name: mesh_location

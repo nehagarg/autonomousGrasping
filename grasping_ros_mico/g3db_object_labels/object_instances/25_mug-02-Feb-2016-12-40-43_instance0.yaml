@@ -1,0 +1,9 @@
+actions:
+- {rotate_z: 180}
+- reorient_bounding_box
+duplicate_mesh_index: 0
+duplicate_mesh_name: 25_mug-02-Feb-2016-12-40-43.obj
+duplicate_mesh_size: !!python/tuple [0.15028999745845795, 0.11162000149488449, 0.10607999563217163]
+mesh_name: 25_mug-02-Feb-2016-12-40-43.obj
+object_use_label: S
+signal_name: mesh_location

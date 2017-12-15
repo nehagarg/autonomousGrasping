@@ -38,18 +38,60 @@ def get_object_properties_for_pure_shape(object_id_str):
     
     if(object_id <=10):
         object_id = object_id*10.0
-    ans['size_xyz'] = [object_id/100.0, object_id/100.0, 1.0] #scaling factor
+    #ans['size_xyz'] = [object_id/100.0, object_id/100.0, 1.0] #scaling factor
     #ans['size_xyz'] = [i/0.10 for i in ans['size_xyz']]
-    ans['actions'] = ['set_size', 'set_mass', 'move_to_table']
+    ans['actions'] = [{'set_size' : [object_id/100.0, object_id/100.0, 1.0]}, 'set_mass', 'move_to_table']
     
     return ans
+def update_size_action(action, action_value):
+    mp = {}
+    update_object('get_size', mp)
+    object_size = mp['object_size']
+    print object_size
+    action_ans = 'set_size'
+    
+    action_value_ans = [1.0 for x in object_size]
 
-def update_object(action, mesh_properties):
+    j= None
+    if(action.split('_')[-1] == 'x'):
+        j = 0
+    if(action.split('_')[-1] == 'y'):
+        j = 1
+    if(action.split('_')[-1] == 'z'):
+        j = 2
+        
+    if('set_size_abs_xyz_' in action):
+        val = action_value/object_size[j]
+        action_value_ans = [val,val,val]
+    elif('set_size_abs_xy_' in action):
+        assert(j<2)
+        val = action_value/object_size[j]
+        action_value_ans = [val,val,1.0]
+    elif('set_size_abs_' in action):
+        val = action_value/object_size[j]
+        action_value_ans[j] = val
+    elif('rotate' in action):
+        action_ans = 'rotate'
+        action_value_ans = [0.0,0.0,0.0]
+        action_value_ans[j] = action_value*3.14/180.0 #Api takes radians
+        
+    return (action_ans, action_value_ans)
+
+def update_object(action_, mesh_properties):
     rospy.wait_for_service('/vrep/simRosCallScriptFunction')
     try:
         call_function = rospy.ServiceProxy('/vrep/simRosCallScriptFunction', simRosCallScriptFunction)
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
+    if type(action_)==dict:
+        action = action_.keys()[0]
+        action_value = action_[action]
+        if(action!='set_size'):
+            action,action_value = update_size_action(action,action_value)
+    else:
+        action = action_
+       
+        
     if(action == 'get_size'):
         try:
             #6 is for customization script
@@ -57,10 +99,11 @@ def update_object(action, mesh_properties):
             mesh_properties["object_size"] = resp1.outputFloats
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-    if(action == 'set_size'):
+    if(action in [ 'set_size' , 'rotate']):
+        print action_value
         try:
             #6 is for customization script
-            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], mesh_properties['size_xyz'],  [], action)
+            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], action_value,  [], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
     if(action == 'set_mass'):
@@ -69,7 +112,7 @@ def update_object(action, mesh_properties):
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [0.3027],  [], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-    if(action == 'move_to_table'):
+    if(action in ['move_to_table', 'reorient_bounding_box'] ):
         try:
             #6 is for customization script
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  [], action)
@@ -95,12 +138,16 @@ def update_object(action, mesh_properties):
 def add_object_in_scene(object_id, object_property_dir):
     
     mesh_properties = get_object_properties(object_id, object_property_dir)
-    
     update_object('load_object', mesh_properties)
-    #load_object(mesh_location, signal_name)
+    add_object_from_properties(mesh_properties)
     
+def add_object_from_properties(mesh_properties):
+    
+    #load_object(mesh_location, signal_name)
+    print mesh_properties
     for action in mesh_properties['actions']:
         print action
+        #a = raw_input("Proceed?")
         update_object(action, mesh_properties)
     
     if "object_initial_pose_z" not in mesh_properties.keys():
@@ -111,6 +158,7 @@ def add_object_in_scene(object_id, object_property_dir):
     return mesh_properties
     
 #If the object is already there, this function will first remove the object 
+#deprecated use the update_object function instead
 def load_object(object_file_name, signal_name = 'mesh_location'):
     rospy.wait_for_service('/vrep/simRosSetStringSignal')
     try:

@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 11_cheese_final-04-Mar-2016-18-05-01.obj
+duplicate_mesh_size: !!python/tuple [0.09178999811410904, 0.07794000208377838, 0.06270000338554382]
+mesh_name: 11_cheese_final-04-Mar-2016-18-05-01.obj
+object_use_label: S
+signal_name: mesh_location

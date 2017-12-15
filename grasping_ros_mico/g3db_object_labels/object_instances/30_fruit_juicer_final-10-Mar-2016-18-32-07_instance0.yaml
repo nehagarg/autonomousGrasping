@@ -1,0 +1,8 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 30_fruit_juicer_final-10-Mar-2016-18-32-07.obj
+duplicate_mesh_size: !!python/tuple [0.07913000136613846, 0.07913000136613846, 0.19133999943733215]
+mesh_name: 30_fruit_juicer_final-10-Mar-2016-18-32-07.obj
+object_use_label: S
+remarks: unstable on rotate y
+signal_name: mesh_location

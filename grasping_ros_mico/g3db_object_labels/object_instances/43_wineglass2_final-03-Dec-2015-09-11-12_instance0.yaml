@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 43_wineglass2_final-03-Dec-2015-09-11-12.obj
+duplicate_mesh_size: !!python/tuple [0.05917999893426895, 0.05916000157594681, 0.11244000494480133]
+mesh_name: 43_wineglass2_final-03-Dec-2015-09-11-12.obj
+object_use_label: S
+signal_name: mesh_location
