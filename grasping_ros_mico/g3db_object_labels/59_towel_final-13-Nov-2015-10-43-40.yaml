@@ -11,8 +11,4 @@ duplicate_mesh_name: 59_towel_final-13-Nov-2015-10-43-40.obj
 duplicate_mesh_size: !!python/tuple [0.30171000957489014, 0.28439998626708984, 0.13767999410629272]
 mesh_name: 59_towel_final-13-Nov-2015-10-43-40.obj
 object_use_label: S
-rotate_z: -41.1
 signal_name: mesh_location
-size_abz_x: 0.1275
-size_abz_y: 0.065-0.08
-size_abz_z: 0.06857

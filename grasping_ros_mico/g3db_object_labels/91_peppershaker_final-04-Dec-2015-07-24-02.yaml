@@ -1,6 +1,6 @@
 actions:
 - [noop]
-- - {set_sizeabs_xy_y: 0.04-0.09}
+- - {set_size_abs_xy_y: 0.04-0.09}
   - set_mass
   - move_to_table
 duplicate_mesh_index: 0

@@ -1,9 +1,9 @@
 actions:
 - [noop]
 - - {rotate_z: 180}
-  - reorient_bound_box
+  - reorient_bounding_box
 - - {rotate_z: 180}
-  - reorient_bound_box
+  - reorient_bounding_box
   - {set_size_abs_z: 0.08}
   - set_mass
   - move_to_table
