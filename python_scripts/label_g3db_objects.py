@@ -32,6 +32,8 @@ class MainWindow(QWidget):
         self.checkCollisionButton.clicked.connect(self.handleCheckCollisionButton)
         self.checkStabilityButton = QPushButton('CheckStability', self)
         self.checkStabilityButton.clicked.connect(self.handleCheckStabilityButton)
+        self.getPickPointButton = QPushButton('GetPickPoint', self)
+        self.getPickPointButton.clicked.connect(self.handleGetPickPointButton)
         self.savePropertiesFileButton = QPushButton('Save', self)
         self.savePropertiesFileButton.clicked.connect(self.handleSaveButton)
         
@@ -57,7 +59,7 @@ class MainWindow(QWidget):
         self.hLayout.addWidget(self.savePropertiesFileButton)
         self.hLayout.addWidget(self.checkCollisionButton)
         self.hLayout.addWidget(self.checkStabilityButton)
-        
+        self.hLayout.addWidget(self.getPickPointButton)
         
         
         self.verticalLayout = QVBoxLayout(self)
@@ -107,6 +109,10 @@ class MainWindow(QWidget):
         prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
         self.fieldNameText.setPlainText(str(prettyData))
         
+    def handleGetPickPointButton(self):
+        self.lo.get_pick_point()
+        prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
+        self.fieldNameText.setPlainText(str(prettyData))
         
     def handleCheckCollisionButton(self):
         self.lo.check_collision()
@@ -175,9 +181,12 @@ class LabelObject:
                     self.instance_yaml = yaml.load(f)
                     #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
                     self.instance_yaml = ol.add_object_from_properties(self.instance_yaml)
-                    ol.get_object_pick_point(self.instance_yaml)
-                    print "####"
+                    
     
+    def get_pick_point(self):
+        ol.get_object_pick_point(self.instance_yaml)
+        print "####"
+        
     def check_stability(self):
         ol.check_for_object_stability(self.instance_yaml)
     
