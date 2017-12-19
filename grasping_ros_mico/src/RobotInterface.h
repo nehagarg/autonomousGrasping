@@ -115,6 +115,7 @@ public:
     bool separate_close_reward = true;
     static bool low_friction_table;
     static bool version5;
+    static bool version6;
     static bool use_data_step;
     static bool get_object_belief;
     static bool use_regression_models;

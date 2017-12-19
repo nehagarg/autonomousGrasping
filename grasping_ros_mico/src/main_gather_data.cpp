@@ -31,7 +31,8 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
 {
     //GraspingRealArm* model = new GraspingRealArm(-1);
     RobotInterface::low_friction_table = true;
-    RobotInterface::version5 = true;
+    RobotInterface::version6 = true;
+    RobotInterface::version5 = false;
     RobotInterface::use_data_step = false;
     RobotInterface::get_object_belief = false;
     int start_index = -10;
@@ -54,10 +55,18 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
         //vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
     }
     //Expanding valid state for object for data collection
+    //Needed only in case of regression
+    //Removing for now
+    /*
     vrepInterfacePointer->graspObjects[0]->min_x_o = vrepInterfacePointer->graspObjects[0]->min_x_o - 0.1;
     vrepInterfacePointer->graspObjects[0]->max_x_o = vrepInterfacePointer->graspObjects[0]->max_x_o + 0.1;
     vrepInterfacePointer->graspObjects[0]->min_y_o = vrepInterfacePointer->graspObjects[0]->min_y_o - 0.1;
     vrepInterfacePointer->graspObjects[0]->max_y_o = vrepInterfacePointer->graspObjects[0]->max_y_o + 0.1;
+    */
+    
+    
+    
+    
     /*vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
     vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
     if (val > 1000)

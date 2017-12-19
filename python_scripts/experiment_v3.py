@@ -13,7 +13,7 @@ running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
 last_assigned_node = None
-vrep_scene_version = "5"
+vrep_scene_version = "6"
 generic_scene = False
 
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on

@@ -21,6 +21,7 @@ std::vector <int> RobotInterface::objects_to_be_loaded;
 std::vector<std::string> RobotInterface::object_id_to_filename;
 bool RobotInterface::low_friction_table;
 bool RobotInterface::version5;
+bool RobotInterface::version6;
 bool RobotInterface::get_object_belief;
 bool RobotInterface::use_data_step;
 bool RobotInterface::use_regression_models;
@@ -29,7 +30,7 @@ bool RobotInterface::use_pruned_data;
 bool RobotInterface::use_discretized_data;
 
 RobotInterface::RobotInterface() {
-    if(version5)
+    if(version5 || version6)
     {
         touch_sensor_mean_ver5[0] = 0.11;
         touch_sensor_mean_ver5[1] = 0.12;
@@ -118,6 +119,10 @@ GraspObject* RobotInterface::getGraspObject(std::string object_name) const{
             if(version5)
             {
                 data_dir = data_dir + "_ver5";
+            }
+            if(version6)
+            {
+                data_dir = data_dir + "_ver6";
             }
                     
         }
@@ -595,7 +600,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     
     double finger_distance = 0;
     int inc = 1;
-    if (version5)
+    if (version5 || version6)
     {
         inc = 2;
     }
@@ -1149,7 +1154,7 @@ int RobotInterface::GetGripperStatus(GraspingStateRealArm grasping_state) const 
         degree_readings[i] = grasping_state.finger_joint_state[i]*180/3.14;
     }
     
-    if(version5)
+    if(version5 || version6)
     {
         if(grasping_state.closeCalled)
         {
@@ -1343,6 +1348,13 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
     {
         tempDataVector = graspObjects[object_id]->getSimulationData(current_grasping_state.object_pose, current_grasping_state.gripper_pose, action, false);
         
+        if(debug)
+        {
+            for(int i = 0;i < tempDataVector.size(); i++)
+            {
+                tempDataVector[i].PrintSimulationData();
+            }
+        }
     }
     else
     {
@@ -1404,7 +1416,7 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             if(action == A_PICK)
             {
                 int inc = 1;
-                if (version5)
+                if (version5 || version6)
                 {
                     inc = 2;
                 }
@@ -1665,7 +1677,7 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     else if (action == A_CLOSE)
     {
         grasping_state.closeCalled = true;
-        if(version5)
+        if(version5 || version6)
         {
             grasping_state.finger_joint_state[0] = 61.15*3.14/180;
             grasping_state.finger_joint_state[1] = 0*3.14/180;
@@ -1721,7 +1733,7 @@ void RobotInterface::GetObsUsingDefaultFunction(GraspingStateRealArm grasping_st
     
     int gripper_status = GetGripperStatus(grasping_state);
     
-    if(version5)
+    if(version5 || version6)
     {
         for(int i = 0; i < 2; i++)
         {

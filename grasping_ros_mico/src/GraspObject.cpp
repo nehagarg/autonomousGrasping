@@ -17,7 +17,7 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     
     object_name = object_name_;
     data_dir_name = data_dir_name_;
-    regression_data_dir_name = "data_for_regression";
+    regression_data_dir_name = data_dir_name_ + "/data_for_regression";
     discretization_step = 0.01;
     if(low_friction)
     {
