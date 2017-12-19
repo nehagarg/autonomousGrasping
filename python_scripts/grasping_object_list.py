@@ -1,3 +1,4 @@
+import rospkg
 def get_grasping_object_name_list(type='used'):
     pattern_list = ['G3DB11_cheese_final-10-mar-2016']
     pattern_list.append('G3DB39_beerbottle_final-11-mar-2016')
@@ -30,6 +31,22 @@ def get_grasping_object_name_list(type='used'):
         if 'test' in type:
             a = ['75', '85']
         pattern_list = ['Cylinder_' + i for i in a]
+    elif type=='g3db_instances':
+        pattern_list = get_g3db_instances()
+    elif type=='cylinder_and_g3db_instances':
+        pattern_list = get_grasping_object_name_list('all_cylinders')
+        pattern_list = pattern_list + get_grasping_object_name_list('g3db_instances')
     else:
         pattern_list=[type]
+        
     return pattern_list
+
+def get_g3db_instances():
+    rospack = rospkg.RosPack()
+    grasping_ros_mico_path = rospack.get_path('grasping_ros_mico')
+    g3db_object_list_file = grasping_ros_mico_path + "/g3db_object_labels/object_instances/object_instance_names.txt"
+    ans = []
+    with open(g3db_object_list_file, 'r') as f:
+        lines = f.readlines()
+        ans = [l.strip() for l in lines]
+    return ans

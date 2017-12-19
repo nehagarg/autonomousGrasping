@@ -28,8 +28,10 @@ class MainWindow(QWidget):
         self.loadNextObjectButton.clicked.connect(self.handleNextButton)
         self.loadPrevObjectButton = QPushButton('Prev', self)
         self.loadPrevObjectButton.clicked.connect(self.handlePrevButton)
-        self.addCsvParamButton = QPushButton('Add', self)
-        self.addCsvParamButton.clicked.connect(self.handleAddButton)
+        self.checkCollisionButton = QPushButton('CheckCollision', self)
+        self.checkCollisionButton.clicked.connect(self.handleCheckCollisionButton)
+        self.checkStabilityButton = QPushButton('CheckStability', self)
+        self.checkStabilityButton.clicked.connect(self.handleCheckStabilityButton)
         self.savePropertiesFileButton = QPushButton('Save', self)
         self.savePropertiesFileButton.clicked.connect(self.handleSaveButton)
         
@@ -52,8 +54,9 @@ class MainWindow(QWidget):
         self.hLayout = QHBoxLayout()
         self.hLayout.addWidget(self.loadNextObjectButton)
         self.hLayout.addWidget(self.loadPrevObjectButton)
-        self.hLayout.addWidget(self.addCsvParamButton)
         self.hLayout.addWidget(self.savePropertiesFileButton)
+        self.hLayout.addWidget(self.checkCollisionButton)
+        self.hLayout.addWidget(self.checkStabilityButton)
         
         
         
@@ -68,7 +71,11 @@ class MainWindow(QWidget):
         self.setWindowTitle(os.path.basename(self.lo.object_file_names[self.lo.mesh_file_id]))
         prettyData =  yaml.dump(self.lo.yaml_out, default_flow_style=False)
         self.plainTextEdit.setPlainText(str(prettyData))
-        
+        if os.path.exists(self.lo.get_output_file_name()):
+            self.savePropertiesFileButton.setText("Save Again")
+        else:
+            self.savePropertiesFileButton.setText("Save")
+            
         if(instance is None):
             self.fieldNameButton.clear()
             num_instances = 1
@@ -80,8 +87,7 @@ class MainWindow(QWidget):
 
             self.fieldNameButton.setCurrentIndex(0)
         
-        prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
-        self.fieldNameText.setPlainText(str(prettyData))
+        
         
         """
         #Only for debugging
@@ -91,19 +97,26 @@ class MainWindow(QWidget):
             if(self.lo.mesh_file_id < len(self.lo.object_file_names) - 1):
                 break
         """
-        if os.path.exists(self.lo.get_output_file_name()):
-            self.savePropertiesFileButton.setText("Save Again")
-        else:
-            self.savePropertiesFileButton.setText("Save")
+        
         #self.plainTextEdit.appendPlainText(str(prettyData))
     
     def handleInstanceChange(self):
         text = self.fieldNameButton.currentIndex()
         print text
         self.loadObject(text)
+        prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
+        self.fieldNameText.setPlainText(str(prettyData))
         
-    def handleAddButton(self):
-        pass
+        
+    def handleCheckCollisionButton(self):
+        self.lo.check_collision()
+        prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
+        self.fieldNameText.setPlainText(str(prettyData))
+    
+    def handleCheckStabilityButton(self):
+        self.lo.check_stability()
+        prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
+        self.fieldNameText.setPlainText(str(prettyData))
     
     def handleNextButton(self):
         if(self.lo.mesh_file_id < len(self.lo.object_file_names) - 1):
@@ -161,8 +174,16 @@ class LabelObject:
                 with open(instance_file_name, 'r') as f:
                     self.instance_yaml = yaml.load(f)
                     #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
-                    ol.add_object_from_properties(self.instance_yaml)
-        
+                    self.instance_yaml = ol.add_object_from_properties(self.instance_yaml)
+                    ol.get_object_pick_point(self.instance_yaml)
+                    print "####"
+    
+    def check_stability(self):
+        ol.check_for_object_stability(self.instance_yaml)
+    
+    def check_collision(self):
+        ol.check_for_object_collision(self.instance_yaml)
+    
     def load_object_properties(self, detect_duplicates = True):
         #get object properties
         self.output_file_name = self.get_output_filename(self.object_file_names[self.mesh_file_id],self.output_dir)
