@@ -6,5 +6,6 @@ duplicate_mesh_index: 0
 duplicate_mesh_name: 109_crab_final-02-Mar-2016-13-27-22.obj
 duplicate_mesh_size: !!python/tuple [0.3498799800872803, 0.32808998227119446, 0.0811299979686737]
 mesh_name: 109_crab_final-02-Mar-2016-13-27-22.obj
-object_use_label: S
+object_use_label: D
+remarks: not stable on simulation
 signal_name: mesh_location

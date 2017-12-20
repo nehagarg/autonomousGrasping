@@ -12,6 +12,8 @@
 
 std::string GraspObject::object_property_dir = "g3db_object_labels";
 std::string GraspObject::object_pointcloud_dir = "point_clouds";
+double GraspObject::pick_point_x_diff = -0.03;
+double GraspObject::pick_point_y_diff = 0.0;
 
 GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, bool low_friction, bool load_in_vrep) {
     
@@ -36,6 +38,14 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     min_z_o = default_min_z_o;
     initial_object_pose_z = default_initial_object_pose_z;
     
+    if(data_dir_name_.find("ver6") != std::string::npos)
+    {
+        initial_object_y = initial_object_y_version6;
+    }
+    else
+    {
+        initial_object_y = initial_object_y_version5;
+    }
     //Load object properties file if it exists
     //Initialize python script for loading object
     Py_Initialize();
@@ -46,8 +56,34 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     //std::cout << "Initialized python 1" << std::endl;
     PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
     loadObject(load_in_vrep);
+    
+    if(pick_point.size() > 0)
+    {
+        double expected_pick_x = initial_object_x + pick_point_x_diff;
+        double x_diff = expected_pick_x - pick_point[0];
+        double expected_pick_y = initial_object_y + pick_point_y_diff;
+        double y_diff = expected_pick_y - pick_point[1];
+        initial_object_x = initial_object_x + x_diff;
+        min_x_o = min_x_o + x_diff;
+        max_x_o = max_x_o + x_diff;
+        
+        initial_object_y = initial_object_y + y_diff;
+        min_y_o = min_y_o + y_diff;
+        max_y_o = max_y_o + y_diff;
+    }
 }
 
+geometry_msgs::PoseStamped GraspObject::getInitialObjectPose() {
+    geometry_msgs::PoseStamped object_pose;
+    object_pose.pose.position.x = initial_object_x ;
+    object_pose.pose.position.y = initial_object_y ;
+    object_pose.pose.position.z = initial_object_pose_z ;
+    object_pose.pose.orientation.x = 0  ;
+    object_pose.pose.orientation.y = 0;
+    object_pose.pose.orientation.z = 0 ; 
+    object_pose.pose.orientation.w = 1;
+    return object_pose;
+}
 
 
 void GraspObject::loadObject(bool load_in_vrep) {
@@ -62,10 +98,12 @@ void GraspObject::loadObject(bool load_in_vrep) {
     std::vector<std::string> property_keys;
     property_keys.push_back("object_min_z");
     property_keys.push_back("object_initial_pose_z");
+    property_keys.push_back("pick_point");
     
     PyObject* value1;
     for(int i = 0; i < property_keys.size();i++)
     {
+        //std::cout << "Checking " << property_keys[i] << std::endl;
         PyObject* key = PyString_FromString(property_keys[i].c_str());
         if(PyDict_Contains(object_properties,key) == 1)
         {
@@ -78,6 +116,12 @@ void GraspObject::loadObject(bool load_in_vrep) {
             if(i==1)
             {
                 initial_object_pose_z = PyFloat_AsDouble(value1);
+            }
+            if(i==2)
+            {
+                pick_point.push_back(PyFloat_AsDouble(PyList_GetItem(value1,0)));
+                pick_point.push_back(PyFloat_AsDouble(PyList_GetItem(value1,1)));
+                pick_point.push_back(PyFloat_AsDouble(PyList_GetItem(value1,2)));
             }
         }
         Py_DECREF(key);

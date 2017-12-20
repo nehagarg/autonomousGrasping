@@ -1,5 +1,5 @@
 actions:
-- {rotate_x: 30}
+- {rotate_z: 30}
 - reorient_bounding_box
 - {set_size_abs_xyz_y: 0.06-0.09}
 - set_mass

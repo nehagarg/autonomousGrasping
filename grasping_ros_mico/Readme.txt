@@ -28,6 +28,9 @@ micoWithSensorsMutliObjectTrialWithDespotIKVer5.ttt : (Difference from Ver4 : Gr
 To change the scene from Ver4 to Ver 5 : change the force of MicoHand_finger12_motor1 to 4. Change the maximum angles on MicoHand_joint1_finger1/3 to 90, Divide the velocity in Cup script for j1 by 4.0 and Decimate the MicoHand shape by 90% so that it becomes a smple shape from multishape. Set Mico positon to 0.07,0.01
 
 micoWithSensorsMutliObjectTrialWithDespotIKVer6.ttt : Different from Ver5: Mico target angle set to 90 degrees instead of some random values
+Changed initial object y from 1485 to 1562 as it is the mid point of min and max range
+Increased gripper z by 0.005 as gripper was colliding with table and was not able to have proper movements
+Robot position shifted as gripper unstable when y = 0.08, pick height adjusted to 0.09 because of this
 
 
 

@@ -1,7 +1,7 @@
 actions:
 - {rotate_z: -175}
 - reorient_bounding_box
-- {set_size_abs_xyz_y: 0.06311772786373102}
+- {set_size_abs_xyz_y: 0.08996013705511996}
 - set_mass
 - move_to_table
 duplicate_mesh_index: 0

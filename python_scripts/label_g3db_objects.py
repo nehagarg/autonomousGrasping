@@ -80,10 +80,7 @@ class MainWindow(QWidget):
             
         if(instance is None):
             self.fieldNameButton.clear()
-            num_instances = 1
-            if 'actions' in self.lo.yaml_out:
-                if(type(self.lo.yaml_out['actions'][0])==list):
-                    num_instances = len(self.lo.yaml_out['actions'])
+            num_instances = self.lo.get_num_instances()
             for i in range(0,num_instances):
                 self.fieldNameButton.addItem(repr(i))
 
@@ -147,12 +144,14 @@ class MainWindow(QWidget):
         except:
             self.savePropertiesFileButton.setText("Not Saved")
 
-
+#object file name gives mesh location
+#dir_name gives config file location
 class LabelObject:
     def __init__(self, object_file_name, dir_name):
         self.object_file_names = sorted(self.get_object_filenames(object_file_name))
         self.output_dir = dir_name
         self.object_instance_dir = "object_instances"
+        self.updated_object_instance_dir = "object_instances_updated"
         
         self.mesh_file_id = 0
         self.yaml_out = {}
@@ -269,7 +268,31 @@ class LabelObject:
                         
         print check_keys    
             
-            
+    def update_object_instance_configs(self):
+        for i in range(0,len(self.object_file_names)):
+            self.mesh_file_id = i
+            self.load_next_object(None)
+            if self.yaml_out['object_use_label'] == 'S':
+                if int(self.yaml_out['duplicate_mesh_index']) == 0:
+                    num_instances = self.get_num_instances()
+                    for j in range(0,num_instances):
+                        self.load_next_object(j)
+                        self.get_pick_point()
+                        self.check_stability()
+                        self.check_collision()
+                        updated_object_instance_file_name = self.get_updated_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(j)
+                        self.save_yaml(updated_object_instance_file_name, self.instance_yaml)  
+                
+    def get_num_instances(self):
+        num_instances = 1
+        if 'actions' in self.yaml_out:
+            if(type(self.yaml_out['actions'][0])==list):
+                num_instances = len(self.yaml_out['actions'])
+        return num_instances
+    
+    def get_updated_instance_file_dir(self, object_file_dir):
+        return self.get_instance_file_dir(object_file_dir) + "/" + self.updated_object_instance_dir
+    
     def get_instance_file_dir(self, object_file_dir):
         return os.path.dirname(object_file_dir) + "/" + self.object_instance_dir
     
@@ -379,16 +402,25 @@ def label_object(object_file_name, dir_name, app):
             f.write(os.path.basename(object_file_name) + ' ' + label )
         remove_object()
 
+#object file name gives mesh location
+#dir_name gives config file location
 def generate_object_instance_configs(object_file_name, dir_name):
     lo = LabelObject(object_file_name, dir_name)
     lo.generate_object_instance_configs()
-    
+
+#object file name gives mesh location
+#dir_name gives config file location
+def update_object_instance_configs(object_file_name, dir_name):
+    lo = LabelObject(object_file_name, dir_name)
+    lo.update_object_instance_configs()
+
 def main():
 
     dir_name = './'
-    opts, args = getopt.getopt(sys.argv[1:],"hgo:",["outdir=",])
+    opts, args = getopt.getopt(sys.argv[1:],"hguo:",["outdir=",])
     app = QApplication([])
     generate_object_instances = False
+    update_object_instances = False
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -398,10 +430,15 @@ def main():
          dir_name = arg
       elif opt == '-g':
           generate_object_instances = True
+      elif opt == '-u':
+          update_object_instances = True
+      
     object_file_name = args[0]
     
     if(generate_object_instances):
         generate_object_instance_configs(object_file_name, dir_name)
+    elif(update_object_instances):
+        update_object_instance_configs(object_file_name, dir_name)
     else:
         currentState = MainWindow(object_file_name, dir_name)
         currentState.show()

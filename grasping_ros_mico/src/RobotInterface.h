@@ -93,13 +93,14 @@ public:
     //double default_initial_object_pose_z = 1.1248; // for objects on high friction table //1.7066; //for amazon shelf
     //double max_x_o_difference = 0.01; //Not being used anywhere
     
-    double pick_z_diff = 0.12; 
+    double pick_z_diff = 0.09; //Gripper becomes unstable at 0.12
     double pick_x_val = 0.2879;
     double pick_y_val = 0.1516;
     
     
     
     double initial_gripper_pose_z_low_friction_table = 1.10835 - 0.03;
+    double initial_gripper_pose_z_low_friction_table_version6 = 1.10833;
     double initial_gripper_pose_z = 1.10835; //for objects on high friction table  //1.73337; // for amazon shelf
     //double initial_object_x_low_friction_table = 0.4919;
     //double initial_object_x = 0.498689; //for high friction table

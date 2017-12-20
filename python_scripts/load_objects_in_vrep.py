@@ -160,6 +160,7 @@ def add_object_in_scene(object_id, object_property_dir):
     mesh_properties = get_object_properties(object_id, object_property_dir)
     update_object('load_object', mesh_properties)
     add_object_from_properties(mesh_properties)
+    return mesh_properties
     
 def add_object_from_properties(mesh_properties):
     
@@ -174,7 +175,11 @@ def add_object_from_properties(mesh_properties):
         update_object("get_object_pose", mesh_properties)
     if "object_min_z" not in mesh_properties.keys():
         mesh_properties["object_min_z"] = mesh_properties["object_initial_pose_z"] - 0.0048
-    
+    #if "object_size"
+    print mesh_properties
+    if 'pick_point' in mesh_properties.keys():
+        object_pose = place_object_at_initial_location(mesh_properties)
+        mesh_properties['final_initial_object_pose'] = object_pose
     return mesh_properties
 
 def get_object_pick_point(object_id, object_property_dir):
@@ -182,8 +187,14 @@ def get_object_pick_point(object_id, object_property_dir):
     get_object_characteristics(mesh_properties)
     
 def get_object_pick_point(mesh_properties):
-    object_pose = mesh_properties["object_pose"][0:3]
+    object_pose = list(mesh_properties["object_pose"][0:3])
+    hack_value_x = 0.07
+    #Hack: Move in x to makesure full object is in camera view
+    object_pose[0] = object_pose[0] + hack_value_x
+    update_object({'set_object_pose': object_pose}, {})
     start_stop_simulation('Start')
+    """
+    Assuming no initial collision
     update_object('get_collision_info', mesh_properties)
     move_forward_count = 0
     while mesh_properties["collisions"] > 0:
@@ -199,6 +210,7 @@ def get_object_pick_point(mesh_properties):
             break
     #start_stop_simulation('Stop')
     #update_object({'set_object_pose': object_pose}, mesh_properties)
+    """
     #If collision is resolved, find the x,y position for grasp        
     if 'collision_not_resolved' not in mesh_properties.keys():
         #start simulation
@@ -213,8 +225,10 @@ def get_object_pick_point(mesh_properties):
         start_stop_simulation('Stop')
         time.sleep(1)
         print pick_point
-        update_object({'set_object_pose': object_pose}, mesh_properties)
+        #update_object({'set_object_pose': object_pose}, mesh_properties)
         set_grasp_point(pick_point)
+        pick_point[0] = pick_point[0]- hack_value_x
+        print pick_point
         mesh_properties['pick_point'] = pick_point
         
   
@@ -242,11 +256,11 @@ def check_for_object_stability(mesh_properties):
     object_pose = place_object_at_initial_location(mesh_properties)
     object_stable = True
     
-    for x in np.arange(0.01,0.2,0.01):
+    for x in range(0,19):
         start_stop_simulation('Start')
-        for i in np.arange(0.0,x,0.01): 
+        for i in range(0,x): 
             move_gripper([0.01, 0.0,0.0])
-        for i in np.arange(0.0,0.08,0.01):
+        for i in range(0,8):
             move_gripper([0, 0.01,0.0])
         if has_object_fallen(mesh_properties):
             object_stable = False
@@ -254,9 +268,9 @@ def check_for_object_stability(mesh_properties):
         start_stop_simulation('Stop')
         time.sleep(1)
         start_stop_simulation('Start')
-        for i in np.arange(0.0,x,0.01): 
+        for i in range(0, x): 
             move_gripper([0.01, 0.0,0.0])
-        for i in np.arange(0.0,0.07,0.01):
+        for i in range(0,7):
             move_gripper([0, -0.01,0.0])
         if has_object_fallen(mesh_properties):
             object_stable = False
@@ -276,24 +290,26 @@ def move_gripper(move_pos):
     time.sleep(1)
     
 def place_object_at_initial_location(mesh_properties):
-    IDEAL_PICK_POINT_X = 0.4919 -0.03
-    IDEAL_PICK_POINT_Y = 0.1485
+    object_pose = (list(mesh_properties["object_pose"]))[0:3]
+    IDEAL_PICK_POINT_X = object_pose[0] -0.03
+    IDEAL_PICK_POINT_Y = object_pose[1]
 
     x_diff = IDEAL_PICK_POINT_X - mesh_properties['pick_point'][0]
     y_diff = IDEAL_PICK_POINT_Y - mesh_properties['pick_point'][1]
-    object_pose = (list(mesh_properties["object_pose"]))[0:3]
+    
     object_pose[0] = object_pose[0] + x_diff
     object_pose[1] = object_pose[1] + y_diff
     update_object({'set_object_pose': object_pose}, {})
     return object_pose
   
 def has_object_fallen(mesh_properties):
-    update_object("get_object_pose", mesh_properties)
-    object_pose = mesh_properties["object_pose"][0:3]
+    temp = {}
+    update_object("get_object_pose", temp)
+    object_pose = temp["object_pose"][0:3]
     return (object_pose[2] < mesh_properties["object_min_z"])
         
     
-    
+
     
 def set_grasp_point(pick_point):
     set_any_object_position('GraspPoint', pick_point)

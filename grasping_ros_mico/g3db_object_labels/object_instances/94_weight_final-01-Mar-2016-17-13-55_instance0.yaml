@@ -1,5 +1,5 @@
 actions:
-- {set_size_abs_xyz_y: 0.07041034603795808}
+- {set_size_abs_xyz_y: 0.08423280486728704}
 - set_mass
 - move_to_table
 duplicate_mesh_index: 0

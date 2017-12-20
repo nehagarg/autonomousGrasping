@@ -77,7 +77,15 @@ RobotInterface::RobotInterface() {
     }
     if(low_friction_table)
     {
-        initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table;
+        if(version6)
+        {
+            initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table_version6;
+        }
+        else
+        {
+           initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table; 
+        }
+        
     }
     //Load simulation data for belief object
     for(int i = 0; i < objects_to_be_loaded.size(); i++)

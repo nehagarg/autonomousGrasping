@@ -25,6 +25,7 @@ public:
     void loadObject(bool load_in_vrep = false);
     std::pair<int, int> getDiscretizationIndex(double x1, double y1);
     std::vector<SimulationData> getSimulationData(geometry_msgs::PoseStamped object_pose, geometry_msgs::PoseStamped gripper_pose, int action, bool use_next = false);
+    geometry_msgs::PoseStamped getInitialObjectPose();
     
     static std::string object_property_dir ;
     static std::string object_pointcloud_dir ;
@@ -44,10 +45,13 @@ public:
     double min_z_o; //= 1.1200 ; //for objects on table
     
     double initial_object_x ;
-    double initial_object_y = 0.148582;
+    double initial_object_y ; //0.148582;
     double initial_object_pose_z; // = 1.1248; //1.7066; //for amazon shelf
     double default_initial_object_pose_z;
     double default_min_z_o;
+    
+    static double pick_point_x_diff ;
+    static double pick_point_y_diff ;
     
     double discretization_step;
     
@@ -70,6 +74,11 @@ private:
     
     double default_initial_object_pose_z_high_friction_table = 1.1248; //for object on high friction table
     double default_initial_object_pose_z_low_friction_table = 1.0998;
+    
+    double initial_object_y_version5 = 0.148582;
+    double initial_object_y_version6 = 0.1562;
+    
+    std::vector<double> pick_point; //Only for low friction table
     
     std::string getOldSasoFilename();
     PyObject* callPythonFunction(std::string function_name, std::string arg1, std::string arg2);
