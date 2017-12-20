@@ -15,6 +15,7 @@ from PySide.QtGui import *
 import numpy as np
 
 import load_objects_in_vrep as ol
+from grasping_object_list import get_grasping_object_name_list
 
 class MainWindow(QWidget):
     def __init__(self, object_file_name, dir_name, parent=None):
@@ -157,29 +158,36 @@ class LabelObject:
         self.yaml_out = {}
         self.size_clusters = {}
         self.size_lists = {}
-        self.duplicate_file_name = os.path.dirname(object_file_name) + "/duplicate_list.yaml"
-        if not os.path.exists(self.duplicate_file_name):
-            self.detect_duplicates_for_object_class()
-        else:
-            with open(self.duplicate_file_name, 'r') as f:
-                (self.size_lists, self.size_clusters) = yaml.load(f)
+        if not self.pure_shape:
+            self.duplicate_file_name = os.path.dirname(object_file_name) + "/duplicate_list.yaml"
+            if not os.path.exists(self.duplicate_file_name):
+                self.detect_duplicates_for_object_class()
+            else:
+                with open(self.duplicate_file_name, 'r') as f:
+                    (self.size_lists, self.size_clusters) = yaml.load(f)
                 
     def load_next_object(self, instance = 0, detect_duplicates = True):
-        #load object
-        self.yaml_out = {}
-        self.yaml_out['mesh_name'] = self.object_file_names[self.mesh_file_id]
-        self.yaml_out['signal_name'] = 'mesh_location'
-        self.yaml_out['object_use_label'] = 'S'
-        ol.update_object('load_object', self.yaml_out)
-        self.load_object_properties(detect_duplicates)
-        self.instance_yaml = {"-" : "-"}
-        if(instance is not None):
-            instance_file_name = self.get_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(instance)
-            if(os.path.exists(instance_file_name)):
-                with open(instance_file_name, 'r') as f:
-                    self.instance_yaml = yaml.load(f)
-                    #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
-                    self.instance_yaml = ol.add_object_from_properties(self.instance_yaml)
+        if self.pure_shape:
+            self.yaml_out = ol.add_object_in_scene(self.object_file_names[self.mesh_file_id], self.output_dir)
+            #get object properties
+            self.output_file_name = self.get_output_filename(self.object_file_names[self.mesh_file_id],self.output_dir)
+            self.instance_yaml = self.yaml_out
+        else:
+            #load object
+            self.yaml_out = {}
+            self.yaml_out['mesh_name'] = self.object_file_names[self.mesh_file_id]
+            self.yaml_out['signal_name'] = 'mesh_location'
+            self.yaml_out['object_use_label'] = 'S'
+            ol.update_object('load_object', self.yaml_out)
+            self.load_object_properties(detect_duplicates)
+            self.instance_yaml = {"-" : "-"}
+            if(instance is not None):
+                instance_file_name = self.get_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(instance)
+                if(os.path.exists(instance_file_name)):
+                    with open(instance_file_name, 'r') as f:
+                        self.instance_yaml = yaml.load(f)
+                        #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
+                        self.instance_yaml = ol.add_object_from_properties(self.instance_yaml)
                     
     
     def get_pick_point(self):
@@ -272,11 +280,11 @@ class LabelObject:
         for i in range(0,len(self.object_file_names)):
             self.mesh_file_id = i
             self.load_next_object(None)
-            if self.yaml_out['object_use_label'] == 'S':
-                if int(self.yaml_out['duplicate_mesh_index']) == 0:
+            if self.pure_shape or (self.yaml_out['object_use_label'] == 'S' and int(self.yaml_out['duplicate_mesh_index']) == 0):
                     num_instances = self.get_num_instances()
                     for j in range(0,num_instances):
-                        self.load_next_object(j)
+                        if not self.pure_shape:
+                            self.load_next_object(j)
                         self.get_pick_point()
                         self.check_stability()
                         self.check_collision()
@@ -291,13 +299,22 @@ class LabelObject:
         return num_instances
     
     def get_updated_instance_file_dir(self, object_file_dir):
-        return self.get_instance_file_dir(object_file_dir) + "/" + self.updated_object_instance_dir
+        if self.pure_shape:
+            return os.path.dirname(object_file_dir)
+        else:
+            return self.get_instance_file_dir(object_file_dir) + "/" + self.updated_object_instance_dir
     
     def get_instance_file_dir(self, object_file_dir):
-        return os.path.dirname(object_file_dir) + "/" + self.object_instance_dir
+        if self.pure_shape:
+            return os.path.dirname(object_file_dir)
+        else:
+            return os.path.dirname(object_file_dir) + "/" + self.object_instance_dir
     
     def get_instance_file_name(self, i):
-        return self.yaml_out['mesh_name'].split('.')[0] + "_instance" + repr(i) + '.yaml'
+        if self.pure_shape:
+            return self.object_file_names[self.mesh_file_id] + '.yaml'
+        else:
+            return self.yaml_out['mesh_name'].split('.')[0] + "_instance" + repr(i) + '.yaml'
     
     def detect_duplicates_for_object_class(self):
         self.size_lists = {}
@@ -334,19 +351,24 @@ class LabelObject:
     
     def get_object_filenames(self, object_file_name):
         ans = []
-        if(os.path.isdir(object_file_name)):
-            files = [os.path.join(object_file_name, f) for f in os.listdir(object_file_name) if '.obj' in f]
-            for file in files:
-                ans.append(file)
-        elif(not os.path.exists(object_file_name)):
-            obj_dir_name = os.path.dirname(object_file_name)
-            file_prefix = os.path.basename(object_file_name)
-            files = [os.path.join(obj_dir_name, f) for f in os.listdir(obj_dir_name) if f.startswith(file_prefix)]
-            for file in files:
-                if '.obj' in file:
-                    ans.append[file]
+        self.pure_shape = False
+        if(object_file_name == 'all_cylinders'):
+            self.pure_shape = True
+            ans = get_grasping_object_name_list(object_file_name)
         else:
-            ans =[object_file_name]
+            if(os.path.isdir(object_file_name)):
+                files = [os.path.join(object_file_name, f) for f in os.listdir(object_file_name) if '.obj' in f]
+                for file in files:
+                    ans.append(file)
+            elif(not os.path.exists(object_file_name)):
+                obj_dir_name = os.path.dirname(object_file_name)
+                file_prefix = os.path.basename(object_file_name)
+                files = [os.path.join(obj_dir_name, f) for f in os.listdir(obj_dir_name) if f.startswith(file_prefix)]
+                for file in files:
+                    if '.obj' in file:
+                        ans.append[file]
+            else:
+                ans =[object_file_name]
         return ans
     
     def get_output_filename(self, object_file_name, dir_name):
@@ -462,3 +484,4 @@ if __name__ == '__main__':
     
 #Commands
 # python label_g3db_objects.py -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
+#python label_g3db_objects.py -o ../grasping_ros_mico/pure_shape_labels all_cylinders
