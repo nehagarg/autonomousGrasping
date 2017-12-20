@@ -1,4 +1,4 @@
-import rospkg
+
 def get_grasping_object_name_list(type='used'):
     pattern_list = ['G3DB11_cheese_final-10-mar-2016']
     pattern_list.append('G3DB39_beerbottle_final-11-mar-2016')
@@ -42,8 +42,13 @@ def get_grasping_object_name_list(type='used'):
     return pattern_list
 
 def get_g3db_instances():
-    rospack = rospkg.RosPack()
-    grasping_ros_mico_path = rospack.get_path('grasping_ros_mico')
+    try:
+        import rospkg
+        rospack = rospkg.RosPack()
+        grasping_ros_mico_path = rospack.get_path('grasping_ros_mico')
+    except:
+        #give ncl absolute path
+        grasping_ros_mico_path = '/users/ngarg211/WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico'
     g3db_object_list_file = grasping_ros_mico_path + "/g3db_object_labels/object_instances/object_instance_names.txt"
     ans = []
     with open(g3db_object_list_file, 'r') as f:

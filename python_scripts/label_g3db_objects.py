@@ -418,7 +418,7 @@ def main():
 
     dir_name = './'
     opts, args = getopt.getopt(sys.argv[1:],"hguo:",["outdir=",])
-    app = QApplication([])
+    
     generate_object_instances = False
     update_object_instances = False
     for opt, arg in opts:
@@ -440,6 +440,7 @@ def main():
     elif(update_object_instances):
         update_object_instance_configs(object_file_name, dir_name)
     else:
+        app = QApplication([])
         currentState = MainWindow(object_file_name, dir_name)
         currentState.show()
         app.exec_()
