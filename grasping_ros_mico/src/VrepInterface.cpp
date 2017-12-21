@@ -24,17 +24,26 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
     {
          joint_file_name = "data_low_friction_table_exp/jointData.txt";
     }
-    //Using same joint data file as difference is minimal in ver5 and ver6 joint values
+    
     if(RobotInterface::version5 || RobotInterface::version6)
     {
-        
+     
+        joint_file_name = "data_low_friction_table_exp";
+        if(RobotInterface::version5)
+        {
+            joint_file_name = joint_file_name + "_ver5";
+        }
+        if(RobotInterface::version6)
+        {
+            joint_file_name = joint_file_name + "_ver6";
+        }
         if (start_state_index_ == -10000) //gathering data with epsiln 0.005
         {
-            joint_file_name = "data_low_friction_table_exp_ver5/jointData_0_0-005.txt";
+            joint_file_name = joint_file_name + "/jointData_0_0-005.txt";
         }
         else
         {
-         joint_file_name = "data_low_friction_table_exp_ver5/jointData.txt";
+         joint_file_name = joint_file_name + "/jointData.txt";
         }
     }
     std::ifstream infile1(joint_file_name);
@@ -974,9 +983,26 @@ void VrepInterface::GatherJointData(int object_id, double epsi) const {
     //myfile.open ("data_table_exp/jointData_0.txt");
     //myfile.open ("data_low_friction_table_exp/jointData_0.txt");
     //myfile.open ("data_low_friction_table_exp_ver5/jointData_0.txt");
-    myfile.open ("data_low_friction_table_exp_ver5/jointData_0_0-005.txt");
+    //myfile.open ("data_low_friction_table_exp_ver5/jointData_0_0-005.txt");
     
-    
+    std::string out_file = "data_low_friction_table_exp";
+    if(RobotInterface::version5)
+    {
+        out_file = out_file + "_ver5";
+       
+    }
+    if(RobotInterface::version6)
+    {
+        out_file = out_file + "_ver6";
+       
+    }
+    out_file = out_file + "/jointData_0";
+    if(epsi == 0.005)
+    {
+        out_file = out_file + "_0-005";
+    }
+    out_file = out_file + ".txt";
+    myfile.open(out_file);
     //Get Current Pose of mico target
     geometry_msgs::PoseStamped mico_target_pose;
     vrep_common::simRosGetObjectPose object_pose_srv;

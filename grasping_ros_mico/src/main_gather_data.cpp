@@ -41,18 +41,28 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
         start_index = -10000;
     }
     VrepInterface* vrepInterfacePointer = new VrepInterface(start_index); 
-    RobotInterface::object_id_to_filename.push_back(val);
-    //vrepInterfacePointer->epsilon = epsi;
-    if(!generate_default)
+    if(val.compare("gather_joint_data")!=0)
     {
-        vrepInterfacePointer->LoadObjectInScene(0);
+        RobotInterface::object_id_to_filename.push_back(val);
+        //vrepInterfacePointer->epsilon = epsi;
+        if(!generate_default)
+        {
+            vrepInterfacePointer->LoadObjectInScene(0);
+        }
+        else
+        {
+            vrepInterfacePointer->graspObjects[0] = vrepInterfacePointer->getGraspObject(val);
+            //TODO replace with loading object properties
+            //vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
+            //vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
+        }
+        std::cout<< "Gathering data" << std::endl;
+        vrepInterfacePointer->GatherData(val, action_type, epsi, min_x, max_x, min_y, max_y, object_state_id, generate_default);
+
     }
     else
     {
-        vrepInterfacePointer->graspObjects[0] = vrepInterfacePointer->getGraspObject(val);
-        //TODO replace with loading object properties
-        //vrepInterfacePointer->min_z_o.push_back(vrepInterfacePointer->default_min_z_o);
-        //vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
+        vrepInterfacePointer->GatherJointData(0, epsi);
     }
     //Expanding valid state for object for data collection
     //Needed only in case of regression
@@ -77,9 +87,7 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
         vrepInterfacePointer->initial_object_pose_z.push_back(z_values.get_initial_object_pose_z(g3db_object_id));
     }
     */
-    std::cout<< "Gathering data" << std::endl;
-    vrepInterfacePointer->GatherData(val, action_type, epsi, min_x, max_x, min_y, max_y, object_state_id, generate_default);
-    //vrepInterfacePointer->GatherJointData(0);
+        //
     //model->GatherJointData(0);
     //model->GatherGripperStateData(0);
 }
