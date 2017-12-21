@@ -5,7 +5,12 @@ import sys
 #from plot_despot_results import get_list_input
 import subprocess
 from grasping_object_list import get_grasping_object_name_list
-    
+
+def make_object_dirs(dir_name, object_group):
+    object_list = get_grasping_object_name_list(object_group)
+    for object in object_list:
+        os.mkdir(dir_name + "/" + object)
+        
 initial_ros_port = 11311
 max_ros_port = initial_ros_port + 50
 running_nodes_to_screen = {}
@@ -38,6 +43,20 @@ def get_gather_data_number(pattern, t):
         return (int(filter(str.isdigit, pattern))*10) + int(t)
     
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
+    if(command_prefix == 'label_g3db_objects'):
+        # python label_g3db_objects.py -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
+        #python label_g3db_objects.py -o ../grasping_ros_mico/pure_shape_labels all_cylinders
+        #pattern can be g3db_object_labels or pure_shape_labels
+        command = 'python label_g3db_objects.py -o ../grasping_ros_mico/' 
+        command = command + pattern
+        if(pattern == 'pure_shape_labels'):
+            command = command + ' all_cylinders'
+        else:
+            command = command + ' ' + t + "/" + repr(begin_index) + '_'
+        return comand
+            
+        
+    
     if(command_prefix == 'gather_data'):
         #num = get_gather_data_number(pattern, t)
         command = './bin/gather_data ' + pattern + ' ' + t + ' ' + n 
