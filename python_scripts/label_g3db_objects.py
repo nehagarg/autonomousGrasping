@@ -366,7 +366,7 @@ class LabelObject:
                 files = [os.path.join(obj_dir_name, f) for f in os.listdir(obj_dir_name) if f.startswith(file_prefix)]
                 for file in files:
                     if '.obj' in file:
-                        ans.append[file]
+                        ans.append(file)
             else:
                 ans =[object_file_name]
         return ans
