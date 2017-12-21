@@ -3,17 +3,18 @@
 import os
 import rospy
 from vrep_common.srv import *
-from get_initial_object_belief import GetInitialObjectBelief
+from get_initial_object_belief import GetInitialObjectBelief, save_object_file
 import time
 import yaml
 import numpy as np
+import math
 
 def get_pruned_saso_files(object_name, data_dir):
     files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if 'SASOData_' + object_name in f and f.endswith('.txt') and '_24_' in f]
     files_prefix = list(set(["_".join(x.split('_')[0:-1]) + "_" for x in files]))
     return files_prefix;
 
-def get_object_properties(object_id, object_property_dir):
+def get_object_properties(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
     object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
     if not os.path.exists(object_properties_filename):
         mesh_properties = get_default_object_properties(object_id)
@@ -21,9 +22,7 @@ def get_object_properties(object_id, object_property_dir):
         object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
         with open(object_properties_filename,'r') as stream:
             mesh_properties = yaml.load(stream)
-        if 'g3db' in object_property_dir:
-            #mesh_properties['signal_name'] = 'mesh_location'
-            mesh_properties['mesh_name'] = "g3db_meshes/" + mesh_properties['mesh_name']
+    mesh_properties['mesh_dir'] = object_mesh_dir 
     return mesh_properties
 
 def get_default_object_properties(object_id):
@@ -148,16 +147,24 @@ def update_object(action_, mesh_properties):
             print "Service call failed: %s"%e
     
     if(action == 'load_object'):
+        mesh_path = mesh_properties['mesh_name']
+        if('mesh_dir' in mesh_properties.keys()):
+            mesh_path = os.path.abspath(mesh_properties['mesh_dir']) + "/" + mesh_properties['mesh_name']
         try:
             #6 is for customization script
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  
-            [mesh_properties['signal_name'], os.path.abspath(mesh_properties['mesh_name'])], action)
+            [mesh_properties['signal_name'], mesh_path], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-   
-def add_object_in_scene(object_id, object_property_dir):
+
+def save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir):
+    mesh_properties = add_object_in_scene(object_id,object_property_dir, object_mesh_dir)
+    assert('pick_point' in mesh_properties.keys())
+    save_object_file(point_cloud_dir + "/" + object_id, True)
     
-    mesh_properties = get_object_properties(object_id, object_property_dir)
+def add_object_in_scene(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
+    
+    mesh_properties = get_object_properties(object_id, object_property_dir, object_mesh_dir)
     update_object('load_object', mesh_properties)
     add_object_from_properties(mesh_properties)
     return mesh_properties
@@ -231,7 +238,7 @@ def get_object_pick_point(mesh_properties):
         print pick_point
         mesh_properties['pick_point'] = pick_point
         
-  
+
 def check_for_object_collision(mesh_properties):
     object_pose = place_object_at_initial_location(mesh_properties)
     collision_detected = False
@@ -278,8 +285,8 @@ def check_for_object_stability(mesh_properties):
         start_stop_simulation('Stop')
         time.sleep(1)
     mesh_properties['object_stable'] = object_stable
-        
-    
+
+   
 def move_gripper(move_pos):
     mico_target_pose = get_any_object_pose('Mico_target')
     current_pos = [0,0,0]
@@ -302,11 +309,17 @@ def place_object_at_initial_location(mesh_properties):
     update_object({'set_object_pose': object_pose}, {})
     return object_pose
   
-def has_object_fallen(mesh_properties):
+def has_object_fallen(mesh_properties, use_quaternion = True):
     temp = {}
     update_object("get_object_pose", temp)
     object_pose = temp["object_pose"][0:3]
-    return (object_pose[2] < mesh_properties["object_min_z"])
+    
+    if(use_quaternion):
+        (X,Y,Z) = quaternion_to_euler_angle(temp["object_pose"][6], temp["object_pose"][3], temp["object_pose"][4], temp["object_pose"][5])
+        print repr(X) + " " + repr(Y) + " " + repr(Z)
+        return abs(X) > 45 or abs(Y) > 45
+    else: #use height
+        return (object_pose[2] < mesh_properties["object_min_z"])
         
     
 
@@ -361,7 +374,25 @@ def start_stop_simulation(service_type = 'Start'):
         resp1 = a()
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-        
+
+
+def quaternion_to_euler_angle(w, x, y, z):
+	ysqr = y * y
+	
+	t0 = +2.0 * (w * x + y * z)
+	t1 = +1.0 - 2.0 * (x * x + ysqr)
+	X = math.degrees(math.atan2(t0, t1))
+	
+	t2 = +2.0 * (w * y - z * x)
+	t2 = +1.0 if t2 > +1.0 else t2
+	t2 = -1.0 if t2 < -1.0 else t2
+	Y = math.degrees(math.asin(t2))
+	
+	t3 = +2.0 * (w * z + x * y)
+	t4 = +1.0 - 2.0 * (ysqr + z * z)
+	Z = math.degrees(math.atan2(t3, t4))
+	
+	return X, Y, Z        
 #If the object is already there, this function will first remove the object 
 #deprecated use the update_object function instead
 def load_object(object_file_name, signal_name = 'mesh_location'):

@@ -175,7 +175,8 @@ class LabelObject:
         else:
             #load object
             self.yaml_out = {}
-            self.yaml_out['mesh_name'] = self.object_file_names[self.mesh_file_id]
+            self.yaml_out['mesh_name'] =  os.path.basename(self.object_file_names[self.mesh_file_id])
+            self.yaml_out['mesh_dir'] = os.path.dirname(self.object_file_names[self.mesh_file_id])
             self.yaml_out['signal_name'] = 'mesh_location'
             self.yaml_out['object_use_label'] = 'S'
             ol.update_object('load_object', self.yaml_out)
@@ -207,6 +208,7 @@ class LabelObject:
         #Check for duplicates
         if(detect_duplicates):
             object_class = self.get_object_class_from_mesh_name(os.path.basename(self.object_file_names[self.mesh_file_id]))
+            print object_class
             if object_class in self.size_clusters.keys():
                 for j in range(0,len(self.size_clusters[object_class])):
                     cluster = self.size_clusters[object_class][j]
@@ -290,6 +292,15 @@ class LabelObject:
                         self.check_collision()
                         updated_object_instance_file_name = self.get_updated_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(j)
                         self.save_yaml(updated_object_instance_file_name, self.instance_yaml)  
+    
+    def generate_point_clouds(self):
+        for i in range(0,len(self.object_file_names)):
+            self.mesh_file_id = i
+            object_id = os.path.basename(self.object_file_names[self.mesh_file_id])
+            object_mesh_dir = os.path.dirname(self.object_file_names[self.mesh_file_id])
+            object_property_dir = self.output_dir
+            point_cloud_dir = '../grasping_ros_mico/point_clouds'
+            ol.save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir)
                 
     def get_num_instances(self):
         num_instances = 1
@@ -436,13 +447,20 @@ def update_object_instance_configs(object_file_name, dir_name):
     lo = LabelObject(object_file_name, dir_name)
     lo.update_object_instance_configs()
 
+#object file name gives mesh location
+#dir_name gives config file location of updated instance configs
+def generate_point_clouds(object_file_name, dir_name):
+    lo = LabelObject(object_file_name, dir_name)
+    lo.generate_point_clouds()
+
 def main():
 
     dir_name = './'
-    opts, args = getopt.getopt(sys.argv[1:],"hguo:",["outdir=",])
+    opts, args = getopt.getopt(sys.argv[1:],"hpguo:",["outdir=",])
     
     generate_object_instances = False
     update_object_instances = False
+    genetate_point_clouds = False
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -454,6 +472,8 @@ def main():
           generate_object_instances = True
       elif opt == '-u':
           update_object_instances = True
+      elif opt == '-':
+          genetate_point_clouds = True
       
     object_file_name = args[0]
     
@@ -461,6 +481,8 @@ def main():
         generate_object_instance_configs(object_file_name, dir_name)
     elif(update_object_instances):
         update_object_instance_configs(object_file_name, dir_name)
+    elif(genetate_point_clouds ):
+        generate_point_clouds(object_file_name, dir_name)
     else:
         app = QApplication([])
         currentState = MainWindow(object_file_name, dir_name)

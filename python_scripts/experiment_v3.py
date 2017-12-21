@@ -54,7 +54,17 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         else:
             command = command + ' ' + t + "/" + repr(begin_index) + '_'
         return command
-            
+    if(command_prefix == 'generate_point_clouds'):
+        # python label_g3db_objects.py -o ../grasping_ros_mico/g3db_object_labels/object_instances/object_instances_updated ../../../vrep/G3DB_object_dataset/obj_files/
+        #python label_g3db_objects.py -o ../grasping_ros_mico/pure_shape_labels all_cylinders
+        #pattern can be g3db_object_labels/object_instances/object_instances_updated or pure_shape_labels
+        command = 'python label_g3db_objects.py -p -o ../grasping_ros_mico/' 
+        command = command + pattern
+        if(pattern == 'pure_shape_labels'):
+            command = command + ' all_cylinders'
+        else:
+            command = command + ' ' + t + "/" + repr(begin_index) + '_'
+        return command        
         
     
     if(command_prefix == 'gather_data'):
