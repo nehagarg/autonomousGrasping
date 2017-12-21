@@ -47,7 +47,7 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
         //vrepInterfacePointer->epsilon = epsi;
         if(!generate_default)
         {
-            vrepInterfacePointer->LoadObjectInScene(0);
+            vrepInterfacePointer->LoadObjectInScene(0, true);
         }
         else
         {

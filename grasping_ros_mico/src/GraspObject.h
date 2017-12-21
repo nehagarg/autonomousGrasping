@@ -26,8 +26,10 @@ public:
     std::pair<int, int> getDiscretizationIndex(double x1, double y1);
     std::vector<SimulationData> getSimulationData(geometry_msgs::PoseStamped object_pose, geometry_msgs::PoseStamped gripper_pose, int action, bool use_next = false);
     geometry_msgs::PoseStamped getInitialObjectPose();
+    static std::string getObjectPropertyDir(std::string object_name);
     
-    static std::string object_property_dir ;
+    static std::string g3db_object_property_dir ;
+    static std::string pure_object_property_dir ;
     static std::string object_pointcloud_dir ;
     
     std::vector<SimulationData> simulationDataCollectionWithObject[A_PICK+1];
