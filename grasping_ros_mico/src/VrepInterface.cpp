@@ -1251,7 +1251,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     std::string filename;
     std::string file_dir;
     std::string filename_suffix;
-    if(version5 || version6)
+    if(RobotInterface::version5 || RobotInterface::version6)
     {
         if(version5)
         {

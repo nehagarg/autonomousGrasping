@@ -10,7 +10,8 @@
 #include "math.h"
 #include "GraspObject.h"
 
-std::string GraspObject::object_property_dir = "g3db_object_labels";
+std::string GraspObject::g3db_object_property_dir = "g3db_object_labels/object_instances/object_instances_updated";
+std::string GraspObject::pure_object_property_dir = "pure_shape_labels";
 std::string GraspObject::object_pointcloud_dir = "point_clouds";
 double GraspObject::pick_point_x_diff = -0.03;
 double GraspObject::pick_point_y_diff = 0.0;
@@ -85,6 +86,19 @@ geometry_msgs::PoseStamped GraspObject::getInitialObjectPose() {
     return object_pose;
 }
 
+std::string GraspObject::getObjectPropertyDir(std::string object_name) {
+    std::string object_property_dir;
+    std::string pure_shape_prefix = "Cylinder";
+    if(object_name.compare(0,pure_shape_prefix.size(), pure_shape_prefix) == 0)
+    {
+        object_property_dir = GraspObject::pure_object_property_dir;
+    }
+    else
+    {
+        object_property_dir = GraspObject::g3db_object_property_dir;
+    }
+    return object_property_dir;
+}
 
 void GraspObject::loadObject(bool load_in_vrep) {
     
@@ -93,6 +107,7 @@ void GraspObject::loadObject(bool load_in_vrep) {
     {
         function_name = "add_object_in_scene";
     }
+    std::string object_property_dir = GraspObject::getObjectPropertyDir(object_name);
     PyObject* object_properties = callPythonFunction(function_name, object_name, object_property_dir);
     
     std::vector<std::string> property_keys;
