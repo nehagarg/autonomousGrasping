@@ -1,0 +1,15 @@
+actions:
+- set_size: [0.9, 0.9, 1.0]
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+mesh_dir: g3db_meshes/
+mesh_name: Cylinder
+object_initial_pose_z: 1.1000338792800903
+object_min_z: 1.0952338792800904
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1000338792800903,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+pick_point: [0.4462560087438728, 0.15490637173670116, 1.0835447854937756]
+signal_name: pure_shape
