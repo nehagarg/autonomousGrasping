@@ -271,6 +271,8 @@ def check_for_object_stability(mesh_properties):
             move_gripper([0, 0.01,0.0])
         if has_object_fallen(mesh_properties):
             object_stable = False
+            start_stop_simulation('Stop')
+            time.sleep(1)
             break
         start_stop_simulation('Stop')
         time.sleep(1)
@@ -281,6 +283,8 @@ def check_for_object_stability(mesh_properties):
             move_gripper([0, -0.01,0.0])
         if has_object_fallen(mesh_properties):
             object_stable = False
+            start_stop_simulation('Stop')
+            time.sleep(1)
             break
         start_stop_simulation('Stop')
         time.sleep(1)
