@@ -231,12 +231,16 @@ def get_object_pick_point(mesh_properties):
         #rospy.signal_shutdown("Kinect listener not needed")
         start_stop_simulation('Stop')
         time.sleep(1)
-        print pick_point
-        #update_object({'set_object_pose': object_pose}, mesh_properties)
-        set_grasp_point(pick_point)
-        pick_point[0] = pick_point[0]- hack_value_x
-        print pick_point
-        mesh_properties['pick_point'] = pick_point
+        if(pick_point[0] is None):
+            mesh_properties['object_pickable'] = False
+        else:
+            mesh_properties['object_pickable'] = True
+            print pick_point
+            #update_object({'set_object_pose': object_pose}, mesh_properties)
+            set_grasp_point(pick_point)
+            pick_point[0] = pick_point[0]- hack_value_x
+            print pick_point
+            mesh_properties['pick_point'] = pick_point
         
 
 def check_for_object_collision(mesh_properties):
@@ -301,16 +305,18 @@ def move_gripper(move_pos):
     time.sleep(1)
     
 def place_object_at_initial_location(mesh_properties):
-    object_pose = (list(mesh_properties["object_pose"]))[0:3]
-    IDEAL_PICK_POINT_X = object_pose[0] -0.03
-    IDEAL_PICK_POINT_Y = object_pose[1]
-
-    x_diff = IDEAL_PICK_POINT_X - mesh_properties['pick_point'][0]
-    y_diff = IDEAL_PICK_POINT_Y - mesh_properties['pick_point'][1]
     
-    object_pose[0] = object_pose[0] + x_diff
-    object_pose[1] = object_pose[1] + y_diff
-    update_object({'set_object_pose': object_pose}, {})
+    object_pose = (list(mesh_properties["object_pose"]))[0:3]
+    if('pick_point' in mesh_properties.keys()):
+        IDEAL_PICK_POINT_X = object_pose[0] -0.03
+        IDEAL_PICK_POINT_Y = object_pose[1]
+
+        x_diff = IDEAL_PICK_POINT_X - mesh_properties['pick_point'][0]
+        y_diff = IDEAL_PICK_POINT_Y - mesh_properties['pick_point'][1]
+
+        object_pose[0] = object_pose[0] + x_diff
+        object_pose[1] = object_pose[1] + y_diff
+        update_object({'set_object_pose': object_pose}, {})
     return object_pose
   
 def has_object_fallen(mesh_properties, use_quaternion = True):

@@ -166,11 +166,13 @@ class GetInitialObjectBelief():
         #min_index = np.argmin(seg_point_cloud_world.x_coords)
         
         #need to get all the min points , otherwise can get random locations for cuboidal objects
-        x_coords_min = seg_point_cloud_world.x_coords.min()
-        min_indices = np.where(seg_point_cloud_world.x_coords < x_coords_min + 0.0001)
-        min_y_coordinate = np.mean(seg_point_cloud_world.y_coords[min_indices])
-        min_z_coordinate = np.mean(seg_point_cloud_world.z_coords[min_indices])
-        pick_point = [float(x_coords_min), float(min_y_coordinate), float(min_z_coordinate)]
+        pick_point = [None, None, None]
+        if(len(seg_point_cloud_world.x_coords)> 0):
+            x_coords_min = seg_point_cloud_world.x_coords.min()
+            min_indices = np.where(seg_point_cloud_world.x_coords < x_coords_min + 0.0001)
+            min_y_coordinate = np.mean(seg_point_cloud_world.y_coords[min_indices])
+            min_z_coordinate = np.mean(seg_point_cloud_world.z_coords[min_indices])
+            pick_point = [float(x_coords_min), float(min_y_coordinate), float(min_z_coordinate)]
         return pick_point
     
     
