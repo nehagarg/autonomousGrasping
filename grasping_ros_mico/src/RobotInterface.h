@@ -43,7 +43,7 @@ public:
     void GenerateUniformParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
     
     void GetDefaultStartState(GraspingStateRealArm& initial_state) const;
-    double abs(double x) const{
+    static double abs(double x) {
         if (x < 0) 
         {
             return -1*x;
@@ -250,12 +250,7 @@ public:
         return x_;
     }
     
-    
-    private:
-        double x_;
-        double y_;
-        double z_;
-        double w_;
+    //Returns in radians
     static void toEulerAngle(const Quaternion& q, double& roll, double& pitch, double& yaw)
     {
 	// roll (x-axis rotation)
@@ -275,6 +270,12 @@ public:
 	double cosy = +1.0 - 2.0 * (q.y() * q.y() + q.z() * q.z());  
 	yaw = atan2(siny, cosy);
     }
+    private:
+        double x_;
+        double y_;
+        double z_;
+        double w_;
+    
 };
 #endif	/* ROBOTINTERFACE_H */
 

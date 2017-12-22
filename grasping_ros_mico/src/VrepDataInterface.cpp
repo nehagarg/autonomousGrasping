@@ -356,8 +356,21 @@ bool VrepDataInterface::IsValidStateStatic(GraspingStateRealArm grasping_state,
     if(grasping_state.object_pose.pose.position.x < grasp_object->min_x_o ||
        grasping_state.object_pose.pose.position.x > grasp_object->max_x_o ||
        grasping_state.object_pose.pose.position.y < grasp_object->min_y_o ||
-       grasping_state.object_pose.pose.position.y > grasp_object->max_y_o ||
-       grasping_state.object_pose.pose.position.z < grasp_object->min_z_o) // Object has fallen
+       grasping_state.object_pose.pose.position.y > grasp_object->max_y_o ) //||
+      // grasping_state.object_pose.pose.position.z < grasp_object->min_z_o) // Object has fallen
+    {
+        return false;
+    }
+    
+    Quaternion q(grasping_state.object_pose.pose.orientation.x, 
+            grasping_state.object_pose.pose.orientation.y, 
+            grasping_state.object_pose.pose.orientation.z,
+            grasping_state.object_pose.pose.orientation.w);
+    double roll, pitch,yaw;
+    Quaternion::toEulerAngle(q,roll, pitch,yaw);
+    //std::cout << "Roll,pitch,yaw" << roll << "," << pitch << "," << yaw << std::endl;
+    double radians_45 = 45*3.14/180.0 ;
+    if(RobotInterface::abs(roll) > radians_45 ||RobotInterface::abs(pitch) > radians_45)
     {
         return false;
     }

@@ -660,14 +660,14 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     }
     for(int i = 0; i < 4; i=i+inc)
     {
-        finger_distance = finger_distance + abs(grasping_obs.finger_joint_state[i] - grasping_obs_expected.finger_joint_state[i]);
+        finger_distance = finger_distance + RobotInterface::abs(grasping_obs.finger_joint_state[i] - grasping_obs_expected.finger_joint_state[i]);
     }
     finger_distance = finger_distance/(4.0/inc);
     
     double sensor_distance = 0;
     for(int i = 0; i < 2; i++)
     {
-        sensor_distance = sensor_distance + abs(grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i]);
+        sensor_distance = sensor_distance + RobotInterface::abs(grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i]);
     }
     sensor_distance = sensor_distance/2.0;
     
@@ -1075,11 +1075,11 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
             {
                 double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_gripper_pose.pose.position.x;
                 double x2 = current_grasping_state.object_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x;
-                if(abs(x1-x2) <= 0.005)
+                if(RobotInterface::abs(x1-x2) <= 0.005)
                 {
                     double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].next_gripper_pose.pose.position.y;
                     double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
-                    if(abs(y1-y2) <= 0.005)
+                    if(RobotInterface::abs(y1-y2) <= 0.005)
                     {
                         tempDataVector.push_back(graspObjects[object_id]->simulationDataCollectionWithObject[action][i]);
                     }
@@ -1409,11 +1409,11 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
         {
             double x1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_object_pose.pose.position.x - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_gripper_pose.pose.position.x;
             double x2 = current_grasping_state.object_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x;
-            if(abs(x1-x2) <= 0.005)
+            if(RobotInterface::abs(x1-x2) <= 0.005)
             {
                 double y1 = graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_object_pose.pose.position.y - graspObjects[object_id]->simulationDataCollectionWithObject[action][i].current_gripper_pose.pose.position.y;
                 double y2 = current_grasping_state.object_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y;
-                if(abs(y1-y2) <= 0.005)
+                if(RobotInterface::abs(y1-y2) <= 0.005)
                 {
                    /* if(debug)
                     {
