@@ -41,9 +41,9 @@ public:
     
     
     double min_x_o ;
-    double max_x_o = 0.5517;  // range for object location
-    double min_y_o = 0.0829; // range for object location
-    double max_y_o = 0.2295; // range for object location
+    double max_x_o ;  // range for object location
+    double min_y_o ; // range for object location
+    double max_y_o ; // range for object location
     double min_z_o; //= 1.1200 ; //for objects on table
     
     double initial_object_x ;
@@ -63,22 +63,22 @@ private:
     std::string data_dir_name;
     std::string regression_data_dir_name;
     
-    double min_x_o_low_friction_table = 0.4319;
-    double min_x_o_high_friction_table = 0.4586;
+    double min_x_o_low_friction_table ;
+    double min_x_o_high_friction_table ;
      //for table with high friction//range for object location
     
-    double default_min_z_o_low_friction_table = 1.0950;
-    double default_min_z_o_high_friction_table = 1.1200 ; //for objects on high friction table
+    double default_min_z_o_low_friction_table ;
+    double default_min_z_o_high_friction_table ; //for objects on high friction table
    
     
-    double initial_object_x_low_friction_table = 0.4919;
-    double initial_object_x_high_friction_table = 0.498689; 
+    double initial_object_x_low_friction_table ;
+    double initial_object_x_high_friction_table ; 
     
-    double default_initial_object_pose_z_high_friction_table = 1.1248; //for object on high friction table
-    double default_initial_object_pose_z_low_friction_table = 1.0998;
+    double default_initial_object_pose_z_high_friction_table ; //for object on high friction table
+    double default_initial_object_pose_z_low_friction_table ;
     
-    double initial_object_y_version5 = 0.148582;
-    double initial_object_y_version6 = 0.1562;
+    double initial_object_y_version5;
+    double initial_object_y_version6 ;
     
     std::vector<double> pick_point; //Only for low friction table
     

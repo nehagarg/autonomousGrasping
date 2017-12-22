@@ -18,6 +18,27 @@ double GraspObject::pick_point_y_diff = 0.0;
 
 GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, bool low_friction, bool load_in_vrep) {
     
+    max_x_o = 0.5517;  // range for object location
+    min_y_o = 0.0829; // range for object location
+    max_y_o = 0.2295; // range for object location
+    
+    min_x_o_low_friction_table = 0.4319;
+    min_x_o_high_friction_table = 0.4586;
+     //for table with high friction//range for object location
+    
+    default_min_z_o_low_friction_table = 1.0950;
+    default_min_z_o_high_friction_table = 1.1200 ; //for objects on high friction table
+   
+    
+    initial_object_x_low_friction_table = 0.4919;
+    initial_object_x_high_friction_table = 0.498689; 
+    
+    default_initial_object_pose_z_high_friction_table = 1.1248; //for object on high friction table
+    default_initial_object_pose_z_low_friction_table = 1.0998;
+    
+    initial_object_y_version5 = 0.148582;
+    initial_object_y_version6 = 0.1562;
+    
     object_name = object_name_;
     data_dir_name = data_dir_name_;
     regression_data_dir_name = data_dir_name_ + "/data_for_regression";
@@ -71,7 +92,10 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
         initial_object_y = initial_object_y + y_diff;
         min_y_o = min_y_o + y_diff;
         max_y_o = max_y_o + y_diff;
+        std::cout << "X_diff:" << x_diff << " Y_diff:" << y_diff << std::endl;
     }
+    std::cout << "Min,max x_0:" << min_x_o << "," << max_x_o 
+            << " min,max y_o" << min_y_o << "," << max_y_o << std::endl;
 }
 
 geometry_msgs::PoseStamped GraspObject::getInitialObjectPose() {

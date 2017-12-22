@@ -30,6 +30,48 @@ bool RobotInterface::use_pruned_data;
 bool RobotInterface::use_discretized_data;
 
 RobotInterface::RobotInterface() {
+    min_x_i = 0.3379; //range for gripper movement
+    max_x_i = 0.5279;  // range for gripper movement
+    min_y_i = 0.0816; // range for gripper movement
+    max_y_i = 0.2316; // range for gripper movement 
+    gripper_in_x_i = 0.3779; //for amazon shelf , threshold after which gripper is inside shelf
+    //double gripper_out_y_diff = 0.02; //for amazon shelf
+    gripper_out_y_diff = 0.0;    //for open table
+    
+    pick_z_diff = 0.09; //Gripper becomes unstable at 0.12
+    pick_x_val = 0.2879;
+    pick_y_val = 0.1516;
+    
+    initial_gripper_pose_z_low_friction_table = 1.10835 - 0.03;
+    initial_gripper_pose_z_low_friction_table_version6 = 1.10833;
+    initial_gripper_pose_z = 1.10835; 
+    
+    initial_gripper_pose_index_x = 0;
+    initial_gripper_pose_index_y = 7;
+    
+    //Gripper orientation
+    initial_gripper_pose_xx =  -0.694327;
+    initial_gripper_pose_yy = -0.0171483;
+    initial_gripper_pose_zz = -0.719;
+    initial_gripper_pose_ww = -0.0255881;
+    
+    initial_gripper_pose_xx_ver6 = 3.43584e-05 ;
+    initial_gripper_pose_yy_ver6 = -0.707165 ;
+    initial_gripper_pose_zz_ver6 = 7.39992e-05 ;
+    initial_gripper_pose_ww_ver6 = -0.707048;
+    
+    vrep_touch_threshold = 0.35;
+    pick_reward = 20;
+    pick_penalty = -100;
+    invalid_state_penalty = -100;
+    separate_close_reward = true;
+    
+    epsilon = 0.01; //Smallest step value //Reset during gathering data 
+    //double epsilon_multiplier = 2; //for step increments in amazon shelf
+    epsilon_multiplier = 8; //for open table
+    
+    num_predictions_for_dynamic_function = 18;
+    
     if(version5 || version6)
     {
         touch_sensor_mean_ver5[0] = 0.11;
@@ -80,6 +122,10 @@ RobotInterface::RobotInterface() {
         if(version6)
         {
             initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table_version6;
+            initial_gripper_pose_xx = initial_gripper_pose_xx_ver6;
+            initial_gripper_pose_yy = initial_gripper_pose_yy_ver6;
+            initial_gripper_pose_zz = initial_gripper_pose_zz_ver6;
+            initial_gripper_pose_ww = initial_gripper_pose_ww_ver6;
         }
         else
         {
@@ -840,10 +886,10 @@ void RobotInterface::GetDefaultStartState(GraspingStateRealArm& initial_state) c
     initial_state.gripper_pose.pose.position.x = min_x_i + 0.01*i;
     initial_state.gripper_pose.pose.position.y = min_y_i + 0.01*j;
     initial_state.gripper_pose.pose.position.z = initial_gripper_pose_z;
-    initial_state.gripper_pose.pose.orientation.x = -0.694327;
-    initial_state.gripper_pose.pose.orientation.y = -0.0171483;
-    initial_state.gripper_pose.pose.orientation.z = -0.719 ;
-    initial_state.gripper_pose.pose.orientation.w = -0.0255881;
+    initial_state.gripper_pose.pose.orientation.x = initial_gripper_pose_xx;
+    initial_state.gripper_pose.pose.orientation.y = initial_gripper_pose_yy;
+    initial_state.gripper_pose.pose.orientation.z = initial_gripper_pose_zz;
+    initial_state.gripper_pose.pose.orientation.w = initial_gripper_pose_ww;
     initial_state.object_pose.pose.position.x = graspObjects[object_id]->initial_object_x;
     initial_state.object_pose.pose.position.y = graspObjects[object_id]->initial_object_y;
     initial_state.object_pose.pose.position.z = graspObjects[object_id]->initial_object_pose_z;

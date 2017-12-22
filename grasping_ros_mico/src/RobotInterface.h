@@ -69,13 +69,13 @@ public:
     static const int NUMBER_OF_OBJECTS = 10; 
     
     //For data collected
-    double min_x_i = 0.3379; //range for gripper movement
-    double max_x_i = 0.5279;  // range for gripper movement
-    double min_y_i = 0.0816; // range for gripper movement
-    double max_y_i = 0.2316; // range for gripper movement 
-    double gripper_in_x_i = 0.3779; //for amazon shelf , threshold after which gripper is inside shelf
+    double min_x_i ; //range for gripper movement
+    double max_x_i ;  // range for gripper movement
+    double min_y_i ; // range for gripper movement
+    double max_y_i ; // range for gripper movement 
+    double gripper_in_x_i ; //for amazon shelf , threshold after which gripper is inside shelf
     //double gripper_out_y_diff = 0.02; //for amazon shelf
-    double gripper_out_y_diff = 0.0;    //for open table
+    double gripper_out_y_diff ;    //for open table
     
     
     //double min_x_o_low_friction_table = 0.4319;
@@ -93,27 +93,37 @@ public:
     //double default_initial_object_pose_z = 1.1248; // for objects on high friction table //1.7066; //for amazon shelf
     //double max_x_o_difference = 0.01; //Not being used anywhere
     
-    double pick_z_diff = 0.09; //Gripper becomes unstable at 0.12
-    double pick_x_val = 0.2879;
-    double pick_y_val = 0.1516;
+    double pick_z_diff ; //Gripper becomes unstable at 0.12
+    double pick_x_val ;
+    double pick_y_val ;
     
     
     
-    double initial_gripper_pose_z_low_friction_table = 1.10835 - 0.03;
-    double initial_gripper_pose_z_low_friction_table_version6 = 1.10833;
-    double initial_gripper_pose_z = 1.10835; //for objects on high friction table  //1.73337; // for amazon shelf
+    double initial_gripper_pose_z_low_friction_table ;
+    double initial_gripper_pose_z_low_friction_table_version6 ;
+    double initial_gripper_pose_z ; //for objects on high friction table  //1.73337; // for amazon shelf
     //double initial_object_x_low_friction_table = 0.4919;
     //double initial_object_x = 0.498689; //for high friction table
     //double initial_object_y = 0.148582;
-    int initial_gripper_pose_index_x = 0;
-    int initial_gripper_pose_index_y = 7;
- 
+    int initial_gripper_pose_index_x ;
+    int initial_gripper_pose_index_y ;
     
-    double vrep_touch_threshold = 0.35;
-    double pick_reward = 20;
-    double pick_penalty = -100;
-    double invalid_state_penalty = -100;
-    bool separate_close_reward = true;
+    //Gripper orientation
+    double initial_gripper_pose_xx ;
+    double initial_gripper_pose_yy ;
+    double initial_gripper_pose_zz ;
+    double initial_gripper_pose_ww ;
+    
+    double initial_gripper_pose_xx_ver6  ;
+    double initial_gripper_pose_yy_ver6  ;
+    double initial_gripper_pose_zz_ver6  ;
+    double initial_gripper_pose_ww_ver6 ;
+    
+    double vrep_touch_threshold ;
+    double pick_reward ;
+    double pick_penalty ;
+    double invalid_state_penalty;
+    bool separate_close_reward ;
     static bool low_friction_table;
     static bool version5;
     static bool version6;
@@ -150,7 +160,7 @@ public:
     //mutable PyObject* dynamicModels[NUMBER_OF_OBJECTS][A_PICK+1];
     //mutable MultiScikitModels* dynamicModelsC[NUMBER_OF_OBJECTS][A_PICK+1];
     //mutable PyObject* dynamicFunction;
-    int num_predictions_for_dynamic_function = 18;
+    int num_predictions_for_dynamic_function;
     
     
     double get_action_range(int action, int action_type) const ;
