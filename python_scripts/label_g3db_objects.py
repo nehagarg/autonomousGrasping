@@ -304,7 +304,7 @@ class LabelObject:
                 
     def get_num_instances(self):
         num_instances = 1
-        if 'actions' in self.yaml_out:
+        if 'actions' in self.yaml_out and self.yaml_out['actions']:
             if(type(self.yaml_out['actions'][0])==list):
                 num_instances = len(self.yaml_out['actions'])
         return num_instances
