@@ -159,8 +159,11 @@ def update_object(action_, mesh_properties):
 
 def save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir):
     mesh_properties = add_object_in_scene(object_id,object_property_dir, object_mesh_dir)
+    start_stop_simulation('Start')
     assert('pick_point' in mesh_properties.keys())
-    save_object_file(point_cloud_dir + "/" + object_id, True)
+    save_object_file(point_cloud_dir + "/" + object_id, False)
+    start_stop_simulation('Stop')
+    time.sleep(2)
     
 def add_object_in_scene(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
     

@@ -472,7 +472,7 @@ def main():
           generate_object_instances = True
       elif opt == '-u':
           update_object_instances = True
-      elif opt == '-':
+      elif opt == '-p':
           genetate_point_clouds = True
       
     object_file_name = args[0]

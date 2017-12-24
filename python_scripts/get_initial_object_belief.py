@@ -239,13 +239,34 @@ class GetInitialObjectBelief():
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
         
         T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME)
-        seg_point_cloud_target = T_camera_target * seg_point_cloud_cam
+        #print T_camera_world
+        #print T_camera_target
+        #seg_point_cloud_target = T_camera_target * seg_point_cloud_cam
         
+        """
+        import sensor_msgs.point_cloud2 as pcl2
+        from sensor_msgs.msg import Image, PointCloud2, PointField
+        print point_cloud_world.data.shape
+        pc2 = PointCloud2()
+        pc2.header.frame_id = self.MICO_TARGET_FRAME
+        segmented_pc = pcl2.create_cloud_xyz32(pc2.header, np.transpose(seg_point_cloud_target.data))
+        pcl_pub = rospy.Publisher('mico_node/pointcloud', PointCloud2, queue_size=10)
+        
+        while not rospy.is_shutdown():
+           #hello_str = "hello world %s" % rospy.get_time()
+           #rospy.loginfo(hello_str)
+           pcl_pub.publish(segmented_pc)
+           #depth_im_pub.publish(depth_im)
+           #rospy.sleep(5)
+        
+        #return copy.deepcopy(point_cloud_world)
+        """
         print seg_point_cloud_cam.shape
         depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
-        camera_intr._frame = self.MICO_TARGET_FRAME
-        depth_im_seg = camera_intr.project_to_image(seg_point_cloud_target)
-        
+        #camera_intr._frame = self.MICO_TARGET_FRAME
+        #depth_im_seg = camera_intr.project_to_image(seg_point_cloud_target)
+        #camera_intr._frame = self.WORLD_FRAME
+        #depth_im_seg = camera_intr.project_to_image(seg_point_cloud_world)
         return(depth_im_seg, camera_intr)
 
 
