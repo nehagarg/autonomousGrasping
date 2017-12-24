@@ -1,0 +1,21 @@
+actions:
+- {rotate_z: 30}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.07340100285891553}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 86_bread_final-13-Nov-2015-03-53-41.obj
+duplicate_mesh_size: !!python/tuple [0.36708998680114746, 0.33653002977371216, 0.2411399930715561]
+mesh_name: 86_bread_final-13-Nov-2015-03-53-41.obj
+object_initial_pose_z: 1.0889532566070557
+object_min_z: 1.0841532566070557
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0889532566070557,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.44176350673679726, 0.1417803912877797, 1.0867113047545904]
+signal_name: mesh_location

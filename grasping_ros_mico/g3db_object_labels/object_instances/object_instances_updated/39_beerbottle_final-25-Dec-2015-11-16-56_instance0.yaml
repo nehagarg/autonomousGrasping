@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 39_beerbottle_final-25-Dec-2015-11-16-56.obj
+duplicate_mesh_size: !!python/tuple [0.06548000127077103, 0.0653500035405159, 0.35062000155448914]
+mesh_name: 39_beerbottle_final-25-Dec-2015-11-16-56.obj
+object_initial_pose_z: 1.225343942642212
+object_min_z: 1.220543942642212
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.225343942642212,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.4658908109991681, 0.1581743940455605, 1.0830444700687643]
+remarks: might be unstable
+signal_name: mesh_location

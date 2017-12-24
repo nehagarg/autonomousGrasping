@@ -1,0 +1,19 @@
+actions:
+- {rotate_y: -90}
+- reorient_bounding_box
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 30_fruit_juicer_final-09-Mar-2016-19-35-40.obj
+duplicate_mesh_size: !!python/tuple [0.07413000613451004, 0.07412999868392944, 0.22144000232219696]
+mesh_name: 30_fruit_juicer_final-09-Mar-2016-19-35-40.obj
+object_initial_pose_z: 1.0870988368988037
+object_min_z: 1.0822988368988038
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0870988368988037,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.38543023608873456, 0.2011706294999963, 1.0870098995110618]
+signal_name: mesh_location

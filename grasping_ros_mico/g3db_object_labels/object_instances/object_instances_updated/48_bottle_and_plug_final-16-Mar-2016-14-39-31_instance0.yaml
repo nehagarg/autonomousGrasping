@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.08887667352552829}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 48_bottle_and_plug_final-16-Mar-2016-14-39-31.obj
+duplicate_mesh_size: !!python/tuple [0.09754999727010727, 0.09754999727010727, 0.2536199986934662]
+mesh_name: 48_bottle_and_plug_final-16-Mar-2016-14-39-31.obj
+object_initial_pose_z: 1.1655690670013428
+object_min_z: 1.1607690670013429
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1655690670013428,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4467524751852932, 0.15333887713560893, 1.085443136165087]
+signal_name: mesh_location

@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xy_y: 0.08463457997154224}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 41_jar_and_lid_final-15-Jan-2016-15-15-52.obj
+duplicate_mesh_size: !!python/tuple [0.16804999113082886, 0.16801999509334564, 0.136570006608963]
+mesh_name: 41_jar_and_lid_final-15-Jan-2016-15-15-52.obj
+object_initial_pose_z: 1.1183189153671265
+object_min_z: 1.1135189153671265
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1183189153671265,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.45224817379162313, 0.1565985900603709, 1.0796784671217363]
+signal_name: mesh_location

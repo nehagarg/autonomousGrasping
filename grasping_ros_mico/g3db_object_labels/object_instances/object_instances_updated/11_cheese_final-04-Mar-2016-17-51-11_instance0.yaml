@@ -1,0 +1,21 @@
+actions:
+- {rotate_x: 180}
+- reorient_bounding_box
+- {set_size_abs_xyz_z: 0.05966}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 11_cheese_final-04-Mar-2016-17-51-11.obj
+duplicate_mesh_size: !!python/tuple [0.0826600044965744, 0.06385999917984009, 0.039659999310970306]
+mesh_name: 11_cheese_final-04-Mar-2016-17-51-11.obj
+object_initial_pose_z: 1.0798641443252563
+object_min_z: 1.0750641443252564
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0798641443252563,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4386933759134544, 0.1354588644334785, 1.0794973354258808]
+signal_name: mesh_location

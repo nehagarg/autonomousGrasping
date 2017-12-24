@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 42_wineglass_final-01-Nov-2015-05-42-26.obj
+duplicate_mesh_size: !!python/tuple [0.09515000134706497, 0.09514999389648438, 0.2042199969291687]
+mesh_name: 42_wineglass_final-01-Nov-2015-05-42-26.obj
+object_initial_pose_z: 1.152143955230713
+object_min_z: 1.147343955230713
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.152143955230713,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4853734590992353, 0.15496189175546482, 1.0868854037951363]
+signal_name: mesh_location

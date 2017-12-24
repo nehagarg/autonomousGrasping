@@ -1,0 +1,19 @@
+actions:
+- {rotate_z: 180}
+- reorient_bounding_box
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 56_headphones_final-16-Nov-2015-11-29-41.obj
+duplicate_mesh_size: !!python/tuple [0.22100000083446503, 0.21623998880386353, 0.12225000560283661]
+mesh_name: 56_headphones_final-16-Nov-2015-11-29-41.obj
+object_initial_pose_z: 1.111158847808838
+object_min_z: 1.106358847808838
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.111158847808838,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.3926592943537269, 0.20332105408344198, 1.0869759764906883]
+signal_name: mesh_location

@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xy_y: 0.10733}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 24_bowl-26-Feb-2016-08-35-29.obj
+duplicate_mesh_size: !!python/tuple [0.1974799931049347, 0.19732999801635742, 0.06518999487161636]
+mesh_name: 24_bowl-26-Feb-2016-08-35-29.obj
+object_initial_pose_z: 1.0826289653778076
+object_min_z: 1.0778289653778077
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0826289653778076,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.45036452489802375, 0.15675432762116914, 1.0879032073677921]
+signal_name: mesh_location

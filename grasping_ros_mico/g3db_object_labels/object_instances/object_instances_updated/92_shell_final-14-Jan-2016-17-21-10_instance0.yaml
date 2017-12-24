@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 92_shell_final-14-Jan-2016-17-21-10.obj
+duplicate_mesh_size: !!python/tuple [0.20791000127792358, 0.16822001338005066, 0.10103999823331833]
+mesh_name: 92_shell_final-14-Jan-2016-17-21-10.obj
+object_initial_pose_z: 1.1005539894104004
+object_min_z: 1.0957539894104005
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1005539894104004,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.38726545825544884, 0.18046526189912315, 1.0796278673464672]
+signal_name: mesh_location

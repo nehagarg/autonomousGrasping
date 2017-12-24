@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 64_tongs_final-02-Dec-2015-12-22-36.obj
+duplicate_mesh_size: !!python/tuple [0.1626800000667572, 0.03564000129699707, 0.050860002636909485]
+mesh_name: 64_tongs_final-02-Dec-2015-12-22-36.obj
+object_initial_pose_z: 1.075463891029358
+object_min_z: 1.070663891029358
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.075463891029358,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.46488195226399714, 0.15560371144467183, 1.0783658115153665]
+signal_name: mesh_location

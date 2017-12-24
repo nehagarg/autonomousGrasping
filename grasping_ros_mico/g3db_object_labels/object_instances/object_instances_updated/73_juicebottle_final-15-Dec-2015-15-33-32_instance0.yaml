@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.07248950388649206}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 73_juicebottle_final-15-Dec-2015-15-33-32.obj
+duplicate_mesh_size: !!python/tuple [0.09870000183582306, 0.09874999523162842, 0.17825999855995178]
+mesh_name: 73_juicebottle_final-15-Dec-2015-15-33-32.obj
+object_initial_pose_z: 1.1154615879058838
+object_min_z: 1.1106615879058839
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1154615879058838,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.45971137879390006, 0.14262045239633567, 1.0875914695209599]
+signal_name: mesh_location

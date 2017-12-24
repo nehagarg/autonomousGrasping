@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 91_peppershaker_final-04-Dec-2015-07-24-02.obj
+duplicate_mesh_size: !!python/tuple [0.06656000018119812, 0.06656999886035919, 0.14107000827789307]
+mesh_name: 91_peppershaker_final-04-Dec-2015-07-24-02.obj
+object_initial_pose_z: 1.1205689907073975
+object_min_z: 1.1157689907073975
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1205689907073975,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.45886685806670985, 0.15727096163211124, 1.085396776646237]
+signal_name: mesh_location

@@ -1,0 +1,20 @@
+actions:
+- {rotate_x: 180}
+- reorient_bounding_box
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 90_phone_final-20-Jan-2016-06-31-13.obj
+duplicate_mesh_size: !!python/tuple [0.17340999841690063, 0.049160003662109375, 0.059300005435943604]
+mesh_name: 90_phone_final-20-Jan-2016-06-31-13.obj
+object_initial_pose_z: 1.0796992778778076
+object_min_z: 1.0748992778778077
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0796992778778076,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.420382224373166, 0.12852471839611906, 1.078614357331655]
+signal_name: mesh_location

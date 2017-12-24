@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 1_Coffeecup_final-10-Dec-2015-06-58-01.obj
+duplicate_mesh_size: !!python/tuple [0.17667001485824585, 0.12855000793933868, 0.09045999497175217]
+mesh_name: 1_Coffeecup_final-10-Dec-2015-06-58-01.obj
+object_initial_pose_z: 1.095263957977295
+object_min_z: 1.090463957977295
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.095263957977295,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4056687202951375, 0.15986066782615596, 1.0879240240310746]
+signal_name: mesh_location

@@ -1,0 +1,17 @@
+actions:
+- {rotate_z: 180}
+- reorient_bounding_box
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 25_mug-06-Feb-2016-04-46-11.obj
+duplicate_mesh_size: !!python/tuple [0.15711000561714172, 0.1196800023317337, 0.09121999889612198]
+mesh_name: 25_mug-06-Feb-2016-04-46-11.obj
+object_initial_pose_z: 1.0956437587738037
+object_min_z: 1.0908437587738038
+object_pose: !!python/tuple [0.4919009506702423, 0.1561702936887741, 1.0956437587738037,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4129683920940978, 0.15925584013255023, 1.0882223241109077]
+signal_name: mesh_location

@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.06236351807900914}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 94_weight_final-26-Feb-2016-16-59-33.obj
+duplicate_mesh_size: !!python/tuple [0.20563000440597534, 0.20563000440597534, 0.2692500054836273]
+mesh_name: 94_weight_final-26-Feb-2016-16-59-33.obj
+object_initial_pose_z: 1.0908629894256592
+object_min_z: 1.0860629894256593
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0908629894256592,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.46051573934914886, 0.1585920218699194, 1.0795429244862862]
+signal_name: mesh_location

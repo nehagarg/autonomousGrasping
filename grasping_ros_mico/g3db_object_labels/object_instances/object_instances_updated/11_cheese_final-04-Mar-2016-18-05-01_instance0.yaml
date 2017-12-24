@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 11_cheese_final-04-Mar-2016-18-05-01.obj
+duplicate_mesh_size: !!python/tuple [0.09178999811410904, 0.07794000208377838, 0.06270000338554382]
+mesh_name: 11_cheese_final-04-Mar-2016-18-05-01.obj
+object_initial_pose_z: 1.0813839435577393
+object_min_z: 1.0765839435577393
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0813839435577393,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4526326477848966, 0.16971417002878975, 1.0810476828952407]
+signal_name: mesh_location

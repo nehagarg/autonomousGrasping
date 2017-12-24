@@ -1,0 +1,21 @@
+actions:
+- {rotate_z: -41.1}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.07920831464999267}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 59_towel_final-01-Dec-2015-14-27-18.obj
+duplicate_mesh_size: !!python/tuple [0.43299999833106995, 0.408160001039505, 0.20071999728679657]
+mesh_name: 59_towel_final-01-Dec-2015-14-27-18.obj
+object_initial_pose_z: 1.0945408344268799
+object_min_z: 1.08974083442688
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0945408344268799,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.3883586427187123, 0.1847171092137874, 1.0849120475748117]
+signal_name: mesh_location

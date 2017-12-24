@@ -1,0 +1,21 @@
+actions:
+- {rotate_x: 90}
+- reorient_bounding_box
+- {set_size_abs_xyz_z: 0.19783}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 44_towelstand_final-16-Mar-2016-13-10-47.obj
+duplicate_mesh_size: !!python/tuple [0.11428999900817871, 0.240090012550354, 0.18269000947475433]
+mesh_name: 44_towelstand_final-16-Mar-2016-13-10-47.obj
+object_initial_pose_z: 1.1489489078521729
+object_min_z: 1.144148907852173
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1489489078521729,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.48195728480189476, 0.1560010434143959, 1.0838240046333782]
+signal_name: mesh_location
