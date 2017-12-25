@@ -186,6 +186,7 @@ class LabelObject:
         self.output_dir = dir_name
         self.object_instance_dir = "object_instances"
         self.updated_object_instance_dir = "object_instances_updated"
+        self.point_cloud_dir = '../grasping_ros_mico/point_clouds'
         
         self.mesh_file_id = 0
         self.yaml_out = {}
@@ -226,6 +227,7 @@ class LabelObject:
                         self.instance_yaml = yaml.load(f)
                         #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
                         self.instance_yaml = ol.add_object_from_properties(self.instance_yaml, True)
+        
                         
                     
     
@@ -338,7 +340,7 @@ class LabelObject:
             if self.pure_shape or (self.yaml_out['object_use_label'] == 'S' and int(self.yaml_out['duplicate_mesh_index']) == 0):
                 num_instances = self.get_num_instances()
                 object_mesh_dir = os.path.dirname(self.object_file_names[self.mesh_file_id])
-                point_cloud_dir = '../grasping_ros_mico/point_clouds'
+                point_cloud_dir = self.point_cloud_dir
                 for j in range(0,num_instances):
                         object_property_dir =  self.get_updated_instance_file_dir(self.output_file_name)
                         object_id = os.path.basename(self.get_instance_file_name(j))
@@ -351,6 +353,11 @@ class LabelObject:
                 num_instances = len(self.yaml_out['actions'])
         return num_instances
     
+    def get_point_cloud_filename(self,i):
+        instance_file_name = self.get_instance_file_name(i)
+        point_cloud_name = instancce_file_name.replace('.yaml','.npy')
+        return point_cloud_name
+        
     def get_updated_instance_file_dir(self, object_file_dir):
         if self.pure_shape:
             return os.path.dirname(object_file_dir)
@@ -500,7 +507,7 @@ def generate_pickable_object_list(dir_name):
     pickable_list = []
     files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if '.yaml' in f]
     for i in range(0,len(files)):
-        object_id = os.path.basename(files[i])
+        object_id = os.path.basename(files[i]).replace('.yaml', '')
         object_property_dir = dir_name
         mesh_properties = ol.get_object_properties(object_id, object_property_dir)
         if(ol.object_graspable(mesh_properties)):
