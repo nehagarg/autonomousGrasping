@@ -14,6 +14,6 @@ object_pickable: true
 object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0777689218521118,
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
-object_use_label: S
+object_use_label: D
 pick_point: [0.4502064321242863, 0.1195260707791953, 1.087387830218336]
 signal_name: mesh_location

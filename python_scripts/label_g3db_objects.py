@@ -47,10 +47,21 @@ class MainWindow(QWidget):
         #self.fieldNameButton.addItem("Size")
         self.fieldNameText = QPlainTextEdit(self)
         self.addFormLayout.addRow(self.fieldNameButton, self.fieldNameText)
+        self.objectStableButton = QPushButton('ObjectStable', self)
+        self.objectPickable = QPushButton('ObjectPickable', self)
+        self.objectColliding = QPushButton('ObjectColliding', self)
+        
+        
+        self.verticalLayoutTR = QVBoxLayout()
+        self.verticalLayoutTR.addLayout(self.addFormLayout)
+        self.verticalLayoutTR.addWidget(self.objectStableButton)
+        self.verticalLayoutTR.addWidget(self.objectPickable)
+        self.verticalLayoutTR.addWidget(self.objectColliding)
+        
         
         self.hLayoutT = QHBoxLayout()
         self.hLayoutT.addWidget(self.plainTextEdit)
-        self.hLayoutT.addLayout(self.addFormLayout)
+        self.hLayoutT.addLayout(self.verticalLayoutTR)
         
         
                
@@ -70,7 +81,7 @@ class MainWindow(QWidget):
         self.loadObject()
 
     def loadObject(self, instance = None):
-        self.lo.load_next_object(instance)
+        self.lo.load_next_object(instance, True,True)
         self.setWindowTitle(os.path.basename(self.lo.object_file_names[self.lo.mesh_file_id]))
         prettyData =  yaml.dump(self.lo.yaml_out, default_flow_style=False)
         self.plainTextEdit.setPlainText(str(prettyData))
@@ -106,6 +117,28 @@ class MainWindow(QWidget):
         self.loadObject(text)
         prettyData =  yaml.dump(self.lo.instance_yaml, default_flow_style=False)
         self.fieldNameText.setPlainText(str(prettyData))
+        if('object_stable' in self.lo.instance_yaml.keys()):
+            if(self.lo.instance_yaml['object_stable']):
+                self.objectStableButton.setStyleSheet("background-color: green")
+            else:
+                self.objectStableButton.setStyleSheet("background-color: red")
+        else:
+            self.objectStableButton.setStyleSheet("background-color: yellow")
+        if('object_pickable' in self.lo.instance_yaml.keys()):
+            if(self.lo.instance_yaml['object_pickable']):
+                self.objectPickable.setStyleSheet("background-color: green")
+            else:
+                self.objectPickable.setStyleSheet("background-color: red")
+        else:
+            self.objectPickable.setStyleSheet("background-color: yellow")
+            
+        if('colliding_with_gripper' in self.lo.instance_yaml.keys()):
+            if(self.lo.instance_yaml['colliding_with_gripper']):
+                self.objectColliding.setStyleSheet("background-color: red")
+            else:
+                self.objectColliding.setStyleSheet("background-color: green")
+        else:
+            self.objectColliding.setStyleSheet("background-color: yellow")
         
     def handleGetPickPointButton(self):
         self.lo.get_pick_point()
@@ -166,7 +199,7 @@ class LabelObject:
                 with open(self.duplicate_file_name, 'r') as f:
                     (self.size_lists, self.size_clusters) = yaml.load(f)
                 
-    def load_next_object(self, instance = 0, detect_duplicates = True):
+    def load_next_object(self, instance = 0, detect_duplicates = True, load_updated_instance=False):
         if self.pure_shape:
             self.yaml_out = ol.add_object_in_scene(self.object_file_names[self.mesh_file_id], self.output_dir)
             #get object properties
@@ -183,12 +216,17 @@ class LabelObject:
             self.load_object_properties(detect_duplicates)
             self.instance_yaml = {"-" : "-"}
             if(instance is not None):
-                instance_file_name = self.get_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(instance)
+                if(load_updated_instance):
+                    instance_file_name = self.get_updated_instance_file_dir(self.output_file_name)
+                else:
+                    instance_file_name = self.get_instance_file_dir(self.output_file_name)
+                instance_file_name = instance_file_name + "/" + self.get_instance_file_name(instance)
                 if(os.path.exists(instance_file_name)):
                     with open(instance_file_name, 'r') as f:
                         self.instance_yaml = yaml.load(f)
                         #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
-                        self.instance_yaml = ol.add_object_from_properties(self.instance_yaml)
+                        self.instance_yaml = ol.add_object_from_properties(self.instance_yaml, True)
+                        
                     
     
     def get_pick_point(self):

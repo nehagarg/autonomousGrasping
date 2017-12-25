@@ -172,7 +172,7 @@ def add_object_in_scene(object_id, object_property_dir, object_mesh_dir="g3db_me
     add_object_from_properties(mesh_properties)
     return mesh_properties
     
-def add_object_from_properties(mesh_properties):
+def add_object_from_properties(mesh_properties, set_grasp=False):
     
     #load_object(mesh_location, signal_name)
     print mesh_properties
@@ -188,7 +188,7 @@ def add_object_from_properties(mesh_properties):
     #if "object_size"
     print mesh_properties
     if 'pick_point' in mesh_properties.keys():
-        object_pose = place_object_at_initial_location(mesh_properties)
+        object_pose = place_object_at_initial_location(mesh_properties, set_grasp)
         mesh_properties['final_initial_object_pose'] = object_pose
     return mesh_properties
 
@@ -256,7 +256,7 @@ def check_for_object_collision(mesh_properties):
             start_stop_simulation('Start')
             update_object('get_collision_info', mesh_properties)
             start_stop_simulation('Stop')
-            time.sleep(1)
+            time.sleep(2)
             if mesh_properties["collisions"] > 0:
                 collision_detected = True
                 break
@@ -307,7 +307,7 @@ def move_gripper(move_pos):
     set_any_object_position('Mico_target', current_pos)
     time.sleep(1)
     
-def place_object_at_initial_location(mesh_properties):
+def place_object_at_initial_location(mesh_properties, set_grasp=False):
     
     object_pose = (list(mesh_properties["object_pose"]))[0:3]
     if('pick_point' in mesh_properties.keys()):
@@ -320,6 +320,11 @@ def place_object_at_initial_location(mesh_properties):
         object_pose[0] = object_pose[0] + x_diff
         object_pose[1] = object_pose[1] + y_diff
         update_object({'set_object_pose': object_pose}, {})
+        if(set_grasp):
+            pick_point_new = mesh_properties['pick_point'][0:3]
+            pick_point_new[0] = pick_point_new[0] + x_diff
+            pick_point_new[1] = pick_point_new[1] + y_diff
+            set_grasp_point(pick_point_new)
     return object_pose
   
 def has_object_fallen(mesh_properties, use_quaternion = True):
