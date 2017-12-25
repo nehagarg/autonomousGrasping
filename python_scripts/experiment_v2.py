@@ -238,14 +238,14 @@ def generate_params_file(file_name, problem_type):
 
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
-def generate_ver5_command_files(type = 'cylinder_discretize'):
+def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     belief_type = 'UNIFORM_WITH_STATE_IN'
     dir_prefix = './results/despot_logs/'
     cfg.belief_type = "belief_uniform_"
     for distribution_type in ["", "fixed_distribution/"]:
         cfg.distribution_type = distribution_type
-        gsf = cfg.generate_setup_files()
+        gsf = cfg.generate_setup_files(ver)
         for filename,filetype,interface_type,object_type in gsf:
             ans = get_default_params()
             ans['output_dir'] = dir_prefix +  os.path.dirname(filename)           

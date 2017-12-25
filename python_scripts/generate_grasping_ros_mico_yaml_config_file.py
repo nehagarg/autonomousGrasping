@@ -33,7 +33,13 @@ def get_min_z_o(id):
     return ans;
     
 
-
+def get_g3db_belief_ver6_low_friction_table_config(ans):
+    ans["object_mapping"] = get_grasping_object_name_list('all_cylinders')
+    ans["low_friction_table"] = True
+    ans["belief_object_ids"] = [0,1,2]
+    ans["version6"] = True
+    ans["auto_load_object"] = True
+    
 def get_g3db_belief_ver5_low_friction_table_config(ans):
     ans["object_mapping"] = get_grasping_object_name_list('all_cylinders')
     ans["low_friction_table"] = True
@@ -170,6 +176,9 @@ def modify_basic_config(filename, ans):
     if 'pocman' in filename:
         return get_pocman_config(filename)
     
+    if 'ver6' in filename:
+        get_g3db_belief_ver6_low_friction_table_config(ans)
+        return ans
     if 'ver5' in filename:
             get_g3db_belief_ver5_low_friction_table_config(ans)
             return ans
@@ -503,11 +512,11 @@ class ConfigFileGenerator():
         self.interface_types = ["", "simulator/"]
         self.filetypes = [''] #Con contain learning and combined policy dir paths
     
-    def generate_setup_files(self):
+    def generate_setup_files(self, ver='ver5'):
         for filetype in self.filetypes:
             for interface_type in self.interface_types:
                 for object_type in self.object_list:
-                    file_prefix = "low_friction_table/vrep_scene_ver5/multiObjectType/"
+                    file_prefix = "low_friction_table/vrep_scene_"+ ver+"/multiObjectType/"
                     file_prefix = file_prefix + self.belief_type + self.belief_name + '_reward100_penalty10'
                     if(self.use_pruned_data):
                         file_prefix = file_prefix + "/use_pruned_data"
@@ -524,9 +533,9 @@ class ConfigFileGenerator():
 
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
-def generate_ver5_config_files(type = 'cylinder'):
+def generate_grasping_config_files(type = 'cylinder_discretize', ver='ver6'):
     cfg = ConfigFileGenerator(type)
-    gsf = cfg.generate_setup_files()
+    gsf = cfg.generate_setup_files(ver)
     for filename,filetype,interface_type,object_type in gsf:
         ans = create_basic_config(filename)
         ans = modify_basic_config(filename, ans)
@@ -559,7 +568,7 @@ def main():
             #generate_G3DB_ver5_single_belief_files()
             #generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
-            generate_ver5_config_files()
+            generate_grasping_config_files()
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
