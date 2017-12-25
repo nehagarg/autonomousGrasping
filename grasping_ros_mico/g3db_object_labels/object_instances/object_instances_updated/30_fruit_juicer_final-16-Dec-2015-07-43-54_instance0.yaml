@@ -7,6 +7,7 @@ duplicate_mesh_size: !!python/tuple [0.07611000537872314, 0.07610999792814255, 0
 mesh_name: 30_fruit_juicer_final-16-Dec-2015-07-43-54.obj
 object_initial_pose_z: 1.1093639135360718
 object_min_z: 1.1045639135360719
+object_pickable: true
 object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1093639135360718,
   0.0, 0.0, 0.0, 1.0]
 object_stable: true

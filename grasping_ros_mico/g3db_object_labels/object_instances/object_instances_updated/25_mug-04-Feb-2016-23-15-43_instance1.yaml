@@ -9,6 +9,7 @@ duplicate_mesh_size: !!python/tuple [0.11030000448226929, 0.09083999693393707, 0
 mesh_name: 25_mug-04-Feb-2016-23-15-43.obj
 object_initial_pose_z: 1.1071889400482178
 object_min_z: 1.1023889400482179
+object_pickable: true
 object_pose: !!python/tuple [0.4918989837169647, 0.15617994964122772, 1.1071889400482178,
   0.0, 0.0, 0.0, 1.0]
 object_stable: true

@@ -15,6 +15,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.08461403
   0.0, 0.0, 0.0, 1.0]
 object_stable: false
 object_use_label: S
-pick_point: [0.3965978491801932, 0.13701879284746155, 1.0835816175029183]
+pick_point: [0.3959198274583878, 0.14215096438208946, 1.0818342689353249]
 remarks: need to check which pose is stable
 signal_name: mesh_location

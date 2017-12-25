@@ -7,6 +7,7 @@ duplicate_mesh_size: !!python/tuple [0.0473099984228611, 0.047210000455379486, 0
 mesh_name: 39_beerbottle_final-17-Nov-2015-21-57-12.obj
 object_initial_pose_z: 1.1754989624023438
 object_min_z: 1.1706989624023438
+object_pickable: true
 object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1754989624023438,
   0.0, 0.0, 0.0, 1.0]
 object_stable: false
