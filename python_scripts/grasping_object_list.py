@@ -49,7 +49,7 @@ def get_g3db_instances():
     except:
         #give ncl absolute path
         grasping_ros_mico_path = '/users/ngarg211/WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico'
-    g3db_object_list_file = grasping_ros_mico_path + "/g3db_object_labels/object_instances/object_instance_names.txt"
+    g3db_object_list_file = grasping_ros_mico_path + "/g3db_object_labels/object_instances/object_instances_updated/object_instance_names.txt"
     ans = []
     with open(g3db_object_list_file, 'r') as f:
         lines = f.readlines()

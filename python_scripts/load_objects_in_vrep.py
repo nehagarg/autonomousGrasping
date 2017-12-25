@@ -15,11 +15,14 @@ def get_pruned_saso_files(object_name, data_dir):
     return files_prefix;
 
 def get_object_properties(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
-    object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
+    object_properties_filename = (object_property_dir + "/" + object_id )
+    if('.yaml' not in object_id):
+        object_properties_filename = object_properties_filename + '.yaml'
+    #print object_properties_filename
     if not os.path.exists(object_properties_filename):
         mesh_properties = get_default_object_properties(object_id)
     else:
-        object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
+        #object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
         with open(object_properties_filename,'r') as stream:
             mesh_properties = yaml.load(stream)
     mesh_properties['mesh_dir'] = object_mesh_dir 
@@ -192,6 +195,16 @@ def add_object_from_properties(mesh_properties, set_grasp=False):
         mesh_properties['final_initial_object_pose'] = object_pose
     return mesh_properties
 
+def object_graspable(mesh_properties):
+    ans = False
+    pure_shape = mesh_properties['signal_name'] == 'pure_shape'
+    pickable_g3db = mesh_properties['object_use_label'] == 'S' and mesh_properties['object_pickable']
+    if(pure_shape or pickable_g3db):
+        if(mesh_properties['object_stable']):
+            if not mesh_properties['colliding_with_gripper']:
+                ans = True
+    return ans
+    
 def get_object_pick_point(object_id, object_property_dir):
     mesh_properties = add_object_in_scene(object_id, object_property_dir)
     get_object_characteristics(mesh_properties)

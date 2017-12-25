@@ -334,12 +334,16 @@ class LabelObject:
     def generate_point_clouds(self):
         for i in range(0,len(self.object_file_names)):
             self.mesh_file_id = i
-            object_id = os.path.basename(self.object_file_names[self.mesh_file_id])
-            object_mesh_dir = os.path.dirname(self.object_file_names[self.mesh_file_id])
-            object_property_dir = self.output_dir
-            point_cloud_dir = '../grasping_ros_mico/point_clouds'
-            ol.save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir)
-                
+            self.load_next_object(None)
+            if self.pure_shape or (self.yaml_out['object_use_label'] == 'S' and int(self.yaml_out['duplicate_mesh_index']) == 0):
+                num_instances = self.get_num_instances()
+                object_mesh_dir = os.path.dirname(self.object_file_names[self.mesh_file_id])
+                point_cloud_dir = '../grasping_ros_mico/point_clouds'
+                for j in range(0,num_instances):
+                        object_property_dir =  self.get_updated_instance_file_dir(self.output_file_name)
+                        object_id = os.path.basename(self.get_instance_file_name(j))
+                        ol.save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir)
+    
     def get_num_instances(self):
         num_instances = 1
         if 'actions' in self.yaml_out and self.yaml_out['actions']:
@@ -486,19 +490,35 @@ def update_object_instance_configs(object_file_name, dir_name):
     lo.update_object_instance_configs()
 
 #object file name gives mesh location
-#dir_name gives config file location of updated instance configs
+#dir_name gives config file location
 def generate_point_clouds(object_file_name, dir_name):
     lo = LabelObject(object_file_name, dir_name)
     lo.generate_point_clouds()
+    
+#dir_name gives config file location of updated instance configs    
+def generate_pickable_object_list(dir_name):
+    pickable_list = []
+    files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if '.yaml' in f]
+    for i in range(0,len(files)):
+        object_id = os.path.basename(files[i])
+        object_property_dir = dir_name
+        mesh_properties = ol.get_object_properties(object_id, object_property_dir)
+        if(ol.object_graspable(mesh_properties)):
+            pickable_list.append(object_id)
+    outfile_name = dir_name + "/object_instance_names.txt"
+    with open(outfile_name, 'w') as f:
+            f.write("\n".join(pickable_list))  
+            f.write("\n")
 
 def main():
 
     dir_name = './'
-    opts, args = getopt.getopt(sys.argv[1:],"hpguo:",["outdir=",])
+    opts, args = getopt.getopt(sys.argv[1:],"hlpguo:",["outdir=",])
     
     generate_object_instances = False
     update_object_instances = False
     genetate_point_clouds = False
+    genetate_object_list = False
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -512,6 +532,8 @@ def main():
           update_object_instances = True
       elif opt == '-p':
           genetate_point_clouds = True
+      elif opt == '-l':
+          genetate_object_list = True
       
     object_file_name = args[0]
     
@@ -521,6 +543,8 @@ def main():
         update_object_instance_configs(object_file_name, dir_name)
     elif(genetate_point_clouds ):
         generate_point_clouds(object_file_name, dir_name)
+    elif(genetate_object_list) :
+        generate_pickable_object_list(dir_name)
     else:
         app = QApplication([])
         currentState = MainWindow(object_file_name, dir_name)
@@ -543,5 +567,6 @@ if __name__ == '__main__':
     
     
 #Commands
-# python label_g3db_objects.py -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
-#python label_g3db_objects.py -o ../grasping_ros_mico/pure_shape_labels all_cylinders
+# python label_g3db_objects.py -g/-u/-p -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
+#python label_g3db_objects.py -l -o ../grasping_ros_mico/g3db_object_labels/object_instances/object_instances_updated/ ../../../vrep/G3DB_object_dataset/obj_files/
+#python label_g3db_objects.py -g/-u/-p/-l -o ../grasping_ros_mico/pure_shape_labels all_cylinders
