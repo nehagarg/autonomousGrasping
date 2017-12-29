@@ -754,7 +754,7 @@ def get_csv_name_prefix(data_dir):
             os.makedirs("unicorn_csv_files/" + csv_file_path)
         
         csv_file_prefix = csv_file_path + "/a"
-        return csv_file_prefix
+        return "unicorn_csv_files/" + csv_file_prefix
         
 def main():
     plot_graph = 'no'
