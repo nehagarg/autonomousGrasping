@@ -758,7 +758,7 @@ def get_csv_name_prefix(data_dir):
         
 def main():
     plot_graph = 'no'
-    csv_name_prefix = 'None'
+    csv_name_prefix = None
     plot_sucess_failure_cases=False
     dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
     global PROBLEM_NAME    
