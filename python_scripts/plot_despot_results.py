@@ -727,8 +727,8 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
         plt.subplot(1,5,j+1)
         plot_scatter_graph(y, x, colors)
     os.chdir(cur_dir)
-    #plt.show()
-    fig.savefig("figure_1.png")
+    plt.show()
+    #fig.savefig("figure_1.png")
     
         
     
@@ -746,10 +746,19 @@ def get_list_input(sampled_scenarios, command):
             if a in sampled_scenarios:
                 sampled_scenarios.remove(a)
     return sampled_scenarios        
-
+def get_csv_name_prefix(data_dir):
+    if PROBLEM_NAME == 'vrep':
+        split_string = 'grasping_ros_mico'
+        csv_file_path = 'grasping_ros_mico' + data_dir.split(split_string)[-1]
+        if not(os.path.exists("unicorn_csv_files/" + csv_file_path)):
+            os.makedirs("unicorn_csv_files/" + csv_file_path)
+        
+        csv_file_prefix = csv_file_path + "/a"
+        return csv_file_prefix
+        
 def main():
     plot_graph = 'no'
-    csv_name_prefix = 'multi_object'
+    csv_name_prefix = 'None'
     plot_sucess_failure_cases=False
     dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
     global PROBLEM_NAME    
@@ -771,7 +780,10 @@ def main():
       elif opt=='-t':
           PROBLEM_NAME = arg
          
-    
+    if(csv_name_prefix is None):
+        #get csv name prefix from data dir
+        get_csv_name_prefix(dir_name)
+        
     #else :
     #    print "Invalid pattern. Setting pattern as test"
     input_file = None
