@@ -782,7 +782,7 @@ def main():
          
     if(csv_name_prefix is None):
         #get csv name prefix from data dir
-        get_csv_name_prefix(dir_name)
+        csv_name_prefix = get_csv_name_prefix(dir_name)
         
     #else :
     #    print "Invalid pattern. Setting pattern as test"
