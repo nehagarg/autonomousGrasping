@@ -65,7 +65,7 @@ def get_color_for_action(action_id, reward, touch_values, rel_x, rel_y, finger_j
         finger_joint2 =   float(finger_joint_values[2])*180/3.14
         finger_joint12 =   float(finger_joint_values[1])*180/3.14
         finger_joint22 =   float(finger_joint_values[3])*180/3.14
-        if ver=='ver5':
+        if ver in ['ver5', 'ver6']:
             color = 'yellow'
             
             if finger_joint1 > 57 and finger_joint2 > 57 :
@@ -156,6 +156,8 @@ def plot_pick_success(object_file_name, action_id= 10):
                 ver = 'ver4'
                 if 'ver5' in command_file:
                     ver = 'ver5'
+                if 'ver6' in command_file:
+                    ver = 'ver6'
                 if action == action_id:
                     if reward_index < -999:
                         reward = reward_index
