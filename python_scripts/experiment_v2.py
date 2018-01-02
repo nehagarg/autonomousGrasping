@@ -83,6 +83,8 @@ def modify_params_file_for_learning(file_name, problem_type, ans):
         ans['solver'] = 'DEEPLEARNING'
         if 'output_dir' in ans:
             ans['output_dir'] = ans['output_dir'] + "/learning/version" + learning_version
+    if 'baseline' in file_name:
+        ans['solver'] = 'USERDEFINED'
     return ans
 def generate_params_file(file_name, problem_type):
     ans = {}
@@ -238,6 +240,7 @@ def generate_params_file(file_name, problem_type):
 
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
+#type = baseline_<no>
 def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     belief_type = 'UNIFORM_WITH_STATE_IN'

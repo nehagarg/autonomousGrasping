@@ -1,0 +1,5 @@
+{additional_params: -l CAP --number=, begin_index: 0, belief_type: UNIFORM_WITH_STATE_IN,
+  config_file: config_files/low_friction_table/vrep_scene_ver6/multiObjectType/baseline_6_reward100_penalty10/simulator/41_jar_and_lid_final-12-Jan-2016-14-34-29_instance0.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_41_jar_and_lid_final-12-Jan-2016-14-34-29_instance0,
+  horizon: 50, number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/vrep_scene_ver6/multiObjectType/belief_uniform_baseline_6_reward100_penalty10/simulator/fixed_distribution,
+  planning_time: 1, solver: USERDEFINED}

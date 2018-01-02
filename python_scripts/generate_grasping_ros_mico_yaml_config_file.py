@@ -502,6 +502,9 @@ class ConfigFileGenerator():
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('all_cylinders')
+        if('baseline' in type):
+            self.belief_name = type
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
         if('pruned' in type):
             self.use_pruned_data = True
         if('discretize' in type):
@@ -531,8 +534,22 @@ class ConfigFileGenerator():
                     filename = file_prefix+object_type + ".yaml"
                     yield filename,filetype,interface_type,object_type
 
+
+def get_hand_defined_actions(type):
+    ans = ['1']
+    baseline_no = int(type.split('_')[-1])
+    if baseline_no >= 6:
+        ans.append('1')
+        baseline_no = baseline_no - 8
+    for i in range(0,2+baseline_no):
+        ans.append('0')
+    ans.append('8')
+    ans.append('10')
+    return " ".join(ans)
+
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
+#type = 'baseline_<no>'
 def generate_grasping_config_files(type = 'cylinder_discretize', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -546,6 +563,10 @@ def generate_grasping_config_files(type = 'cylinder_discretize', ver='ver6'):
         ans["interface_type"] = 1
         if interface_type == 'simulator/':
             ans["interface_type"] = 0
+        if 'baseline' in filename:
+            ans["object_mapping"] = [object_type]
+            ans["belief_object_ids"] = []
+            ans["hand_defined_actions"] = get_hand_defined_actions(type)
         ans["test_object_id"] = ans["object_mapping"].index(object_type)
         write_config_in_file(filename, ans)
     
@@ -568,7 +589,7 @@ def main():
             #generate_G3DB_ver5_single_belief_files()
             #generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
-            generate_grasping_config_files()
+            generate_grasping_config_files(arg, 'ver6')
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
