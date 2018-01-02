@@ -248,8 +248,11 @@ grasping_state.gripper_pose.pose.position.z = grasping_state.gripper_pose.pose.p
         if(gripper_status == 2) //Object is inside gripper and gripper is closed
         {
             double z_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_pose_z - graspObjects[grasping_state.object_id]->default_initial_object_pose_z;
-            grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + 0.03;
-            grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y;
+             double x_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_x - graspObjects[grasping_state.object_id]->default_initial_object_pose_x;
+            double y_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_y - graspObjects[grasping_state.object_id]->default_initial_object_pose_y;
+
+            grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + x_diff_from_cylinder + 0.03;
+            grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + y_diff_from_cylinder;
             grasping_state.object_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + z_diff_from_cylinder;
         }
 }
@@ -299,12 +302,17 @@ bool isValidPick = true;
     //if object and tip are far from each other set false
     double distance = 0;
     double z_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_pose_z - graspObjects[grasping_state.object_id]->default_initial_object_pose_z;
-    distance = distance + pow(grasping_state.gripper_pose.pose.position.x - grasping_state.object_pose.pose.position.x, 2);
-    distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_state.object_pose.pose.position.y, 2);
+    double x_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_x - graspObjects[grasping_state.object_id]->default_initial_object_pose_x;
+    double y_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_y - graspObjects[grasping_state.object_id]->default_initial_object_pose_y;
+    //std::cout << "(" << z_diff_from_cylinder << "," << x_diff_from_cylinder << "," << y_diff_from_cylinder << ")\n";
+    
+    distance = distance + pow(grasping_state.gripper_pose.pose.position.x - grasping_state.object_pose.pose.position.x + x_diff_from_cylinder, 2);
+    distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_state.object_pose.pose.position.y + y_diff_from_cylinder, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_state.object_pose.pose.position.z + z_diff_from_cylinder, 2);
     distance = pow(distance, 0.5);
     if(distance > 0.08)
     {
+        //std::cout << "Pick not valid due to object distance" << std::endl;
         isValidPick= false;
     }
             

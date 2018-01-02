@@ -39,6 +39,16 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     initial_object_y_version5 = 0.148582;
     initial_object_y_version6 = 0.1562;
     
+    initial_object_pose_xx = 0;
+    initial_object_pose_yy = 0;
+    initial_object_pose_zz = 0;
+    initial_object_pose_w = 1;
+    
+    
+    
+    
+    
+    
     object_name = object_name_;
     data_dir_name = data_dir_name_;
     regression_data_dir_name = data_dir_name_ + "/data_for_regression";
@@ -68,6 +78,9 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
     {
         initial_object_y = initial_object_y_version5;
     }
+    
+    default_initial_object_pose_x = initial_object_x;
+    default_initial_object_pose_y = initial_object_y;
     //Load object properties file if it exists
     //Initialize python script for loading object
     Py_Initialize();

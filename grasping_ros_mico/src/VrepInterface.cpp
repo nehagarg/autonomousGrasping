@@ -315,11 +315,11 @@ void VrepInterface::SetGripperPose(int i, int j, geometry_msgs::PoseStamped mico
     //Otherwise it gets reset
     mico_target_pose.pose.position.x = min_x_i + 0.01*i;
     mico_target_pose.pose.position.y = min_y_i + 0.01*j;
-    mico_target_pose.pose.position.z = initial_gripper_pose_z;
-    mico_target_pose.pose.orientation.x = -0.694327;
-    mico_target_pose.pose.orientation.y = -0.0171483;
-    mico_target_pose.pose.orientation.z = -0.719 ;
-    mico_target_pose.pose.orientation.w = -0.0255881;
+    //mico_target_pose.pose.position.z = initial_gripper_pose_z;
+    //mico_target_pose.pose.orientation.x = -0.694327;
+    //mico_target_pose.pose.orientation.y = -0.0171483;
+    //mico_target_pose.pose.orientation.z = -0.719 ;
+    //mico_target_pose.pose.orientation.w = -0.0255881;
 
     vrep_common::simRosSetObjectPose set_object_pose_srv;
     set_object_pose_srv.request.handle = mico_target_handle;

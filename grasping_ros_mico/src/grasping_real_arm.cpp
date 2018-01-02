@@ -170,7 +170,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
             belief_object_ids.push_back(belief_object_id);
         }
     }
-    else
+    if(belief_object_ids.size() == 0)
     {
         belief_object_ids.push_back(test_object_id);
     }
@@ -180,7 +180,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         LearningModel::problem_name  = "vrep/ver5/weighted_" + to_string(belief_object_ids.size());
     }
     
-   
+    
     /*start_state_index = -1;
     if(config["start_state_index"])
     {

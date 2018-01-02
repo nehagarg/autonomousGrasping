@@ -43,7 +43,7 @@ RobotInterface::RobotInterface() {
     pick_y_val = 0.1516;
     
     initial_gripper_pose_z_low_friction_table = 1.10835 - 0.03;
-    initial_gripper_pose_z_low_friction_table_version6 = 1.10833;
+    initial_gripper_pose_z_low_friction_table_version6 = 1.0833;
     initial_gripper_pose_z = 1.10835; 
     
     initial_gripper_pose_index_x = 0;
@@ -955,10 +955,10 @@ void RobotInterface::GetDefaultStartState(GraspingStateRealArm& initial_state) c
     initial_state.object_pose.pose.position.x = graspObjects[object_id]->initial_object_x;
     initial_state.object_pose.pose.position.y = graspObjects[object_id]->initial_object_y;
     initial_state.object_pose.pose.position.z = graspObjects[object_id]->initial_object_pose_z;
-    initial_state.object_pose.pose.orientation.x = -0.0327037 ;
-    initial_state.object_pose.pose.orientation.y = 0.0315227;
-    initial_state.object_pose.pose.orientation.z = -0.712671 ; 
-    initial_state.object_pose.pose.orientation.w = 0.700027;
+    initial_state.object_pose.pose.orientation.x = graspObjects[object_id]->initial_object_pose_xx;//-0.0327037 ;
+    initial_state.object_pose.pose.orientation.y = graspObjects[object_id]->initial_object_pose_yy; //0.0315227;
+    initial_state.object_pose.pose.orientation.z = graspObjects[object_id]->initial_object_pose_zz; //-0.712671 ; 
+    initial_state.object_pose.pose.orientation.w = graspObjects[object_id]->initial_object_pose_w; //0.700027;
     initial_state.finger_joint_state[0] = -2.95639e-05 ;
     initial_state.finger_joint_state[1] = 0.00142145;
     initial_state.finger_joint_state[2] = -1.19209e-06 ;
@@ -1681,7 +1681,12 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
            grasping_state.object_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + tempData.next_object_pose.pose.position.z - tempData.next_gripper_pose.pose.position.z;
         
         //}
-
+        //Need to update orientation to determine invalid state
+        grasping_state.object_pose.pose.orientation.x = tempData.next_object_pose.pose.orientation.x;
+        grasping_state.object_pose.pose.orientation.y = tempData.next_object_pose.pose.orientation.y;
+        grasping_state.object_pose.pose.orientation.z = tempData.next_object_pose.pose.orientation.z; 
+        grasping_state.object_pose.pose.orientation.w = tempData.next_object_pose.pose.orientation.w;  
+ 
         double next_gripper_pose_boundary_margin_x = 0.0;
         double next_gripper_pose_boundary_margin_y = 0.0;
         

@@ -49,7 +49,14 @@ public:
     double initial_object_x ;
     double initial_object_y ; //0.148582;
     double initial_object_pose_z; // = 1.1248; //1.7066; //for amazon shelf
+    double initial_object_pose_xx;
+    double initial_object_pose_yy;
+    double initial_object_pose_zz;
+    double initial_object_pose_w;
+    
     double default_initial_object_pose_z;
+    double default_initial_object_pose_x;
+    double default_initial_object_pose_y;
     double default_min_z_o;
     
     static double pick_point_x_diff ;
