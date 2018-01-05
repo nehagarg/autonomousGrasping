@@ -67,7 +67,7 @@ def get_config_file_name_from_experiment_file(file_name):
     elif 'vrep-model' in file_name:
         config_file_name = config_file_name + 'VrepInterface_'
     
-def modify_params_file_for_learning(file_name, problem_type, ans):
+def modify_params_file_for_learning_old(file_name, problem_type, ans):
     learning_version, model_name = get_learning_version_from_filename(file_name)
     
     if 'combined' in file_name:
@@ -86,6 +86,19 @@ def modify_params_file_for_learning(file_name, problem_type, ans):
     if 'baseline' in file_name:
         ans['solver'] = 'USERDEFINED'
     return ans
+
+def modify_params_file_for_learning(file_name, ans):
+       
+    if 'combined' in file_name:
+        ans['solver'] = 'LEARNINGPLANNING'
+            
+    if 'learning' in file_name:
+        ans['solver'] = 'DEEPLEARNING'
+        
+    if 'baseline' in file_name:
+        ans['solver'] = 'USERDEFINED'
+    return ans
+
 def generate_params_file(file_name, problem_type):
     ans = {}
     ans['solver'] = 'DESPOT'
@@ -258,7 +271,7 @@ def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver6'):
             ans['belief_type'] = belief_type
             if 'fixed_distribution' in filename:
                     ans['additional_params'] = '-l CAP --number='
-            ans = modify_params_file_for_learning(filename, 'despot_without_display', ans)
+            ans = modify_params_file_for_learning(filename, ans)
             output = yaml.dump(ans, Dumper = Dumper)
             f = open(filename, 'w')
             f.write(output)

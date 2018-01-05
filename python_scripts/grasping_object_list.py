@@ -36,6 +36,9 @@ def get_grasping_object_name_list(type='used'):
     elif type=='cylinder_and_g3db_instances':
         pattern_list = get_grasping_object_name_list('all_cylinders')
         pattern_list = pattern_list + get_grasping_object_name_list('g3db_instances')
+    elif type=='79_toy_dog_final':
+        pattern_list_ = get_g3db_instances()
+        pattern_list = [x  for x in pattern_list_  if '79_toy_dog_final' in x]
     else:
         pattern_list=[type]
         

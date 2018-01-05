@@ -4,7 +4,7 @@ interface_type: 0
 invalid_state_penalty: -10
 low_friction_table: true
 num_belief_particles: 1000
-object_mapping: [Cylinder_9, Cylinder_8, Cylinder_7, Cylinder_75, Cylinder_85]
+object_mapping: [Cylinder_9, Cylinder_8, Cylinder_7]
 pick_penalty: -10
 pick_reward: 100
 separate_close_reward: true

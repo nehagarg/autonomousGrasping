@@ -34,7 +34,7 @@ def get_min_z_o(id):
     
 
 def get_g3db_belief_ver6_low_friction_table_config(ans):
-    ans["object_mapping"] = get_grasping_object_name_list('all_cylinders')
+    ans["object_mapping"] = get_grasping_object_name_list('cylinders_train')
     ans["low_friction_table"] = True
     ans["belief_object_ids"] = [0,1,2]
     ans["version6"] = True
@@ -146,7 +146,7 @@ def get_switching_threshold(filename):
        ans = m.groups(0)[0] 
     return int(ans)
 
-def get_learning_config(filename, problem_type):
+def get_learning_config_old(filename, problem_type):
     ans= {}
     filename_filetype = None
     i = 0;
@@ -163,6 +163,16 @@ def get_learning_config(filename, problem_type):
             svm_model_name = get_svm_model_name(filename)
             ans["svm_model_prefix"] = "output/"+ problem_type +"/version" + learning_version + "/" + svm_model_name
     return ans    
+
+def get_learning_config(filename, problem_type):
+    ans = {}
+    if 'learning' in filename: 
+        learning_version = re.search('learning/version([0-9]+)', filename).groups(0)[0]
+        learning_version_name = problem_type + "/version" + learning_version
+        model_name = get_learning_model_from_version(learning_version_name)
+        ans["learned_model_name"] = learning_version_name + "/" + model_name
+        
+    return ans
     
 def get_pocman_config(filename):
     return get_learning_config(filename, 'pocman')
@@ -170,11 +180,11 @@ def get_pocman_config(filename):
     
 def modify_basic_config(filename, ans):
     
-    if 'toy' in filename:
-        return get_toy_config(filename)
+    #if 'toy' in filename:
+    #    return get_toy_config(filename)
     
-    if 'pocman' in filename:
-        return get_pocman_config(filename)
+    #if 'pocman' in filename:
+    #    return get_pocman_config(filename)
     
     if 'ver6' in filename:
         get_g3db_belief_ver6_low_friction_table_config(ans)
@@ -499,9 +509,11 @@ class ConfigFileGenerator():
     def __init__(self, type, get_config=True):
         self.use_pruned_data = False
         self.use_discretized_data = False
+        self.filetypes = [''] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
-            self.object_list = get_grasping_object_name_list('all_cylinders')
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
+            self.filetypes = ['','learning/version14/'] #Con contain learning and combined policy dir paths
         if('baseline' in type):
             self.belief_name = type
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -513,7 +525,7 @@ class ConfigFileGenerator():
             self.belief_type=""
             self.distribution_type = ""
         self.interface_types = ["", "simulator/"]
-        self.filetypes = [''] #Con contain learning and combined policy dir paths
+        
     
     def generate_setup_files(self, ver='ver5'):
         for filetype in self.filetypes:
@@ -527,14 +539,17 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_discretized_data"
                     file_prefix = file_prefix + "/" + interface_type
                     file_prefix = file_prefix + self.distribution_type
+                    file_prefix = file_prefix+filetype
                     if not os.path.exists(file_prefix):
                         print "Creating path " + file_prefix
                         os.mkdir(file_prefix)
-                    file_prefix = file_prefix+filetype
                     filename = file_prefix+object_type + ".yaml"
                     yield filename,filetype,interface_type,object_type
 
-
+def get_learning_model_from_version(version_name):
+    if version_name == 'vrep/version14':
+        return 'model.ckpt-897'
+    
 def get_hand_defined_actions(type):
     ans = ['1']
     baseline_no = int(type.split('_')[-1])
@@ -554,8 +569,11 @@ def generate_grasping_config_files(type = 'cylinder_discretize', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
     for filename,filetype,interface_type,object_type in gsf:
+        print filename
         ans = create_basic_config(filename)
+        print ans
         ans = modify_basic_config(filename, ans)
+        print ans
         if(cfg.use_pruned_data):
             ans["use_pruned_data"] = True
         if(cfg.use_discretized_data):
@@ -567,6 +585,10 @@ def generate_grasping_config_files(type = 'cylinder_discretize', ver='ver6'):
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
             ans["hand_defined_actions"] = get_hand_defined_actions(type)
+        
+        print ans
+        if object_type not in ans["object_mapping"]:
+            ans["object_mapping"].append(object_type)
         ans["test_object_id"] = ans["object_mapping"].index(object_type)
         write_config_in_file(filename, ans)
     
