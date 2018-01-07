@@ -797,8 +797,15 @@ def main():
             for line in a:
                 if line is not None:
                     inputs = line.split(' ')
-                    pattern = inputs[0]    
-                    get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs)
+                    pattern = inputs[0]
+                    if('|' in pattern):
+                        pattern = pattern.strip('|')
+                        patterns = [pattern] + get_grasping_object_name_list(pattern)
+                        for p in patterns:
+                            get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p, inputs)
+                    else:
+                        get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs)
+
     else:
         pattern = 'test'
         input_pattern = raw_input("Pattern type: train or test or file identifier?")
