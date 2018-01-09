@@ -514,7 +514,59 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
     with open(latex_table_file_name, 'w') as f:
         f.write('\n'.join(lines))
       
-         
+
+def generate_combined_csv(base_dir, dir_list, pattern, out_dir ):
+    
+    if('|' in pattern):
+        pattern = pattern.strip('|')
+        patterns = [pattern] 
+    if('#' in pattern):
+        pattern = pattern.strip('#')
+        patterns = []
+    
+    patterns = patterns + get_grasping_object_name_list(pattern)
+    data_types = get_data_types()
+    
+    csv_name_prefix = 'a'
+    for data_type in data_types:
+        out_file_name = os.path.join(out_dir, csv_name_prefix + '_' + data_type + '_' + pattern +'.csv')
+        policy_names = []
+        pattern_data = {}
+        for p in patterns:
+            policy_names = []
+            pattern_data[p] = []
+            csv_file_name = csv_name_prefix + '_' + data_type + '_' + p + '.csv'
+            for d in dir_list:
+                csv_file = os.path.join(base_dir, d, csv_file_name)
+                with open(csv_file) as f:
+                    line = f.readline().rstrip('\n').split(",")
+                    x_title = line[-1]
+                    for line in f:
+                        data = line.rstrip('\n').split(",")
+                        pattern_data[p].append("{0:.1f}".format(float(data[1].split(':')[0])))
+                        if data[0] == 'Baseline':
+                            basline_no= 0
+                            for i in range(0,7):
+                                if ('baseline_' + repr(i)) in d:
+                                    basline_no = i
+                            policy_names.append(data[0] + "_" + repr(basline_no))
+                        elif data[0].startswith('T'):
+                            policy_names.append(data[0] + "_" + x_title)
+                        else:
+                            policy_names.append(data[0])
+                            
+        out_file = open(out_file_name, 'w')
+        out_file.write(data_type)
+        for policy_name in policy_names:
+            out_file.write(","+policy_name)
+        out_file.write("\n")
+        for p in patterns:
+            out_file.write(p)
+            for p_data in pattern_data[p]:
+                out_file.write(","+p_data)
+            out_file.write("\n")
+                        
+        
 def plot_graph_from_csv(csv_file, plt_error):
     plt_title = None
     xlabels = None
@@ -548,16 +600,20 @@ def plot_graph_from_csv(csv_file, plt_error):
     plot_line_graph_with_std_error(fig_name, means, stds, plt_title, legend, xlabels)
     
 
-def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs = None):
-    
-    
-    #data_type = 'reward'
-    #input_data_type = raw_input("Data type: reward or success_cases ?")
+def get_data_types():
     data_types = ['reward', 'success_cases', 'av_step_success', 'av_step_failure', 'failure_cases', 'stuck_cases', 'percent_learning_calls']
     data_types.append('error_cases')
     data_types.append('percent_dummy_learning_calls')
     if PROBLEM_NAME == 'vrep':
         data_types.append('pick_failures')
+    return data_types
+
+def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs = None):
+    
+    
+    #data_type = 'reward'
+    #input_data_type = raw_input("Data type: reward or success_cases ?")
+    data_types = get_data_types()
     #if input_data_type in data_types:
     #    data_type = input_data_type
     #else:
