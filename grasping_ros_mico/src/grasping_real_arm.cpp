@@ -158,6 +158,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     }
     
     
+    if(config["use_probabilistic_step"])
+    {
+        RobotInterface::use_probabilistic_step = config["use_probabilistic_step"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_probabilistic_step = false;
+    }
+    
     if(config["belief_object_ids"]) 
     {
         for(int i = 0; i < config["belief_object_ids"].size(); i++)

@@ -28,6 +28,7 @@ bool RobotInterface::use_regression_models;
 bool RobotInterface::auto_load_object;
 bool RobotInterface::use_pruned_data;
 bool RobotInterface::use_discretized_data;
+bool RobotInterface::use_probabilistic_step;
 
 RobotInterface::RobotInterface() {
     min_x_i = 0.3379; //range for gripper movement
@@ -41,6 +42,8 @@ RobotInterface::RobotInterface() {
     pick_z_diff = 0.09; //Gripper becomes unstable at 0.12
     pick_x_val = 0.2879;
     pick_y_val = 0.1516;
+    pick_x_val_2 = 0.2379;
+    pick_z_diff_2 = 0.07;
     
     initial_gripper_pose_z_low_friction_table = 1.10835 - 0.03;
     initial_gripper_pose_z_low_friction_table_version6 = 1.0833;
@@ -1759,6 +1762,17 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
         
             grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + tempData.next_object_pose.pose.position.x - (tempData.next_gripper_pose.pose.position.x + next_gripper_pose_boundary_margin_x );
             grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + tempData.next_object_pose.pose.position.y - (tempData.next_gripper_pose.pose.position.y + next_gripper_pose_boundary_margin_y );
+            if(use_probabilistic_step)
+            {
+                if (action < A_CLOSE)
+                {
+                    std::default_random_engine generator(random_num);
+                    std::normal_distribution<double> distribution(0,0.0025);
+                    grasping_state.gripper_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + distribution(generator);
+                    grasping_state.gripper_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + distribution(generator);
+                }    
+            }
+        
         }
         else //Move to absolute position for PICK action
         {

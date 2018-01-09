@@ -96,7 +96,8 @@ public:
     double pick_z_diff ; //Gripper becomes unstable at 0.12
     double pick_x_val ;
     double pick_y_val ;
-    
+    double pick_z_diff_2; //Move up after coming to original pick position so that gripper does not become unstable
+    double pick_x_val_2 ;
     
     
     double initial_gripper_pose_z_low_friction_table ;
@@ -133,6 +134,7 @@ public:
     static bool auto_load_object;
     static bool use_pruned_data;
     static bool use_discretized_data;
+    static bool use_probabilistic_step; //Use gaussian distribution 0f 5mm in step function
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table

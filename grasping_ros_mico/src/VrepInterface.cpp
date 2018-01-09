@@ -417,6 +417,14 @@ void VrepInterface::PickActionInVrep(int action_offset, GraspingStateRealArm& gr
     mico_target_pose.pose.position.x = pick_x_val;
     SetMicoTargetPose(mico_target_pose);
     
+    // Raise it further
+    mico_target_pose.pose.position.z = mico_target_pose.pose.position.z + pick_z_diff_2;
+    SetMicoTargetPose(mico_target_pose);
+    
+      //Move the arm back further
+    mico_target_pose.pose.position.x = pick_x_val_2;
+    SetMicoTargetPose(mico_target_pose);
+    
     GetNextStateAndObservation(grasping_state, grasping_obs, mico_target_pose);
     
     //GetReward(initial_grasping_state, grasping_state, grasping_obs, action_offset, reward);

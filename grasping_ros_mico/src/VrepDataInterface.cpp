@@ -310,7 +310,8 @@ bool isValidPick = true;
     distance = distance + pow(grasping_state.gripper_pose.pose.position.y - grasping_state.object_pose.pose.position.y + y_diff_from_cylinder, 2);
     distance = distance + pow(grasping_state.gripper_pose.pose.position.z - grasping_state.object_pose.pose.position.z + z_diff_from_cylinder, 2);
     distance = pow(distance, 0.5);
-    if(distance > 0.08)
+    //std::cout << "object distance " << distance  << std::endl;
+    if(distance > 0.12)
     {
         //std::cout << "Pick not valid due to object distance" << std::endl;
         isValidPick= false;
