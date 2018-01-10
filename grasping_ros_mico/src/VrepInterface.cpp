@@ -1347,7 +1347,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
         }
         filename_pruned = filename_pruned + "/pruned_data_files/";
         filename_pruned = filename_pruned + filename_suffix;
-        std::vector<int> line_nos = getSimulationDataFromFile(initial_state.object_id, filename, action_type==1, true, filename_pruned);
+        std::vector<int> line_nos = getSimulationDataFromFile(initial_state.object_id, filename, action_type, true, filename_pruned);
         std::string filename_lineno = filename+ ".Usedlinenos";
         myfile.open(filename_lineno);
         for(int i = 0; i < line_nos.size(); i++)

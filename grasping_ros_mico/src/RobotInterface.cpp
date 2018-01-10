@@ -481,7 +481,27 @@ bool RobotInterface::isDataEntryValid(double reward, SimulationData simData, int
     
 }
 
-std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::string simulationFileName, bool readOpenAction, bool checkDefault, std::string nonDefaultFilename) const{
+bool RobotInterface::readDataLine(int readActions, int action) const {
+    if(readActions == 1)
+    {
+        return action == A_OPEN;
+    }
+    if(readActions == 2)
+    {
+        return action == A_PICK;
+    }
+    if(readActions == 0)
+    {
+        return action != A_OPEN;
+    }
+    if(readActions == 3)
+    {
+        return action <= A_CLOSE;
+    }
+    return true;
+}
+
+std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::string simulationFileName, int readActions, bool checkDefault, std::string nonDefaultFilename) const{
    
     std::vector<int> ans ;
     //Read simualtion data with object
@@ -518,7 +538,7 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
         if (isDataEntryValid(reward, simData, action, object_id) && !line.empty() 
                 && (line.find("nan")== std::string::npos))  //(reward != -1000 && reward != -2000)
         {
-            if(readOpenAction ||(!readOpenAction && action!= A_OPEN))
+            if(readDataLine(readActions,action))
             {
                 if(!checkDefault || !isDataEntrySameAsDefault(simData, action, object_id))
                 {
@@ -559,10 +579,14 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
     {
         //simulationDataFile.open("data/simulationData1_allParts.txt");
         std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
-        ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, false, false);
+        ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, 3, false);
         
         simulationFileName = sasoFilenames[i]+"openAction.txt";
-        ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, true, false);
+        ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, 1, false);
+        //simulationDataFile.open("data/simulationData_1_openAction.txt");
+        
+        simulationFileName = sasoFilenames[i]+"closeAndPushAction.txt";
+        ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, 2, false);
         //simulationDataFile.open("data/simulationData_1_openAction.txt");
     }
     return ans;
