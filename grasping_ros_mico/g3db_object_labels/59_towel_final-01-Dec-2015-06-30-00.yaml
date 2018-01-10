@@ -8,5 +8,6 @@ duplicate_mesh_index: 0
 duplicate_mesh_name: 59_towel_final-01-Dec-2015-06-30-00.obj
 duplicate_mesh_size: !!python/tuple [0.6690199971199036, 0.630649983882904, 0.10520000010728836]
 mesh_name: 59_towel_final-01-Dec-2015-06-30-00.obj
-object_use_label: S
+object_use_label: D
+remarks: height too low for gripper
 signal_name: mesh_location

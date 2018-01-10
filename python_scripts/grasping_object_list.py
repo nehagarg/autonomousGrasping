@@ -39,6 +39,12 @@ def get_grasping_object_name_list(type='used'):
     elif type=='79_toy_dog_final':
         pattern_list_ = get_g3db_instances()
         pattern_list = [x  for x in pattern_list_  if '79_toy_dog_final' in x]
+    elif type=='objects_modified':
+        pattern_list = ['5_bottle_final-15-Dec-2015-15-43-28']
+	pattern_list.append('62_mouse_final-21-Nov-2015-06-46-41') 
+	pattern_list.append('6_jar_final-14-Nov-2015-19-14-33')
+        pattern_list.append('6_jar_final-20-Dec-2015-09-26-23')
+
     else:
         pattern_list=[type]
         

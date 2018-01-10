@@ -8,5 +8,6 @@ duplicate_mesh_index: 0
 duplicate_mesh_name: 59_towel_final-20-Nov-2015-07-58-42.obj
 duplicate_mesh_size: !!python/tuple [0.36215001344680786, 0.34136998653411865, 0.08319999277591705]
 mesh_name: 59_towel_final-20-Nov-2015-07-58-42.obj
-object_use_label: S
+object_use_label: D
+remarks: height too low for pick and unstable at bigger height
 signal_name: mesh_location
