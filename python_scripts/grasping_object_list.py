@@ -33,6 +33,8 @@ def get_grasping_object_name_list(type='used'):
         pattern_list = ['Cylinder_' + i for i in a]
     elif type=='g3db_instances':
         pattern_list = get_g3db_instances()
+    elif 'g3db_instances_' in type:
+        pattern_list = get_g3db_instances(type.replace("g3db_instances_", ""))
     elif type=='cylinder_and_g3db_instances':
         pattern_list = get_grasping_object_name_list('all_cylinders')
         pattern_list = pattern_list + get_grasping_object_name_list('g3db_instances')
@@ -50,7 +52,7 @@ def get_grasping_object_name_list(type='used'):
         
     return pattern_list
 
-def get_g3db_instances():
+def get_g3db_instances(type = 'all'):
     try:
         import rospkg
         rospack = rospkg.RosPack()
@@ -58,7 +60,12 @@ def get_g3db_instances():
     except:
         #give ncl absolute path
         grasping_ros_mico_path = '/users/ngarg211/WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico'
-    g3db_object_list_file = grasping_ros_mico_path + "/g3db_object_labels/object_instances/object_instances_updated/object_instance_names.txt"
+    g3db_object_list_file = grasping_ros_mico_path + "/g3db_object_labels/object_instances/object_instances_updated/"
+    if(type == 'all'):
+       g3db_object_list_file = g3db_object_list_file +  "object_instance_names.txt"
+    else:
+        g3db_object_list_file = g3db_object_list_file +  "object_instance_names_" + type + ".txt"
+    
     ans = []
     with open(g3db_object_list_file, 'r') as f:
         lines = f.readlines()
