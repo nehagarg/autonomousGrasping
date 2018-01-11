@@ -7,5 +7,6 @@ duplicate_mesh_index: 0
 duplicate_mesh_name: 90_phone_final-25-Feb-2016-19-08-23.obj
 duplicate_mesh_size: !!python/tuple [0.18505999445915222, 0.05291000008583069, 0.05879000201821327]
 mesh_name: 90_phone_final-25-Feb-2016-19-08-23.obj
-object_use_label: S
+object_use_label: D
+remarks: unpredictable simulation
 signal_name: mesh_location
