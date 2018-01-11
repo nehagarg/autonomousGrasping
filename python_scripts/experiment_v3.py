@@ -376,7 +376,7 @@ def check_finished_processes(stopped_node_file):
     global stopped_screen_to_nodes
     global running_nodes_to_screen 
     global running_screen_to_nodes
-    for screen_name in running_screen_to_nodes.keys():
+    for screen_name in sorted(running_screen_to_nodes.keys()):
         if screen_name in stopped_screen_to_nodes.keys():
             continue
         node_name = running_screen_to_nodes[screen_name]
