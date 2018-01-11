@@ -118,13 +118,17 @@ def plot_pick_success(object_file_name, action_id= 10):
     colors = []
     index = [0,0]
     reward_index = 0
-    
+    endswithString = 'allActions.txt'
+    if action_id == 10:
+        endswithString = 'closeAndPushAction.txt'
+    if action_id == 9:
+        endswithString = 'openAction.txt'
     if(os.path.isdir(object_file_name)):
-        files = [os.path.join(object_file_name, f) for f in os.listdir(object_file_name) if f.endswith('.txt')]
+        files = [os.path.join(object_file_name, f) for f in os.listdir(object_file_name) if f.endswith(endswithString)]
     elif(not os.path.exists(object_file_name)):
         obj_dir_name = os.path.dirname(object_file_name)
         file_prefix = os.path.basename(object_file_name)
-        files = [os.path.join(obj_dir_name, f) for f in os.listdir(obj_dir_name) if f.startswith(file_prefix) and f.endswith('.txt')]
+        files = [os.path.join(obj_dir_name, f) for f in os.listdir(obj_dir_name) if f.startswith(file_prefix) and f.endswith(endswithString)]
     else:
         files = [object_file_name]
     for command_file in files:
