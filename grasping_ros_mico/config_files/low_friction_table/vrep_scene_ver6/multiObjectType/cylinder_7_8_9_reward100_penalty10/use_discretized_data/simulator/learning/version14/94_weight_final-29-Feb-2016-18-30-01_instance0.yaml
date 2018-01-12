@@ -2,7 +2,7 @@ auto_load_object: true
 belief_object_ids: [0, 1, 2]
 interface_type: 0
 invalid_state_penalty: -10
-learned_model_name: vrep/version14/model.ckpt-897
+learned_model_name: vrep/version14/model.ckpt-400
 low_friction_table: true
 num_belief_particles: 1000
 object_mapping: [Cylinder_9, Cylinder_8, Cylinder_7, 94_weight_final-29-Feb-2016-18-30-01_instance0]

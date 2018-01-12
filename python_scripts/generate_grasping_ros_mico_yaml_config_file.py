@@ -548,6 +548,8 @@ class ConfigFileGenerator():
 
 def get_learning_model_from_version(version_name):
     if version_name == 'vrep/version14':
+        return 'model.ckpt-400'
+    if version_name == 'vrep/version14_old_pick_9Jan2018':
         return 'model.ckpt-897'
     
 def get_hand_defined_actions(type):
