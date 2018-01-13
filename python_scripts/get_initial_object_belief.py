@@ -144,7 +144,8 @@ class GetInitialObjectBelief():
         self.detector_cfg = self.config['detector']
         if obj_filenames is not None:
             self.obj_filenames = obj_filenames
-            self.load_object_point_clouds()
+            #Not loading all point clods to save memory
+            #self.load_object_point_clouds()
         # create rgbd sensor
         self.sensor = None
         print "Creating sensor"
@@ -287,7 +288,19 @@ class GetInitialObjectBelief():
         
         return (depth_im, camera_intr)
 
-    
+    def get_non_nan_points(self, point_cloud):
+        ans = []
+        orig_target_normals = point_cloud.data.T
+        print orig_target_normals.shape[0]
+        for i in range(0,int(orig_target_normals.shape[0])):
+            nan_indices = [x for x in orig_target_normals[i] if str(x)=="nan"]
+            if len(nan_indices) !=0:
+                #pass
+                print i
+                print nan_indices
+            else:
+                ans.append(i)
+        return ans
     def get_point_normal_cloud(self, depth_im_seg, camera_intr):
         source_point_normal_cloud = depth_im_seg.point_normal_cloud(camera_intr)
         source_point_cloud = source_point_normal_cloud.points
@@ -296,6 +309,18 @@ class GetInitialObjectBelief():
             print source_point_cloud.shape
             print source_normal_cloud.shape
         points_of_interest = np.where(source_point_cloud.z_coords != 0.0)[0]
+        source_point_cloud._data = source_point_cloud.data[:, points_of_interest]
+        source_normal_cloud._data = source_normal_cloud.data[:, points_of_interest]
+        if self.debug:
+            print source_point_cloud.shape
+            print source_normal_cloud.shape
+        points_of_interest = self.get_non_nan_points(source_point_cloud)
+        source_point_cloud._data = source_point_cloud.data[:, points_of_interest]
+        source_normal_cloud._data = source_normal_cloud.data[:, points_of_interest]
+        if self.debug:
+            print source_point_cloud.shape
+            print source_normal_cloud.shape
+        points_of_interest = self.get_non_nan_points(source_normal_cloud)
         source_point_cloud._data = source_point_cloud.data[:, points_of_interest]
         source_normal_cloud._data = source_normal_cloud.data[:, points_of_interest]
         if self.debug:
@@ -314,16 +339,19 @@ class GetInitialObjectBelief():
             print source_sample_size
         p2pis = PointToPlaneICPSolver(sample_size=source_sample_size)
         p2pfm = PointToPlaneFeatureMatcher()
-        for (target_depth_im, target_camera_intr) in self.database_objects:
-            if self.debug:
-                vis.figure()
-                vis.subplot(1,1,1)
-                vis.imshow(target_depth_im)
-                vis.show()
-            target_point_cloud, target_normal_cloud = self.get_point_normal_cloud(target_depth_im, target_camera_intr)
-            registration_result = p2pis.register( source_point_cloud, target_point_cloud,
-                 source_normal_cloud, target_normal_cloud, p2pfm, num_iterations=1)
-            registration_result_array.append(registration_result)
+        for objectFileName in self.obj_filenames:
+            self.load_object_point_clouds([objectFileName])
+            for (target_depth_im, target_camera_intr) in self.database_objects:
+                if self.debug:
+                    vis.figure()
+                    vis.subplot(1,1,1)
+                    vis.imshow(target_depth_im)
+                    vis.show()
+                target_point_cloud, target_normal_cloud = self.get_point_normal_cloud(target_depth_im, target_camera_intr)
+                registration_result = p2pis.register( source_point_cloud, target_point_cloud,
+                     source_normal_cloud, target_normal_cloud, p2pfm, num_iterations=1)
+                registration_result_array.append(registration_result)
+            
         return registration_result_array
     
     def get_object_probabilities(self):
@@ -380,7 +408,8 @@ def get_belief_for_objects(object_group_name, object_file_dir, debug = False, st
     if type(object_group_name) is str:
         object_list = get_grasping_object_name_list(object_group_name)
     else:
-        object_list = [get_object_name(x) for x in object_group_name]
+        #object_list = [get_object_name(x) for x in object_group_name]
+        object_list = [x+'.yaml' for x in object_group_name]
     obj_filenames = [object_file_dir + "/" + x for x in object_list]
     giob = GetInitialObjectBelief(obj_filenames, debug, start_node)
     ans = giob.get_object_probabilities()

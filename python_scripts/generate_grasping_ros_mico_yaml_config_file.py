@@ -509,7 +509,12 @@ class ConfigFileGenerator():
     def __init__(self, type, get_config=True):
         self.use_pruned_data = False
         self.use_discretized_data = False
+        self.use_weighted_belief = False
         self.filetypes = [''] #Con contain learning and combined policy dir paths
+        if('g3db_instances_train1' in type):
+            self.belief_name = 'g3db_instances_train1'
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
+            self.filetypes = [''] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -521,6 +526,8 @@ class ConfigFileGenerator():
             self.use_pruned_data = True
         if('discretize' in type):
             self.use_discretized_data = True
+        if('weighted' in type):
+            self.use_weighted_belief = True
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -537,6 +544,8 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_pruned_data"
                     if(self.use_discretized_data):
                         file_prefix = file_prefix + "/use_discretized_data"
+                    if(self.use_weighted_belief):
+                        file_prefix = file_prefix + "/use_weighted_belief"
                     file_prefix = file_prefix + "/" + interface_type
                     file_prefix = file_prefix + self.distribution_type
                     file_prefix = file_prefix+filetype
@@ -567,31 +576,43 @@ def get_hand_defined_actions(type):
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
 #type = 'baseline_<no>'
-def generate_grasping_config_files(type = 'cylinder_discretize', ver='ver6'):
+#type = 'g3db_instances_train1_discretize_weighted'
+def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
     for filename,filetype,interface_type,object_type in gsf:
         print filename
         ans = create_basic_config(filename)
-        print ans
         ans = modify_basic_config(filename, ans)
-        print ans
         if(cfg.use_pruned_data):
             ans["use_pruned_data"] = True
         if(cfg.use_discretized_data):
-            ans["use_discretized_data"] = True
+            ans["use_discretized_data"] = True      
         ans["interface_type"] = 1
         if interface_type == 'simulator/':
             ans["interface_type"] = 0
+        if(cfg.use_weighted_belief):
+            ans["get_object_belief"] = True
+            if(ans["interface_type"] == 1):
+                ans["use_data_step"] = True
+                ans["interface_type"] = 0
+            
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
             ans["hand_defined_actions"] = get_hand_defined_actions(type)
+            
+        if 'cylinder_7_8_9' in filename:
+            ans["object_mapping"] = get_grasping_object_name_list('cylinders_train')
+            ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
+        if 'g3db_instances_train1' in filename:
+            ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train1')
+            ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         
-        print ans
         if object_type not in ans["object_mapping"]:
             ans["object_mapping"].append(object_type)
         ans["test_object_id"] = ans["object_mapping"].index(object_type)
+        print ans
         write_config_in_file(filename, ans)
     
                     
