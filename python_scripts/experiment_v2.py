@@ -254,12 +254,13 @@ def generate_params_file(file_name, problem_type):
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
 #type = baseline_<no>
+#type = 'g3db_instances_train1_discretize_weighted'
 def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     belief_type = 'UNIFORM_WITH_STATE_IN'
     dir_prefix = './results/despot_logs/'
     cfg.belief_type = "belief_uniform_"
-    for distribution_type in ["", "fixed_distribution/"]:
+    for distribution_type in ["", "fixed_distribution/", "fixed_distribution/horizon90/"]:
         cfg.distribution_type = distribution_type
         gsf = cfg.generate_setup_files(ver)
         for filename,filetype,interface_type,object_type in gsf:
@@ -271,6 +272,8 @@ def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver6'):
             ans['belief_type'] = belief_type
             if 'fixed_distribution' in filename:
                     ans['additional_params'] = '-l CAP --number='
+            if 'horizon90' in filename:
+                ans['horizon'] = 90
             ans = modify_params_file_for_learning(filename, ans)
             output = yaml.dump(ans, Dumper = Dumper)
             f = open(filename, 'w')
