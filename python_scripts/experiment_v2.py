@@ -260,7 +260,7 @@ def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver6'):
     belief_type = 'UNIFORM_WITH_STATE_IN'
     dir_prefix = './results/despot_logs/'
     cfg.belief_type = "belief_uniform_"
-    for distribution_type in ["", "fixed_distribution/"]: #, "fixed_distribution/horizon90/"]:
+    for distribution_type in ["", "fixed_distribution/", "fixed_distribution/horizon90/", "horizon90/"]:
         cfg.distribution_type = distribution_type
         gsf = cfg.generate_setup_files(ver)
         for filename,filetype,interface_type,object_type in gsf:
