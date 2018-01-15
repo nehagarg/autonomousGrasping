@@ -1,0 +1,14 @@
+auto_load_object: true
+belief_object_ids: [0, 1, 2]
+interface_type: 0
+invalid_state_penalty: -10
+learned_model_name: vrep/version15/model.ckpt-779
+low_friction_table: true
+num_belief_particles: 1000
+object_mapping: [Cylinder_9, Cylinder_8, Cylinder_7, 25_mug-02-Feb-2016-12-40-43_instance0]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+test_object_id: 3
+use_discretized_data: true
+version6: true

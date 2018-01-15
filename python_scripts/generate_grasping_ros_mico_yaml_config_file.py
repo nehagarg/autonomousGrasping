@@ -518,7 +518,7 @@ class ConfigFileGenerator():
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['','learning/version14/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['','learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
         if('baseline' in type):
             self.belief_name = type
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -556,6 +556,8 @@ class ConfigFileGenerator():
                     yield filename,filetype,interface_type,object_type
 
 def get_learning_model_from_version(version_name):
+    if version_name == 'vrep/version15':
+        return 'model.ckpt-779'
     if version_name == 'vrep/version14':
         return 'model.ckpt-400'
     if version_name == 'vrep/version14_old_pick_9Jan2018':
