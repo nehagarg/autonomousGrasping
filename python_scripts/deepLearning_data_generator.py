@@ -184,7 +184,8 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
-    elif fileName == 'vrep/version14':
+    elif fileName in ['vrep/version14','vrep/version15']:
+        #version 14 and 15 differ only in training params
         object_list = get_grasping_object_name_list('cylinders_train')
         for i in range(0,4000):
             for t in ['5']:
