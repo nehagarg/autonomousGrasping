@@ -530,6 +530,21 @@ def train(training_data_version, output_dir):
     #model='lstm'
     model='rnn'
     # data_genrator
+    
+    model_config_file = './output/' + output_dir+ "/params.yaml"
+    import yaml
+    with open(model_config_file, 'r') as stream:
+        model_params = yaml.load(stream)
+    if 'model' in model_params.keys():
+        model = model_params['model']
+    if 'hidden_units' in model_params.keys():
+        hidden_units = model_params['hidden_units']
+    if 'num_layers' in model_params.keys():
+        num_layers = model_params['num_layers']
+    if 'training_batch_size' in model_params.keys():
+        training_batch_size = model_params['training_batch_size']
+    
+    
     data_generator = DataGenerator(training_batch_size, training_data_version)
     print len(data_generator.xseqs)
     print data_generator.seq_length
