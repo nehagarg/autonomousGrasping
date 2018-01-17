@@ -278,11 +278,11 @@ def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, c
     plt.show()
 
 
-def plot_scatter_graph(y,x, colors):
+def plot_scatter_graph(y,x, colors, alph):
     area = np.pi * (15 * 1)**2  # 0 to 15 point radiuses
 
     #plt.scatter(x, y, s=area, c=colors, alpha=0.5)
-    plt.scatter(y,x, s=area, c = colors)
+    plt.scatter(y,x, s=area, c = colors, alpha=alph)
     plt.xlabel('y')
     plt.ylabel('x')
     #plt.title('Time step 20 sec')
@@ -325,59 +325,72 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     if PROBLEM_NAME == 'vrep':
         pick_failure_file = csv_files[9]
     
-    success_cases_array = get_success_failure_cases(new_dir_name,patterns, max_reward, index_step, end_index)
-    success_cases_per_index_step = [sum(x) for x in success_cases_array]
-    (mean, stddev, stderr) = get_mean_std_for_array(success_cases_per_index_step)        
+    mean=-1
+    stddev=-1
+    stderr=-1
+    if(os.path.exists(new_dir_name)):
+        success_cases_array = get_success_failure_cases(new_dir_name,patterns, max_reward, index_step, end_index)
+        success_cases_per_index_step = [sum(x) for x in success_cases_array]
+        (mean, stddev, stderr) = get_mean_std_for_array(success_cases_per_index_step)        
     success_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
-    success_cases = sum(success_cases_per_index_step)
-    generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , max_reward, end_index)
-    (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
+    if(os.path.exists(new_dir_name)):
+        success_cases = sum(success_cases_per_index_step)
+        generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , max_reward, end_index)
+        (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
     av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-            
-    failure_cases_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index)
-    failure_cases_per_index_step =  [sum(x) for x in failure_cases_array]
-    (mean, stddev, stderr) = get_mean_std_for_array(failure_cases_per_index_step)        
+    
+    if(os.path.exists(new_dir_name)):
+        failure_cases_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index)
+        failure_cases_per_index_step =  [sum(x) for x in failure_cases_array]
+        (mean, stddev, stderr) = get_mean_std_for_array(failure_cases_per_index_step)        
     failure_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
-    failure_cases = sum(failure_cases_per_index_step)
-    generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , min_reward, end_index)
-    (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
+    if(os.path.exists(new_dir_name)):
+        failure_cases = sum(failure_cases_per_index_step)
+        generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , min_reward, end_index)
+        (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_failure.txt')
     av_step_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
-    stuck_cases_per_index_step = [(max_success_cases - x - y) for x,y in zip(success_cases_per_index_step, failure_cases_per_index_step) ]
-    (mean, stddev, stderr) = get_mean_std_for_array(stuck_cases_per_index_step)        
+    if(os.path.exists(new_dir_name)):
+        stuck_cases_per_index_step = [(max_success_cases - x - y) for x,y in zip(success_cases_per_index_step, failure_cases_per_index_step) ]
+        (mean, stddev, stderr) = get_mean_std_for_array(stuck_cases_per_index_step)        
     stuck_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
-    generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name, end_index)
-    (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
+    if(os.path.exists(new_dir_name)):
+        generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name, end_index)
+        (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
     reward_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
-    learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec', patterns, index_step, end_index)
-    learning_calls_per_index_step = [sum(x) for x in learning_calls_array]
-    total_calls_array = get_number_of_learning_calls(new_dir_name, 'Step ', patterns, index_step, end_index)
-    total_calls_per_index_step = [sum(x) for x in total_calls_array]
-    fraction_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(learning_calls_per_index_step, total_calls_per_index_step)]
-    (mean, stddev, stderr) = get_mean_std_for_array(fraction_learning_calls_per_index_step)        
+    if(os.path.exists(new_dir_name)):
+        learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec', patterns, index_step, end_index)
+        learning_calls_per_index_step = [sum(x) for x in learning_calls_array]
+        total_calls_array = get_number_of_learning_calls(new_dir_name, 'Step ', patterns, index_step, end_index)
+        total_calls_per_index_step = [sum(x) for x in total_calls_array]
+        fraction_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(learning_calls_per_index_step, total_calls_per_index_step)]
+        (mean, stddev, stderr) = get_mean_std_for_array(fraction_learning_calls_per_index_step)        
     fraction_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
     
-    dummy_learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec dummy', patterns, index_step, end_index)
-    dummy_learning_calls_per_index_step = [sum(x) for x in dummy_learning_calls_array]
-    fraction_dummy_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(dummy_learning_calls_per_index_step, total_calls_per_index_step)]
-    (mean, stddev, stderr) = get_mean_std_for_array(fraction_dummy_learning_calls_per_index_step)        
+    if(os.path.exists(new_dir_name)):
+        dummy_learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec dummy', patterns, index_step, end_index)
+        dummy_learning_calls_per_index_step = [sum(x) for x in dummy_learning_calls_array]
+        fraction_dummy_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(dummy_learning_calls_per_index_step, total_calls_per_index_step)]
+        (mean, stddev, stderr) = get_mean_std_for_array(fraction_dummy_learning_calls_per_index_step)        
     fraction_dummy_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
     
-    num_failed_calls = sum(get_number_of_learning_calls(new_dir_name, 'failed', patterns, end_index, end_index)[0])
-    num_Error_calls = sum(get_number_of_learning_calls(new_dir_name, 'Error', patterns, end_index, end_index)[0])
-    num_ERROR_calls = sum(get_number_of_learning_calls(new_dir_name, 'ERROR', patterns, end_index, end_index)[0])
-    num_error_calls = sum(get_number_of_learning_calls(new_dir_name, 'error', patterns, end_index, end_index)[0])
+    if(os.path.exists(new_dir_name)):
+        num_failed_calls = sum(get_number_of_learning_calls(new_dir_name, 'failed', patterns, end_index, end_index)[0])
+        num_Error_calls = sum(get_number_of_learning_calls(new_dir_name, 'Error', patterns, end_index, end_index)[0])
+        num_ERROR_calls = sum(get_number_of_learning_calls(new_dir_name, 'ERROR', patterns, end_index, end_index)[0])
+        num_error_calls = sum(get_number_of_learning_calls(new_dir_name, 'error', patterns, end_index, end_index)[0])
     error_file.write("," + repr(num_failed_calls) + ":" + repr(num_Error_calls) + ":" + repr(num_error_calls) + ":" + repr(num_ERROR_calls))
     if PROBLEM_NAME == 'vrep':
-        pick_failure_calls_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index, True)
-        pick_failure_calls_per_index_step = [sum(x) for x in pick_failure_calls_array]
-        fraction_pick_failures_per_index_step = [0 if y==0 else float(x)/float(y) for x,y in zip(pick_failure_calls_per_index_step, failure_cases_per_index_step)]
-        (mean, stddev, stderr) = get_mean_std_for_array(fraction_pick_failures_per_index_step) 
+        if(os.path.exists(new_dir_name)):
+            pick_failure_calls_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index, True)
+            pick_failure_calls_per_index_step = [sum(x) for x in pick_failure_calls_array]
+            fraction_pick_failures_per_index_step = [0 if y==0 else float(x)/float(y) for x,y in zip(pick_failure_calls_per_index_step, failure_cases_per_index_step)]
+            (mean, stddev, stderr) = get_mean_std_for_array(fraction_pick_failures_per_index_step) 
         pick_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
         
 def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_scenarios, learning_versions, combined_policy_versions, begin_index, end_index, index_step):
@@ -727,9 +740,14 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     
 
 
+def get_and_plot_success_failure_cases_for_vrep(dir_names, pattern):
+    dir_list = dir_names.split(',')
+    fig, ax = plt.subplots(1,len(dir_list))
+    for i in range(0,len(dir_list)):
+        get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern, i+1, len(dir_list))
+    plt.show()
 
-
-def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
+def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern, plot_no, plot_tot):
     
     min_x_o = 0.4586  #range for object location
     max_x_o = 0.5517; #range for object location
@@ -740,18 +758,19 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
     if 'penalty100' in dir_name:
         min_reward = -10
     
-    time_step = raw_input('Time step?')
+    #time_step = raw_input('Time step?')
     
-    scenarios = raw_input('Sccenarios?')
-    time_scenario_string = 't'+ time_step + '_n' + scenarios
-    if time_step != 'None':
-        dir_name = dir_name +'/' +time_scenario_string
+    #scenarios = raw_input('Sccenarios?')
+    #time_scenario_string = 't'+ time_step + '_n' + scenarios
+    #if time_step != 'None':
+    #    dir_name = dir_name +'/' +time_scenario_string
     print dir_name
     cur_dir = os.getcwd()
     os.chdir(dir_name)
     num_cases = 81
-    fig, ax = plt.subplots(1,5)
-    for j in range(0,5):
+    num_iterations = 3
+    #fig, ax = plt.subplots(1,1)
+    for j in range(0,num_iterations):
         x = []
         y = []
         colors = []
@@ -776,14 +795,14 @@ def get_and_plot_success_failure_cases_for_vrep(dir_name, pattern):
                 colors.append('green')
             elif fullData['stepInfo'][-1]['reward'] == min_reward:
                 print "Red " + repr(i % num_cases)
-                colors.append('red')
+                colors.append('white')
             else:
                 print "Yellow " + repr(i % num_cases)
                 colors.append('yellow')
-        plt.subplot(1,5,j+1)
-        plot_scatter_graph(y, x, colors)
+        plt.subplot(1,plot_tot,plot_no)
+        plot_scatter_graph(y, x, colors, 1.0/num_iterations)
     os.chdir(cur_dir)
-    plt.show()
+    #plt.show()
     #fig.savefig("figure_1.png")
     
         
