@@ -378,6 +378,10 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
         (mean, stddev, stderr) = get_mean_std_for_array(fraction_dummy_learning_calls_per_index_step)        
     fraction_dummy_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
+    num_failed_calls = -1
+    num_Error_calls = -1
+    num_ERROR_calls = -1
+    num_error_calls = -1
     
     if(os.path.exists(new_dir_name)):
         num_failed_calls = sum(get_number_of_learning_calls(new_dir_name, 'failed', patterns, end_index, end_index)[0])
