@@ -149,16 +149,20 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/t5_n160/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n160_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
-            t = '10'
+            t = '5'
             scenario = '40'
             
-            object = 'Cylinder_9'
+            object = '84_yogurtcup_final-13-Nov-2015-10-32-33_instance0'
+            
+            #object = 'Cylinder_9'
             #object='G3DB84_yogurtcup_final'
             #object = 'G3DB1_Coffeecup_final-20-dec-2015'
             #object = '9cm'
-            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/vrep_scene_ver6/multiObjectType/'
+            logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/vrep_scene_ver6/multiObjectType/'
             #logfileName = logfileName + 'belief_uniform_g3db_single_reward100_penalty10/simulator/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
-            logfileName = logfileName + 'belief_uniform_cylinder_7_8_9_reward100_penalty10/use_discretized_data/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+            #logfileName = logfileName + 'belief_uniform_cylinder_7_8_9_reward100_penalty10/use_discretized_data/fixed_distribution/'
+            logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/fixed_distribution/horizon90/'
+            logfileName = logfileName +'t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
             #logfileName = logfileName + 'belief_uniform_g3db_1_84_reward100_penalty10/icp_score_weighted/simulator/fixed_distribution/learning/version13/'
             #logfileName = logfileName + 'Table_scene_' + object + '_trial_' + repr(i) +'.log'
             #object='8cm'
@@ -184,6 +188,20 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName in ['vrep/version16']:
+        object_list = get_grasping_object_name_list('g3db_instances_train1')
+        for i in range(0,2000):
+            for t in ['5']:
+                for scenario in ['320']:
+                   for object in object_list:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
+                        logfileName = logfileName + 'vrep_scene_ver6/multiObjectType/'
+                        logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/'
+                        logfileName = logfileName + 'use_discretized_data/use_weighted_belief/horizon90/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver5/weighted_15')
+                        
     elif fileName in ['vrep/version14','vrep/version15']:
         #version 14 and 15 differ only in training params
         object_list = get_grasping_object_name_list('cylinders_train')
