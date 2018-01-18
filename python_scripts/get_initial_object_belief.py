@@ -337,6 +337,10 @@ class GetInitialObjectBelief():
         source_sample_size = int(source_point_cloud.shape[1])
         if self.debug:
             print source_sample_size
+            vis.figure()
+            vis.subplot(1,1,1)
+            vis.imshow(depth_im_seg)
+            vis.show()
         p2pis = PointToPlaneICPSolver(sample_size=source_sample_size)
         p2pfm = PointToPlaneFeatureMatcher()
         for objectFileName in self.obj_filenames:
@@ -349,7 +353,7 @@ class GetInitialObjectBelief():
                     vis.show()
                 target_point_cloud, target_normal_cloud = self.get_point_normal_cloud(target_depth_im, target_camera_intr)
                 registration_result = p2pis.register( source_point_cloud, target_point_cloud,
-                     source_normal_cloud, target_normal_cloud, p2pfm, num_iterations=1)
+                     source_normal_cloud, target_normal_cloud, p2pfm, num_iterations=10)
                 registration_result_array.append(registration_result)
             
         return registration_result_array
@@ -407,6 +411,7 @@ def get_object_name(object_file):
 def get_belief_for_objects(object_group_name, object_file_dir, debug = False, start_node=True):
     if type(object_group_name) is str:
         object_list = get_grasping_object_name_list(object_group_name)
+        object_list = [x+'.yaml' for x in object_list]
     else:
         #object_list = [get_object_name(x) for x in object_group_name]
         object_list = [x+'.yaml' for x in object_group_name]
