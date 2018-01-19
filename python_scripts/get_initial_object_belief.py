@@ -341,6 +341,7 @@ class GetInitialObjectBelief():
             vis.subplot(1,1,1)
             vis.imshow(depth_im_seg)
             vis.show()
+        source_sample_size = 1000
         p2pis = PointToPlaneICPSolver(sample_size=source_sample_size)
         p2pfm = PointToPlaneFeatureMatcher()
         for objectFileName in self.obj_filenames:
