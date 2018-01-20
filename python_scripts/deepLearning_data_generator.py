@@ -188,7 +188,22 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName in ['vrep/version17']:
+        object_list = get_grasping_object_name_list('g3db_instances_train1')
+        for i in range(0,1000):
+            for t in ['5']:
+                for scenario in ['40']:
+                   for object in object_list:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
+                        logfileName = logfileName + 'vrep_scene_ver6/multiObjectType/'
+                        logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/'
+                        logfileName = logfileName + 'use_discretized_data/use_weighted_belief/horizon90/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver5/weighted_15')
+ 
     elif fileName in ['vrep/version16']:
+        #Had point cloud bug
         object_list = get_grasping_object_name_list('g3db_instances_train1')
         for i in range(0,2000):
             for t in ['5']:
