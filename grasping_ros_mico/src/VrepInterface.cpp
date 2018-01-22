@@ -2028,9 +2028,10 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     {
         PyObject* tmpObj = PyList_GetItem(belief_probs, i);
         belief_object_weights[belief_object_ids[i]] = PyFloat_AsDouble(tmpObj);
-        Py_DECREF(tmpObj);
+        //Py_DECREF(tmpObj);
     }
     
+    Py_DECREF(belief_probs);
     return belief_object_weights;
     
 }

@@ -19,7 +19,8 @@ DeepLearningSolver::DeepLearningSolver(const LearningModel* model, Belief* belie
     PyRun_SimpleString("sys.path.append('python_scripts')");
     PyRun_SimpleString("sys.path.append('python_scripts/deepLearning')");
     char ** argv;
-    PySys_SetArgv(0, argv);
+    //PySys_SetArgv(0, argv);
+    PySys_SetArgvEx(0, argv, 0);
     PyRun_SimpleString("print sys.argv[0]");
     //PyRun_SimpleString("import tensorflow as tf");
     PyObject *pName;
@@ -48,7 +49,7 @@ DeepLearningSolver::DeepLearningSolver(const LearningModel* model, Belief* belie
             fprintf(stderr, "Cannot find function \"get_learning_model_output\"\n");
     }
     
-    
+    Py_DECREF(pModule);
     load_deep_policy(model->learned_model_name);
     //cout << "Initializing adaboost solver" << endl;
     //Currently id mapping done manually 
