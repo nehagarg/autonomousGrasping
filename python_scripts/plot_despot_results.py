@@ -543,10 +543,10 @@ def generate_combined_csv(base_dir, dir_list, pattern, out_dir ):
     
     patterns = patterns + get_grasping_object_name_list(pattern)
     data_types = get_data_types()
-    
+    combined_csv_data = {}
     csv_name_prefix = 'a'
     for data_type in data_types:
-        out_file_name = os.path.join(out_dir, csv_name_prefix + '_' + data_type + '_' + pattern +'.csv')
+        
         policy_names = []
         pattern_data = {}
         for p in patterns:
@@ -571,17 +571,22 @@ def generate_combined_csv(base_dir, dir_list, pattern, out_dir ):
                             policy_names.append(data[0] + "_" + x_title)
                         else:
                             policy_names.append(data[0])
-                            
-        out_file = open(out_file_name, 'w')
-        out_file.write(data_type)
-        for policy_name in policy_names:
-            out_file.write(","+policy_name)
-        out_file.write("\n")
-        for p in patterns:
-            out_file.write(p)
-            for p_data in pattern_data[p]:
-                out_file.write(","+p_data)
+        combined_csv_data[data_type] = (policy_names[:], pattern_data.copy())
+        if out_dir is not None:
+            out_file_name = os.path.join(out_dir, csv_name_prefix + '_' + data_type + '_' + pattern +'.csv')
+            out_file = open(out_file_name, 'w')
+            out_file.write(data_type)
+            for policy_name in policy_names:
+                out_file.write(","+policy_name)
             out_file.write("\n")
+            for p in patterns:
+                out_file.write(p)
+                for p_data in pattern_data[p]:
+                    out_file.write(","+p_data)
+                out_file.write("\n")
+        
+            
+    return combined_csv_data
                         
         
 def plot_graph_from_csv(csv_file, plt_error):

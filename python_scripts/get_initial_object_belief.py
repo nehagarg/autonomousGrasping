@@ -387,7 +387,11 @@ class GetInitialObjectBelief():
                 vis.show()
         self.database_objects = ans
         return ans
-    
+
+def load_object_file(obj_file_names, debug = False, start_node=True):
+    giob = GetInitialObjectBelief(obj_file_names, debug, start_node)
+    return giob.load_object_point_clouds()
+
 def save_object_file(obj_file_name, debug = False, start_node=True):
     giob = GetInitialObjectBelief(None, debug, start_node)
     (d,c) = giob.get_object_point_cloud_from_sensor()
@@ -408,19 +412,28 @@ def get_object_name(object_file):
                 for g3db_object in g3db_objects:
                     if g3dbPattern in g3db_object:
                         return g3db_object
-                    
-def get_belief_for_objects(object_group_name, object_file_dir, debug = False, start_node=True):
+
+def get_object_list(object_group_name):
     if type(object_group_name) is str:
         object_list = get_grasping_object_name_list(object_group_name)
         object_list = [x+'.yaml' for x in object_list]
     else:
         #object_list = [get_object_name(x) for x in object_group_name]
         object_list = [x+'.yaml' for x in object_group_name]
+    return object_list
+
+def get_object_filenames(object_group_name, object_file_dir):
+    object_list = get_object_list(object_group_name)
     obj_filenames = [object_file_dir + "/" + x for x in object_list]
+    return obj_filenames
+
+def get_belief_for_objects(object_group_name, object_file_dir, debug = False, start_node=True):
+    obj_filenames = get_object_filenames(object_group_name, object_file_dir)
     giob = GetInitialObjectBelief(obj_filenames, debug, start_node)
     ans = giob.get_object_probabilities()
     print "<Object Probabilities>" + repr(ans)
     return ans
+
 
 if __name__ == '__main__':
     object_file_name = None
