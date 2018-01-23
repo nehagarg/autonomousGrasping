@@ -54,11 +54,14 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         else:
             command = command + ' ' + t + "/" + repr(begin_index) + '_'
         return command
-    if(command_prefix == 'generate_point_clouds'):
+    if('generate_point_clouds' in command_prefix):
         # python label_g3db_objects.py -o ../grasping_ros_mico/g3db_object_labels/object_instances/object_instances_updated ../../../vrep/G3DB_object_dataset/obj_files/
         #python label_g3db_objects.py -o ../grasping_ros_mico/pure_shape_labels all_cylinders
         #pattern can be g3db_object_labels or pure_shape_labels
-        command = 'python label_g3db_objects.py -p -o ../grasping_ros_mico/' 
+        command_part = '-p'
+        if 'classification' in command_prefix:
+            command_part = '-q'
+        command = 'python label_g3db_objects.py ' + command_part + ' -o ../grasping_ros_mico/' 
         command = command + pattern
         if(pattern == 'pure_shape_labels'):
             command = command + ' all_cylinders'
@@ -726,6 +729,7 @@ def main():
                     current_screen_counter = new_screen_counter
                     #TODO automatically merge runnign and stopped nodes files using command
                     #awk 'NR==FNR{a[$0];next} !($0 in a)' stopped_nodes.txt running_nodes.txt
+                    #ps axf | grep experiment_v2 | grep -v grep | awk '{print "kill -9 " $1}' | bash
                     #cat run_txt_files/stopped_nodes.txt | cut -d' ' -f2 | cut -d'_' -f1 | sort -n | awk '$1!=p+1{print p+1"-"$1-1}{p=$1}'
         while(not all_processes_stopped()):
             print "Sleeping before checking process status..."

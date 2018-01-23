@@ -93,7 +93,7 @@ def update_object(action_, mesh_properties):
     if type(action_)==dict:
         action = action_.keys()[0]
         action_value = action_[action]
-        if(action!='set_size'):
+        if(action not in ['set_size', 'set_object_name', 'set_object_color']):
             action,action_value = update_size_action(action,action_value)
     else:
         action = action_
@@ -148,6 +148,20 @@ def update_object(action_, mesh_properties):
             mesh_properties["object_pose"] = resp1.outputFloats
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
+            
+    if(action == 'set_object_name'):
+        try:
+            #6 is for customization script
+            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  [action_value], action)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+    
+    if(action == 'set_object_color'):
+        try:
+            #6 is for customization script
+            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], action_value,  [], action)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
     
     if(action == 'load_object'):
         mesh_path = mesh_properties['mesh_name']
@@ -160,11 +174,22 @@ def update_object(action_, mesh_properties):
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
 
-def save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir):
+def save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir, object_loc_id = 40, for_classifier = False):
     mesh_properties = add_object_in_scene(object_id,object_property_dir, object_mesh_dir)
+    object_pose = list(mesh_properties["final_initial_object_pose"][0:3])
+    move_x = object_loc_id/9
+    move_y = object_loc_id % 9
+    object_pose[0] = object_pose[0] -0.04 + (0.01*move_x)
+    object_pose[1] = object_pose[1] -0.04 + (0.01*move_y)
+    update_object({'set_object_pose': object_pose}, {})
     start_stop_simulation('Start')
     assert('pick_point' in mesh_properties.keys())
-    save_object_file(point_cloud_dir + "/" + object_id, False)
+    if for_classifier:
+        file_dir = point_cloud_dir + "/" + object_id.replace('.yaml', "") 
+        if os.path.exists(file_dir):
+            save_object_file(point_cloud_dir + "/" + object_id.replace('.yaml', "") + "/" + repr(object_loc_id), False)
+    else:
+        save_object_file(point_cloud_dir + "/" + object_id, False)
     start_stop_simulation('Stop')
     time.sleep(2)
     

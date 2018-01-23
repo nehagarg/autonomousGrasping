@@ -13,15 +13,15 @@ except ImportError:
 from PySide.QtCore import *
 from PySide.QtGui import *
 import numpy as np
-
+import random
 import load_objects_in_vrep as ol
 from grasping_object_list import get_grasping_object_name_list
 
 class MainWindow(QWidget):
-    def __init__(self, object_file_name, dir_name, parent=None):
+    def __init__(self, object_file_name, dir_name, collect_objects, parent=None):
         QWidget.__init__(self, parent)
         self.setGeometry(300, 300, 1300, 700)
-        self.lo = LabelObject(object_file_name, dir_name)
+        self.lo = LabelObject(object_file_name, dir_name, collect_objects)
         
         
         
@@ -181,7 +181,8 @@ class MainWindow(QWidget):
 #object file name gives mesh location
 #dir_name gives config file location
 class LabelObject:
-    def __init__(self, object_file_name, dir_name):
+    def __init__(self, object_file_name, dir_name, collect_objects = False):
+        self.collect_objects = collect_objects
         self.object_file_names = sorted(self.get_object_filenames(object_file_name))
         self.output_dir = dir_name
         self.object_instance_dir = "object_instances"
@@ -228,6 +229,20 @@ class LabelObject:
                         #self.instance_yaml['mesh_name'] = self.object_file_names[self.mesh_file_id]
                         self.instance_yaml = ol.add_object_from_properties(self.instance_yaml, True)
         
+        if(self.collect_objects):
+            if('-' not in self.instance_yaml.keys()):
+                if(ol.object_graspable(self.instance_yaml)):
+
+                    object_class = self.get_object_class_from_mesh_name(self.instance_yaml['mesh_name'])
+                    random.seed(hash(object_class))
+                    c1 = random.random()
+                    c2 = random.random()
+                    c3 = random.random()
+                    ol.update_object({'set_object_color' : [c1 ,c2,c3]},{})
+
+                    name = self.get_instance_file_name(instance).split('.')[0].replace('-', '_')
+                    ol.update_object({'set_object_name' : name}, {})
+                
                         
                     
     
@@ -333,7 +348,7 @@ class LabelObject:
                         updated_object_instance_file_name = self.get_updated_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(j)
                         self.save_yaml(updated_object_instance_file_name, self.instance_yaml)  
     
-    def generate_point_clouds(self):
+    def generate_point_clouds(self, for_classifier = False):
         for i in range(0,len(self.object_file_names)):
             self.mesh_file_id = i
             self.load_next_object(None)
@@ -344,7 +359,17 @@ class LabelObject:
                 for j in range(0,num_instances):
                         object_property_dir =  self.get_updated_instance_file_dir(self.output_file_name)
                         object_id = os.path.basename(self.get_instance_file_name(j))
-                        ol.save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir)
+                        start_range = 40
+                        end_range = 41
+                        if for_classifier:
+                            start_range = 0
+                            end_range = -1
+                            file_dir = point_cloud_dir + "/" + object_id.replace('.yaml', "") 
+                            if os.path.exists(file_dir):
+                                end_range = 81
+                        for k in range(start_range, end_range):
+                            ol.save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_cloud_dir, k, for_classifier)
+                
     
     def get_num_instances(self):
         num_instances = 1
@@ -501,6 +526,14 @@ def update_object_instance_configs(object_file_name, dir_name):
 def generate_point_clouds(object_file_name, dir_name):
     lo = LabelObject(object_file_name, dir_name)
     lo.generate_point_clouds()
+
+#object file name gives mesh location
+#dir_name gives config file location
+def generate_point_clouds_for_classification(object_file_name, dir_name):
+    lo = LabelObject(object_file_name, dir_name)
+    lo.point_cloud_dir = '../grasping_ros_mico/point_clouds_for_classification'
+    lo.generate_point_clouds(True)
+
     
 #dir_name gives config file location of updated instance configs    
 def generate_pickable_object_list(dir_name):
@@ -514,18 +547,20 @@ def generate_pickable_object_list(dir_name):
             pickable_list.append(object_id)
     outfile_name = dir_name + "/object_instance_names.txt"
     with open(outfile_name, 'w') as f:
-            f.write("\n".join(pickable_list))  
+            f.write("\n".join(sorted(pickable_list)))  
             f.write("\n")
 
 def main():
 
     dir_name = './'
-    opts, args = getopt.getopt(sys.argv[1:],"hlpguo:",["outdir=",])
+    opts, args = getopt.getopt(sys.argv[1:],"hlpqguco:",["outdir=",])
     
     generate_object_instances = False
     update_object_instances = False
     genetate_point_clouds = False
+    genetate_point_clouds_for_classification = False
     genetate_object_list = False
+    collect_Selected_objects = False
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -539,8 +574,12 @@ def main():
           update_object_instances = True
       elif opt == '-p':
           genetate_point_clouds = True
+      elif opt == '-q':
+          genetate_point_clouds_for_classification = True
       elif opt == '-l':
           genetate_object_list = True
+      elif opt == '-c':
+          collect_Selected_objects = True    
       
     object_file_name = args[0]
     
@@ -550,11 +589,13 @@ def main():
         update_object_instance_configs(object_file_name, dir_name)
     elif(genetate_point_clouds ):
         generate_point_clouds(object_file_name, dir_name)
+    elif(genetate_point_clouds_for_classification):
+        generate_point_clouds_for_classification(object_file_name, dir_name)
     elif(genetate_object_list) :
         generate_pickable_object_list(dir_name)
     else:
         app = QApplication([])
-        currentState = MainWindow(object_file_name, dir_name)
+        currentState = MainWindow(object_file_name, dir_name, collect_Selected_objects)
         currentState.show()
         app.exec_()
     
@@ -574,6 +615,6 @@ if __name__ == '__main__':
     
     
 #Commands
-# python label_g3db_objects.py -g/-u/-p -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
+# python label_g3db_objects.py -g/-u/-p/-q -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
 #python label_g3db_objects.py -l -o ../grasping_ros_mico/g3db_object_labels/object_instances/object_instances_updated/ ../../../vrep/G3DB_object_dataset/obj_files/
-#python label_g3db_objects.py -g/-u/-p/-l -o ../grasping_ros_mico/pure_shape_labels all_cylinders
+#python label_g3db_objects.py -g/-u/-p/-l/-q -o ../grasping_ros_mico/pure_shape_labels all_cylinders
