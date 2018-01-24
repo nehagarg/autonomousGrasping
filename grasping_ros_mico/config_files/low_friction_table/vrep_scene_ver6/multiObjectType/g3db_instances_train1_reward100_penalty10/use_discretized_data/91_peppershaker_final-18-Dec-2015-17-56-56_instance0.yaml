@@ -1,0 +1,20 @@
+auto_load_object: true
+belief_object_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+interface_type: 1
+invalid_state_penalty: -10
+low_friction_table: true
+num_belief_particles: 1000
+object_mapping: [39_beerbottle_final-13-Nov-2015-09-07-13_instance0, 52_jar2_final-05-Dec-2015-06-31-52_instance0,
+  84_yogurtcup_final-13-Nov-2015-10-32-33_instance0, 49_apple_final-06-Dec-2015-04-56-58_instance0,
+  50_carton_final-03-Dec-2015-09-48-16_instance0, 86_bread_final-20-Nov-2015-06-45-04_instance0,
+  24_mug_final-08-Mar-2016-17-40-27_instance0, 24_mug_final-08-Mar-2016-18-17-15_instance0,
+  42_wineglass_final-02-Nov-2015-02-37-24_instance0, 44_towelstand_final-15-Mar-2016-15-37-58_instance0,
+  44_towelstand_final-15-Mar-2016-14-05-00_instance0, 62_mouse_final-21-Nov-2015-06-46-41_instance0,
+  28_Spatula_final-07-Mar-2016-18-34-51_instance0, 56_headphones_final-18-Dec-2015-12-49-27_instance0,
+  109_crab_final-02-Mar-2016-13-38-29_instance0, 91_peppershaker_final-18-Dec-2015-17-56-56_instance0]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+test_object_id: 15
+use_discretized_data: true
+version6: true

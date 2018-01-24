@@ -1,0 +1,5 @@
+{additional_params: -l CAP --number=, begin_index: 0, belief_type: UNIFORM_WITH_STATE_IN,
+  config_file: config_files/low_friction_table/vrep_scene_ver6/multiObjectType/g3db_instances_train1_reward100_penalty10/use_discretized_data/simulator/Cylinder_7.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_Cylinder_7, horizon: 50, number_scenarios: 5,
+  output_dir: ./results/despot_logs/low_friction_table/vrep_scene_ver6/multiObjectType/belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/simulator/fixed_distribution,
+  planning_time: 1, solver: DESPOT}

@@ -514,7 +514,7 @@ class ConfigFileGenerator():
         if('g3db_instances_train1' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['', 'learning/version17/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']# 'learning/version17/'] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -581,6 +581,7 @@ def get_hand_defined_actions(type):
 #type = 'cylinder_discretize'
 #type = 'baseline_<no>'
 #type = 'g3db_instances_train1_discretize_weighted'
+#type = 'g3db_instances_train1_discretize'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
