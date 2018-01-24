@@ -31,6 +31,7 @@ public:
     static std::string g3db_object_property_dir ;
     static std::string pure_object_property_dir ;
     static std::string object_pointcloud_dir ;
+    static std::string object_pointcloud_for_classification_dir ;
     
     std::vector<SimulationData> simulationDataCollectionWithObject[A_PICK+1];
     //std::vector<int> simulationDataIndexWithObject[A_PICK+1];

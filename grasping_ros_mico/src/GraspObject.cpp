@@ -13,6 +13,7 @@
 std::string GraspObject::g3db_object_property_dir = "g3db_object_labels/object_instances/object_instances_updated";
 std::string GraspObject::pure_object_property_dir = "pure_shape_labels";
 std::string GraspObject::object_pointcloud_dir = "point_clouds";
+std::string GraspObject::object_pointcloud_for_classification_dir = "point_clouds_for_classification";
 double GraspObject::pick_point_x_diff = -0.03;
 double GraspObject::pick_point_y_diff = 0.0;
 

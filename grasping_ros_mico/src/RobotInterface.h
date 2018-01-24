@@ -125,11 +125,14 @@ public:
     double pick_penalty ;
     double invalid_state_penalty;
     bool separate_close_reward ;
+    std::string classifier_string_name;
+    int clip_number_of_objects;
     static bool low_friction_table;
     static bool version5;
     static bool version6;
     static bool use_data_step;
     static bool get_object_belief;
+    static bool use_classifier_for_belief;
     static bool use_regression_models;
     static bool auto_load_object;
     static bool use_pruned_data;
