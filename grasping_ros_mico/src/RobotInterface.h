@@ -66,7 +66,7 @@ public:
     
 
     
-    static const int NUMBER_OF_OBJECTS = 10; 
+    //static const int NUMBER_OF_OBJECTS = 100; 
     
     //For data collected
     double min_x_i ; //range for gripper movement
@@ -156,7 +156,8 @@ public:
     double touch_sensor_mean_closed_without_object_ver5[2];
     double touch_sensor_mean_closed_with_object_ver5[2];
     
-    mutable GraspObject* graspObjects[NUMBER_OF_OBJECTS] = {NULL};
+    mutable std::map<int, GraspObject*> graspObjects;
+    
     //mutable std::vector<SimulationData> simulationDataCollectionWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     //mutable std::vector<int> simulationDataIndexWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     mutable std::vector<SimulationData> simulationDataCollectionWithoutObject[A_PICK+1];
