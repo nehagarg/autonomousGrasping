@@ -531,12 +531,14 @@ class ConfigFileGenerator():
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
-        self.interface_types = ["", "simulator/"]
+        self.interface_types = ["", "simulator/", "real/"]
         
     
     def generate_setup_files(self, ver='ver5'):
         for filetype in self.filetypes:
             for interface_type in self.interface_types:
+                if interface_type == 'real/':
+                    self.object_list = ['Cylinder_9']
                 for object_type in self.object_list:
                     file_prefix = "low_friction_table/vrep_scene_"+ ver+"/multiObjectType/"
                     file_prefix = file_prefix + self.belief_type + self.belief_name + '_reward100_penalty10'
@@ -596,6 +598,8 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
         ans["interface_type"] = 1
         if interface_type == 'simulator/':
             ans["interface_type"] = 0
+        if interface_type == 'real/':
+            ans["interface_type"] = 2
         if(cfg.use_weighted_belief):
             ans["get_object_belief"] = True
             if(ans["interface_type"] == 1):

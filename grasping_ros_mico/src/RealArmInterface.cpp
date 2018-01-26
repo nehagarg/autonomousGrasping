@@ -114,6 +114,13 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     //Fetch touch threshold value from mico action feedback node
     //Get robot pose and finger joints
     //Calling open gripper functon for that
+    if(graspObjects.find(initial_state.object_id) == graspObjects.end())
+    {
+        //This will load object properties
+        graspObjects[initial_state.object_id] = getGraspObject(object_id_to_filename[initial_state.object_id]);
+    }
+    
+    VrepDataInterface::CreateStartState(initial_state, type);
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
     micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.GET_TOUCH_THRESHOLD;
     if(micoActionFeedbackClient.call(micoActionFeedback_srv))
@@ -151,7 +158,7 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     //Ideally should call object detector but currently it is not ready
     //So adding a default object pose . When object pose from kinect is available should compute offeset from defalut pose
     
-    initial_state.object_pose = initial_state.gripper_pose;
+    //initial_state.object_pose = initial_state.gripper_pose;
     initial_state.object_pose.pose.position.x = graspObjects[initial_state.object_id]->initial_object_x;
     initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y;
     initial_state.object_pose.pose.position.z = graspObjects[initial_state.object_id]->initial_object_pose_z;
