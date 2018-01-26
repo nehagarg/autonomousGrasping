@@ -175,8 +175,9 @@ void VrepInterface::LoadObjectInScene(int object_id, bool force_load) const {
     else
     {
         
-        if(graspObjects[object_id] == NULL)
+        if(graspObjects.find(object_id) == graspObjects.end())
         {
+            //std::cout << "Loading object properties before loading object" << std::endl;
             //This will load object properties
             graspObjects[object_id] = getGraspObject(object_id_to_filename[object_id]);
         }
