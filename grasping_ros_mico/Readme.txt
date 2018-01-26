@@ -72,3 +72,18 @@ belief_uniform_cylinder_8_9_reward100_penalty10 vrep scene ver5, uniform belief,
 belief_uniform_g3db_1_84_reward100_penalty10 vrep scene ver5, uniform belief, experiment with G3DB1 and G3DB84 in belief
 belief_uniform_g3db_single_reward100_penalty10 vrep scene ver5, uniform belief, experiment with single g3db objects in belief
 
+For real arm:
+First launch mico arm using kinoa ros package:
+roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=m1n6s200 use_urdf:=true
+Then launch touch sensor in studio code
+For command see numatac_can_driver in studio code
+
+Then launch touch client in studio code:
+python detect_touch_on_each_finger.py
+
+Then launch mico client in grasping_ros_mico:
+python mico_action_feedback_node.py
+Note kinova_motion_execution_with_touch.py has been copied from studio code. The studio code version is old. The latest version is in grasping_ros_mico code
+
+Then launch the policy from grasping_ros_mico code
+
