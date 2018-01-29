@@ -683,9 +683,12 @@ def main():
          
     if len(args) > 0:
         command_file = args[0]
-    command_list_file = None
+        command_list_file = "sample_input_files/" + os.path.basename(command_file)
+        if not os.path.exists(command_list_file):
+            command_list_file = None
     if len(args) > 1:
         command_list_file = args[1]
+    if command_list_file is not None:
         generate_error_re_run_commands(command_file, problem_type, work_folder_dir,  starting_screen_counter, source_tensorflow, separate_ros_vrep_port, command_list_file)
         return
     

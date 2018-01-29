@@ -481,9 +481,11 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
                 
                 for csv_file in csv_files: 
                     csv_file.write("\n")
-    if 'baseline' in dir_name:
+    a = time_steps + sampled_scenarios + learning_versions + combined_policy_versions
+    #if 'baseline' in dir_name:
+    if not a:
         for csv_file in csv_files: 
-            csv_file.write("Baseline")
+            csv_file.write(os.path.basename(dir_name))
         new_dir_name = dir_name
         write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
         for csv_file in csv_files: 
