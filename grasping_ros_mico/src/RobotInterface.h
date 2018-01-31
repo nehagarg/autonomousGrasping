@@ -157,6 +157,7 @@ public:
     double touch_sensor_mean_closed_with_object_ver5[2];
     
     mutable std::map<int, GraspObject*> graspObjects;
+    mutable std::map<int, bool> graspObjectsDynamicModelLoaded;
     
     //mutable std::vector<SimulationData> simulationDataCollectionWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
     //mutable std::vector<int> simulationDataIndexWithObject[NUMBER_OF_OBJECTS][A_PICK+1];
@@ -190,6 +191,7 @@ public:
     bool isDataEntryValid(double reward, SimulationData simData, int action, int object_id) const;
     bool isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const;
     GraspObject* getGraspObject(std::string object_name) const;
+    void loadObjectDynamicModel(int object_id);
     
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
     virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;

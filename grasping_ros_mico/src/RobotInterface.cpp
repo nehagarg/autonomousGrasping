@@ -146,7 +146,22 @@ RobotInterface::RobotInterface() {
         
         graspObjects[object_id] = getGraspObject(object_id_to_filename[object_id]);
         
-        if(use_regression_models)
+        
+    }
+    
+}
+
+RobotInterface::RobotInterface(const RobotInterface& orig) {
+}
+
+RobotInterface::~RobotInterface() {
+}
+
+void RobotInterface::loadObjectDynamicModel(int object_id) {
+    graspObjectsDynamicModelLoaded[object_id] = true;
+    std::cout << "Loading object " << object_id << " with filename " << object_id_to_filename[object_id] << std::endl;
+
+    if(use_regression_models)
         {
             getRegressionModels(object_id);
         }
@@ -159,14 +174,6 @@ RobotInterface::RobotInterface() {
                 discretizeData(object_id);
             }
         }
-    }
-    
-}
-
-RobotInterface::RobotInterface(const RobotInterface& orig) {
-}
-
-RobotInterface::~RobotInterface() {
 }
 
 GraspObject* RobotInterface::getGraspObject(std::string object_name) const{

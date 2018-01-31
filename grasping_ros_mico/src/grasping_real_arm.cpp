@@ -167,6 +167,16 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::use_probabilistic_step = false;
     }
     
+    if(config["use_classifier_for_belief"])
+    {
+        RobotInterface::use_classifier_for_belief = config["use_classifier_for_belief"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_classifier_for_belief = false;
+    }
+    
+    
     if(config["belief_object_ids"]) 
     {
         for(int i = 0; i < config["belief_object_ids"].size(); i++)
@@ -186,7 +196,12 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     
     if(RobotInterface::get_object_belief)
     {
-        LearningModel::problem_name  = "vrep/ver5/weighted_" + to_string(belief_object_ids.size());
+        int weighted_obs_size = belief_object_ids.size();
+        if(RobotInterface::use_classifier_for_belief)
+        {
+            weighted_obs_size = 7;
+        }
+        LearningModel::problem_name  = "vrep/ver5/weighted_" + to_string(weighted_obs_size);
     }
     
     
@@ -215,7 +230,25 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         robotInterface->invalid_state_penalty = config["invalid_state_penalty"].as<int>();
     }
     
+    if(config["clip_number_of_objects"])
+    {
+        robotInterface->clip_number_of_objects = config["clip_number_of_objects"].as<int>();
+    }
+    else
+    {
+        robotInterface->clip_number_of_objects = -1;
+    }
+    
+    if(config["object_classifier_string_name"])
+    {
+        robotInterface->classifier_string_name = config["object_classifier_string_name"].as<std::string>();
+    }
+    else
+    {
+        robotInterface->classifier_string_name = "";
+    }
     /*
+     * 
     // This will be loaded from object property file, so not loading here to 
     //avoid overriding property file values
     if(config["object_min_z"])
@@ -609,6 +642,10 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                 
                     GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
                     grasping_state->object_id = belief_object_ids[j];
+                    if(!robotInterface->graspObjectsDynamicModelLoaded[grasping_state->object_id])
+                    {
+                        robotInterface->loadObjectDynamicModel(grasping_state->object_id);
+                    }
                     robotInterface->GetDefaultStartState(*grasping_state);
                     
                     while(true)
@@ -670,6 +707,10 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
         {
             //Load a belief object id 0 particle
             grasping_state->object_id = belief_object_ids[0];
+        }
+        if(!robotInterface->graspObjectsDynamicModelLoaded[grasping_state->object_id])
+        {
+            robotInterface->loadObjectDynamicModel(grasping_state->object_id);
         }
         double object_x = grasping_state->object_pose.pose.position.x;
         double object_y = grasping_state->object_pose.pose.position.y;
