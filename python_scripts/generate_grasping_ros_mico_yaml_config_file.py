@@ -510,7 +510,13 @@ class ConfigFileGenerator():
         self.use_pruned_data = False
         self.use_discretized_data = False
         self.use_weighted_belief = False
+        self.use_object_classifier = False
+        self.clip_objects = False
         self.filetypes = [''] #Con contain learning and combined policy dir paths
+        if('g3db_instances_train2' in type):
+            self.belief_name = 'g3db_instances_train2'
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
+            self.filetypes = ['']
         if('g3db_instances_train1' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -528,6 +534,12 @@ class ConfigFileGenerator():
             self.use_discretized_data = True
         if('weighted' in type):
             self.use_weighted_belief = True
+        if('classifier' in type):
+            self.use_object_classifier = True
+            self.keras_model_name = "20180123-085411"
+        if('clip' in type):
+            self.clip_objects= True
+            self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -548,6 +560,10 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_discretized_data"
                     if(self.use_weighted_belief):
                         file_prefix = file_prefix + "/use_weighted_belief"
+                    if(self.use_object_classifier):
+                        file_prefix = file_prefix + "/use_classifier/" + self.keras_model_name
+                    if(self.clip_objects):
+                        file_prefix = file_prefix + "/clip-" + self.num_clip
                     file_prefix = file_prefix + "/" + interface_type
                     file_prefix = file_prefix + self.distribution_type
                     file_prefix = file_prefix+filetype
@@ -556,6 +572,9 @@ class ConfigFileGenerator():
                         os.mkdir(file_prefix)
                     filename = file_prefix+object_type + ".yaml"
                     yield filename,filetype,interface_type,object_type
+
+def get_keras_classifier_model_from_version(version_name):
+    pass
 
 def get_learning_model_from_version(version_name):
     if version_name == 'vrep/version17':
@@ -584,6 +603,7 @@ def get_hand_defined_actions(type):
 #type = 'baseline_<no>'
 #type = 'g3db_instances_train1_discretize_weighted'
 #type = 'g3db_instances_train1_discretize'
+#type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver6'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -605,6 +625,11 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             if(ans["interface_type"] == 1):
                 ans["use_data_step"] = True
                 ans["interface_type"] = 0
+        if(cfg.use_object_classifier):
+            ans["use_classifier_for_belief"] = True
+            ans["object_classifier_string_name"] = cfg.keras_model_name
+        if(cfg.clip_objects):
+            ans["clip_number_of_objects"] = int(cfg.num_clip)
             
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
@@ -616,6 +641,9 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         if 'g3db_instances_train1' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train1')
+            ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
+        if 'g3db_instances_train2' in filename:
+            ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         
         if object_type not in ans["object_mapping"]:
