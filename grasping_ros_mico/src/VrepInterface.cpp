@@ -1963,13 +1963,13 @@ bool VrepInterface::IsReachableState(GraspingStateRealArm grasping_state, geomet
  */
 
 
-std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+std::pair <std::map<int,double>,std::vector<double> > VrepInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
     if(!RobotInterface::get_object_belief)
     {
         return VrepDataInterface::GetBeliefObjectProbability(belief_object_ids);
     }
     std::map<int,double> belief_object_weights;
-    
+    std::vector<double> vision_observation;
 
     std::cout << "Initialized python 2" << std::endl;
     //PyRun_SimpleString("print sys.argv[0]");
@@ -1998,7 +1998,12 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     }
     
     PyObject *pArgs, *pValue;
-    pArgs = PyTuple_New(2);
+    int num_args = 2;
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        num_args = 5;
+    }
+    pArgs = PyTuple_New(num_args);
     PyObject* object_list = PyList_New(belief_object_ids.size());
     for(int i =0;i < belief_object_ids.size(); i++)
     {
@@ -2006,10 +2011,26 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
     }
     
     PyTuple_SetItem(pArgs, 0, object_list);
-    pValue = PyString_FromString(GraspObject::object_pointcloud_dir.c_str());
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        pValue = PyString_FromString(GraspObject::object_pointcloud_for_classification_dir.c_str());
+    }
+    else
+    {
+        pValue = PyString_FromString(GraspObject::object_pointcloud_dir.c_str());
+    }
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 1, pValue);
 
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        pValue = PyInt_FromLong(clip_number_of_objects);
+        PyTuple_SetItem(pArgs, 2, pValue);
+        pValue = PyString_FromString(classifier_string_name.c_str());
+        PyTuple_SetItem(pArgs, 3, pValue);
+        pValue = PyString_FromString(graspObjects[belief_object_ids[0]]->data_dir_name.c_str());
+        PyTuple_SetItem(pArgs, 4, pValue);
+    }
     PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
     Py_DECREF(pArgs);
     Py_DECREF(load_function);
@@ -2032,8 +2053,31 @@ std::map<int,double> VrepInterface::GetBeliefObjectProbability(std::vector<int> 
         //Py_DECREF(tmpObj);
     }
     
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        for(int i = belief_object_ids.size(); i < belief_object_ids.size()+7; i++)
+        {
+            PyObject* tmpObj = PyList_GetItem(belief_probs, i);
+            vision_observation.push_back(PyFloat_AsDouble(tmpObj));
+            //Py_DECREF(tmpObj);
+        }
+    }
+    else
+    {
+        for(int i = 0; i < belief_object_ids.size(); i++)
+        {
+            vision_observation.push_back(belief_object_weights[belief_object_ids[i]]);
+        }
+    }
+    std::cout << "Vision observation " ;
+    for(int i = 0; i < vision_observation.size(); i++)
+    {
+        std::cout << vision_observation[i] << " ";
+    }
+    std::cout << std::endl;
+    
     Py_DECREF(belief_probs);
-    return belief_object_weights;
+    return std::make_pair(belief_object_weights,vision_observation);
     
 }
 

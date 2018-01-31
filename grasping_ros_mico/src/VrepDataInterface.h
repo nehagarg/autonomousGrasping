@@ -23,7 +23,7 @@ public:
     
 
     virtual void CreateStartState(GraspingStateRealArm& initial_state, std::string type) const;
-    virtual std::map<int,double> GetBeliefObjectProbability(std::vector<int> belief_object_ids) const
+    virtual std::pair <std::map<int,double>, std::vector<double> > GetBeliefObjectProbability(std::vector<int> belief_object_ids) const
     {
         return RobotInterface::GetBeliefObjectProbability(belief_object_ids);
     }

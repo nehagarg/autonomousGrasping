@@ -64,11 +64,12 @@ public:
     static double pick_point_y_diff ;
     
     double discretization_step;
+    std::string data_dir_name;
     
 private:
     
     std::string object_name;
-    std::string data_dir_name;
+    
     std::string regression_data_dir_name;
     
     double min_x_o_low_friction_table ;

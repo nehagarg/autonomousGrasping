@@ -6,6 +6,24 @@ import perception as perception
 import os
 import time
 
+def reshape_keras_input(X_train):
+    from keras import backend as K
+    # input image dimensions
+    img_rows, img_cols = 50, 40
+    if K.image_dim_ordering() == 'th':
+        X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
+        #X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
+    else:
+        X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)
+        #X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, 1)
+        input_shape = (img_rows, img_cols, 1)
+    return (X_train,input_shape)
+
+def model_prediction(model,X_train):
+    (X_train,input_shape) = reshape_keras_input(X_train)
+    return model.predict(X_train)
+
 def get_keras_cnn_model(X_train, Y_train):
     from keras.models import Sequential
     from keras.layers import Dense, Dropout, Activation, Flatten
@@ -17,8 +35,7 @@ def get_keras_cnn_model(X_train, Y_train):
     nb_classes = 7
     nb_epoch = 30
 
-    # input image dimensions
-    img_rows, img_cols = 50, 40
+    
     # number of convolutional filters to use
     nb_filters = 32
     # size of pooling area for max pooling
@@ -26,16 +43,9 @@ def get_keras_cnn_model(X_train, Y_train):
     # convolution kernel size
     kernel_size = (3, 3)
 
-    
+    (X_train,input_shape) = reshape_keras_input(X_train)
 
-    if K.image_dim_ordering() == 'th':
-        X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
-        #X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
-        input_shape = (1, img_rows, img_cols)
-    else:
-        X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)
-        #X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, 1)
-        input_shape = (img_rows, img_cols, 1)
+    
 
     #X_train = X_train.astype('bool')
     #X_test = X_test.astype('bool')
@@ -139,9 +149,9 @@ def get_dir_list():
     dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/simulator/fixed_distribution/horizon90/')
     return dir_list
 
-def get_baseline_labels():
+def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6'):
     grasping_ros_mico_path = get_grasping_ros_mico_path()
-    baseline_result_file_name = grasping_ros_mico_path + "/data_low_friction_table_exp_ver6/baseline_results/a_success_cases_g3db_instances.csv"
+    baseline_result_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/a_success_cases_g3db_instances.csv"
     object_labels = {}
     with open(baseline_result_file_name) as f:
         line = f.readline().rstrip('\n').split(",")
@@ -236,12 +246,31 @@ def train():
 def test(model_name):
     from keras.models import load_model
     (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data()
-    model = load_model(model_dir + timestr + '.h5')
+    model = load_model(model_dir + model_name + '.h5')
     #y_predicted = model.predict(X_test)
     
 def get_object_represention_and_weighted_belief(depth_im, 
 object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
-    pass
+    from keras.models import load_model
+    X = []
+    (depth_im_cropped,clipped) = get_depth_image_thumbmail(depth_im, 200,160,False)
+    X.append(depth_im_cropped.data)
+    model_name = keras_model_dir + keras_model_name + '.h5'
+    model = load_model(model_name)
+    ans = model_prediction(model,np.array(X))[0]
+    object_labels = get_baseline_labels(baseline_results_dir)
+    object_list = giob.get_object_filenames(object_group_name, "")
+    object_list = [x.replace('.yaml',"").replace("/","") for x in object_list]
+    object_list_pred = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
+    print object_list_pred
+    mean_error_list = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
+    probs_unnormalized = [np.exp(1.0/((10*x) + 0.1)) for x in mean_error_list]
+    z = sum(probs_unnormalized)
+    probs = [x/z for x in probs_unnormalized]
+    return list(ans),np.array(probs)
+
+        
+    
 
 """
 def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):

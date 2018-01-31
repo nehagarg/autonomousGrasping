@@ -628,7 +628,10 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
     //std::cout << "In initial belief" << std::endl;
     std::vector<State*> particles;
     int num_particles = 0;
-    belief_object_weights = robotInterface->GetBeliefObjectProbability(belief_object_ids);
+    std::pair <std::map<int,double>,std::vector<double> > temp_pair;
+    temp_pair = robotInterface->GetBeliefObjectProbability(belief_object_ids);
+    belief_object_weights = temp_pair.first;
+    prior_vision_observation = temp_pair.second;
     //Gaussian belief for gaussian start state
     if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" ||
            type == "UNIFORM" || type == "UNIFORM_WITH_STATE_IN" )
@@ -639,7 +642,8 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
             for(int j = 0; j < belief_object_ids.size(); j++)
             {
 
-                
+                if (robotInterface->clip_number_of_objects == -1 || belief_object_weights[belief_object_ids[j]] > 0)
+                {
                     GraspingStateRealArm* grasping_state = static_cast<GraspingStateRealArm*>(Copy(start));
                     grasping_state->object_id = belief_object_ids[j];
                     if(!robotInterface->graspObjectsDynamicModelLoaded[grasping_state->object_id])
@@ -647,7 +651,7 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                         robotInterface->loadObjectDynamicModel(grasping_state->object_id);
                     }
                     robotInterface->GetDefaultStartState(*grasping_state);
-                    
+
                     while(true)
                     {
                         if (type == "GAUSSIAN" || type == "GAUSSIAN_WITH_STATE_IN" )
@@ -658,16 +662,17 @@ std::vector<State*> GraspingRealArm::InitialBeliefParticles(const State* start, 
                         {
                             robotInterface->GenerateUniformParticleFromState(*grasping_state, type);
                         }
-                        
+
                         if (robotInterface->IsValidState(*grasping_state))
                         {
                             break;
                         }
                     }
-                    
+
                     grasping_state->weight = belief_object_weights[grasping_state->object_id];
                     particles.push_back(grasping_state);
                     num_particles = num_particles + 1;
+                }
             }
         }
     }

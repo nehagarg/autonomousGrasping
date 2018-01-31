@@ -427,13 +427,40 @@ def get_object_filenames(object_group_name, object_file_dir):
     obj_filenames = [object_file_dir + "/" + x for x in object_list]
     return obj_filenames
 
-def get_belief_for_objects(object_group_name, object_file_dir, debug = False, start_node=True):
+def get_belief_for_objects_old(object_group_name, object_file_dir, debug = False, start_node=True):
     obj_filenames = get_object_filenames(object_group_name, object_file_dir)
     giob = GetInitialObjectBelief(obj_filenames, debug, start_node)
     ans = giob.get_object_probabilities()
     print "<Object Probabilities>" + repr(ans)
     return ans
 
+#object_file_dir = point clod dir when not using keras model
+#object_file_dir = keras model dir when using keras model
+def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):
+    if keras_model_name is None:
+        obj_filenames = get_object_filenames(object_group_name, object_file_dir)
+        giob = GetInitialObjectBelief(obj_filenames, debug, start_node)
+        ans = giob.get_object_probabilities()
+        print "<Object Probabilities>" + repr(ans)
+        return ans
+    else:
+        #Load keras model
+        giob = GetInitialObjectBelief(None, debug, start_node)
+        (depth_im,cam_intr) = giob.get_object_point_cloud_from_sensor()
+        import object_baseline_classifier as obc
+        keras_model_dir = object_file_dir + "/keras_model/" 
+        ans,object_beliefs = obc.get_object_represention_and_weighted_belief(depth_im,
+        object_group_name,keras_model_dir,keras_model_name, baseline_results_dir)
+        print "<Object Probabilities>" + repr(ans)
+        print "<Object Beliefs>" + repr(list(object_beliefs))
+        if clip_objects > 0:
+            sort_ind = np.argsort(object_beliefs)
+            print sort_ind
+            object_beliefs[sort_ind[0:-1*clip_objects]] = 0
+            object_beliefs_sum = np.sum(object_beliefs)
+            object_beliefs = [x/object_beliefs_sum for x in object_beliefs]
+            print "<Object Beliefs Clipped>" + repr(object_beliefs)
+        return (list(object_beliefs) + ans)
 
 if __name__ == '__main__':
     object_file_name = None

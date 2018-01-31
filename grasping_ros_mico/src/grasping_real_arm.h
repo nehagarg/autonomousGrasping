@@ -157,6 +157,7 @@ public:
     mutable std::map<uint64_t, GraspingObservation> obsHashMap;
     mutable GraspingStateRealArm initial_state;
     mutable std::map<int, double> belief_object_weights;
+    mutable std::vector<double> prior_vision_observation;
     std::vector<int> belief_object_ids;
     int test_object_id;
     bool logFileInterface;
@@ -197,7 +198,7 @@ public:
         int weight_belief_values = 0;
         if(LearningModel::problem_name.find("vrep/ver5/weighted") !=std::string::npos)
         {
-            weight_belief_values = belief_object_weights.size();
+            weight_belief_values = prior_vision_observation.size();
         }
         int inc = 1;
         if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos)
@@ -229,7 +230,7 @@ public:
                 {
                     c = '*';
                 }
-                oss << belief_object_weights[belief_object_ids[j]] << c;
+                oss << prior_vision_observation[j] << c;
             }
     }
     void GetInputSequenceForLearnedmodel(History h, std::ostream& oss) const
@@ -240,7 +241,7 @@ public:
         
         if(LearningModel::problem_name.find("vrep/ver5/weighted") !=std::string::npos)
         {
-            weight_belief_values = belief_object_weights.size();
+            weight_belief_values = prior_vision_observation.size();
         
             if( h.Size() == 0)
             {

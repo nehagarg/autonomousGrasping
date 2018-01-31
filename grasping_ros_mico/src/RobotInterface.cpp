@@ -1000,13 +1000,14 @@ void RobotInterface::GetDefaultStartState(GraspingStateRealArm& initial_state) c
     initial_state.finger_joint_state[3] = -0.00118446 ;
 }
 
-std::map<int,double> RobotInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+std::pair <std::map<int,double>,std::vector<double> > RobotInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
     std::map<int,double> ans ;
+    std::vector<double> ans1 ;
     for(int i = 0; i < belief_object_ids.size(); i++)
     {
         ans[belief_object_ids[i]] = 1.0;
     }
-    return ans;
+    return std::make_pair(ans,ans1);
 }
 
 
