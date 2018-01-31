@@ -753,7 +753,7 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
 
 def get_and_plot_success_failure_cases_for_vrep(dir_names, pattern):
     dir_list = dir_names.split(',')
-    fig, ax = plt.subplots(1,len(dir_list))
+    fig, ax = plt.subplots(3,len(dir_list))
     for i in range(0,len(dir_list)):
         get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern, i+1, len(dir_list))
     plt.show()
@@ -784,7 +784,7 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern, plot_no
     for j in range(0,num_iterations):
         x = []
         y = []
-        colors = []
+        colors = [[],[],[]]
         for ii in range(0, num_cases):
             i = j*num_cases + ii
             a = '_'+repr(i)+ '.log'
@@ -803,15 +803,30 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern, plot_no
             x.append(fullData['roundInfo']['state'].o_x)
             y.append(fullData['roundInfo']['state'].o_y)
             if fullData['stepInfo'][-1]['reward'] == max_reward:
-                colors.append('green')
+                
+                    colors[0].append('green')
+                    colors[1].append('white')
+                    colors[2].append('white')
+                    
             elif fullData['stepInfo'][-1]['reward'] == min_reward:
                 print "Red " + repr(i % num_cases)
-                colors.append('white')
+                
+                if('PICK' in fullData['stepInfo'][-1]['action']):
+                    colors[1].append('red')
+                else:
+                    colors[1].append('blue')
+                
+                colors[0].append('white')
+                colors[2].append('white')
             else:
                 print "Yellow " + repr(i % num_cases)
-                colors.append('yellow')
-        plt.subplot(1,plot_tot,plot_no)
-        plot_scatter_graph(y, x, colors, 1.0/num_iterations)
+                
+                colors[2].append('yellow')
+                colors[0].append('white')
+                colors[1].append('white')
+        for k in range(0,3):
+            plt.subplot(3,plot_tot,plot_no + (k*plot_tot))
+            plot_scatter_graph(y, x, colors[k], 1.0/num_iterations)
     os.chdir(cur_dir)
     #plt.show()
     #fig.savefig("figure_1.png")
