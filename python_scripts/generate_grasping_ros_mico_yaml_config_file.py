@@ -544,6 +544,7 @@ class ConfigFileGenerator():
             self.belief_type=""
             self.distribution_type = ""
         self.interface_types = ["", "simulator/", "real/"]
+        self.object_list_copy = self.object_list[:]
         
     
     def generate_setup_files(self, ver='ver5'):
@@ -551,6 +552,8 @@ class ConfigFileGenerator():
             for interface_type in self.interface_types:
                 if interface_type == 'real/':
                     self.object_list = ['Cylinder_9']
+                else:
+                    self.object_list = self.object_list_copy[:]
                 for object_type in self.object_list:
                     file_prefix = "low_friction_table/vrep_scene_"+ ver+"/multiObjectType/"
                     file_prefix = file_prefix + self.belief_type + self.belief_name + '_reward100_penalty10'

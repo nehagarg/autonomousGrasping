@@ -681,6 +681,7 @@ def main():
       elif opt in ("-d", "--dir"):
          work_folder_dir = arg   
          
+    command_list_file = None     
     if len(args) > 0:
         command_file = args[0]
         command_list_file = "sample_input_files/" + os.path.basename(command_file)
