@@ -21,6 +21,7 @@ class GraspingObservation : public ObservationClass {
     //geometry_msgs::Vector3 force_values[48];
     //geometry_msgs::Vector3 torque_values[48];
     double touch_sensor_reading[2];
+    int vision_movement;
     //double x_change = 0.0; //change in x coordinate after taking an action
     //double y_change = 0.0; // change in y coordinate after taking an action
     //double z_change = 0.0; //change in z coordinate after taking an action
@@ -97,6 +98,8 @@ class GraspingObservation : public ObservationClass {
         
         touch_sensor_reading[0] = initial_state.touch_value[0];
         touch_sensor_reading[1] = initial_state.touch_value[1];
+        
+        vision_movement = initial_state.vision_movement;
         
     }
 };

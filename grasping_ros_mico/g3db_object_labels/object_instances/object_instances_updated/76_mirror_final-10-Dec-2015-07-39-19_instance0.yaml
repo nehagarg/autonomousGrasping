@@ -4,6 +4,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 76_mirror_final-10-Dec-2015-07-39-19.obj
 duplicate_mesh_size: !!python/tuple [0.20718999207019806, 0.13229000568389893, 0.2943500280380249]
+final_initial_object_pose: [0.4692115624018584, 0.15760002164694034, 1.1972088813781738]
 mesh_name: 76_mirror_final-10-Dec-2015-07-39-19.obj
 object_initial_pose_z: 1.1972088813781738
 object_min_z: 1.192408881378174
@@ -12,5 +13,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.19720888
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4845884315899934, 0.15479999156144894, 1.0852366437584264]
 signal_name: mesh_location

@@ -31,7 +31,8 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
 {
     //GraspingRealArm* model = new GraspingRealArm(-1);
     RobotInterface::low_friction_table = true;
-    RobotInterface::version6 = true;
+    RobotInterface::version7 = true;
+    RobotInterface::version6 = false;
     RobotInterface::version5 = false;
     RobotInterface::use_data_step = false;
     RobotInterface::get_object_belief = false;

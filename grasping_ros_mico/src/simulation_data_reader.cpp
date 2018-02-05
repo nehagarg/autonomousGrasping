@@ -76,7 +76,8 @@ void SimulationData::PrintSimulationData(std::ostream& out){
     out << std::endl;
 }
 
-SimulationDataReader::SimulationDataReader() {
+SimulationDataReader::SimulationDataReader(int v_no) {
+    version_no = v_no;
 }
 
 SimulationDataReader::SimulationDataReader(const SimulationDataReader& orig) {
@@ -176,6 +177,11 @@ void SimulationDataReader::parseSimulationDataLine(std::istream& simulationDataF
         simulationDataFile >> simData.touch_sensor_reading[i]; 
     }
     simulationDataFile >> c;
+    if(version_no == 7)
+    {
+        simulationDataFile >> simData.vision_movement;
+        simulationDataFile >> c;
+    }
 
 
 

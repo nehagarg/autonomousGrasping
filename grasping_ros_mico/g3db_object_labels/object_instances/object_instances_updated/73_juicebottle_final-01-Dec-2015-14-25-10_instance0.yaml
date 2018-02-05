@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 73_juicebottle_final-01-Dec-2015-14-25-10.obj
 duplicate_mesh_size: !!python/tuple [0.10114999860525131, 0.1011900007724762, 0.2029300034046173]
+final_initial_object_pose: [0.49463959692540865, 0.1737286227200357, 1.1252864599227905]
 mesh_name: 73_juicebottle_final-01-Dec-2015-14-25-10.obj
 object_initial_pose_z: 1.1252864599227905
 object_min_z: 1.1204864599227906
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.12528645
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4591603970664431, 0.13867139048835359, 1.0859671150062358]
 signal_name: mesh_location

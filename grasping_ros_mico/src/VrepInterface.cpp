@@ -25,7 +25,7 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
          joint_file_name = "data_low_friction_table_exp/jointData.txt";
     }
     
-    if(RobotInterface::version5 || RobotInterface::version6)
+    if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7)
     {
      
         joint_file_name = "data_low_friction_table_exp";
@@ -33,7 +33,7 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
         {
             joint_file_name = joint_file_name + "_ver5";
         }
-        if(RobotInterface::version6)
+        if(RobotInterface::version6 || RobotInterface::version7)
         {
             joint_file_name = joint_file_name + "_ver6";
         }
@@ -149,6 +149,16 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
     char ** argv;
     //std::cout << "Initialized python 1" << std::endl;
     PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
+    PyObject *pName;
+    pName = PyString_FromString("get_initial_object_belief");
+    get_belief_module = PyImport_Import(pName);
+    if(get_belief_module == NULL)
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"get_initial_object_belief\"\n");
+        assert(0==1);
+    }
+    Py_DECREF(pName);
 
 }
 
@@ -1005,6 +1015,11 @@ void VrepInterface::GatherJointData(int object_id, double epsi) const {
         out_file = out_file + "_ver6";
        
     }
+    if(RobotInterface::version7)
+    {
+        out_file = out_file + "_ver7";
+       
+    }
     out_file = out_file + "/jointData_0";
     if(epsi == 0.005)
     {
@@ -1260,7 +1275,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     std::string filename;
     std::string file_dir;
     std::string filename_suffix;
-    if(RobotInterface::version5 || RobotInterface::version6)
+    if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7)
     {
         if(version5)
         {
@@ -1269,6 +1284,10 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
         if(version6)
         {
             file_dir = "data_low_friction_table_exp_ver6/data_for_regression/";
+        }
+        if(version7)
+        {
+            file_dir = "data_low_friction_table_exp_ver7/data_for_regression/";
         }
         filename =  object_id + "/SASOData_";
         if (gap == 0.01)
@@ -1345,6 +1364,10 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
         if(RobotInterface::version6)
         {
             filename_pruned = filename_pruned + "_ver6";
+        }
+        if(RobotInterface::version7)
+        {
+            filename_pruned = filename_pruned + "_ver7";
         }
         filename_pruned = filename_pruned + "/pruned_data_files/";
         filename_pruned = filename_pruned + filename_suffix;
@@ -1756,6 +1779,75 @@ int VrepInterface::GetCollisionState() const {
     
 }
 
+PyObject* VrepInterface::GetPointCloudAboveGripperPlane(double min_x) const {
+    PyObject* ans;
+    
+    PyObject *load_function = PyObject_GetAttrString(get_belief_module, "get_current_point_cloud_for_movement");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"get_current_point_cloud_for_movement\"\n");
+    }
+    PyObject *pArgs, *pValue;
+    pArgs = PyTuple_New(1);
+    pValue = PyFloat_FromDouble(min_x);
+    PyTuple_SetItem(pArgs, 0, pValue);
+    ans = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(load_function);
+    Py_DECREF(pArgs);
+    if (ans != NULL) {
+        std::cout << "Call to get point cloud succeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to get point clod failed\n");
+        assert(0==1);
+    }
+    
+    return ans;
+    
+}
+
+int VrepInterface::CheckPointCloudMovement(PyObject* starting_point_cloud, PyObject* step_point_cloud) const {
+    PyObject *load_function = PyObject_GetAttrString(get_belief_module, "has_object_moved");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"has_object_moved\"\n");
+    }
+    
+    PyObject *pArgs;
+    int num_args = 2;
+    
+    pArgs = PyTuple_New(num_args);
+    
+    PyTuple_SetItem(pArgs, 0, starting_point_cloud);
+    //Set Item steals reference but we need starting point cloud later
+    Py_INCREF(starting_point_cloud);
+    PyTuple_SetItem(pArgs, 1, step_point_cloud);
+    
+    PyObject* ans = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(pArgs);
+    Py_DECREF(load_function);
+    
+    if (ans != NULL) {
+        std::cout << "Call to has_object_moved succeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to has_object_moved failed\n");
+        assert(0==1);
+    }
+    int vision_movement = PyInt_AsLong(ans);
+    Py_DECREF(ans);
+    return vision_movement;
+}
+
+
 bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double random_num, int action, double& reward, GraspingObservation& grasping_obs) const {
     if (action == A_COLLISIONCHECK)
     {
@@ -1767,6 +1859,12 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         return VrepDataInterface::StepActual(grasping_state, random_num, action, reward, grasping_obs);
     }
     GraspingStateRealArm initial_grasping_state = grasping_state;
+    
+    PyObject* starting_point_cloud;
+    if(RobotInterface::version7)
+    {
+        starting_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x);
+    }
     std::cout << "Action is " << action ;
     if (action < A_CLOSE) { 
         int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
@@ -1777,8 +1875,20 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         {
             std::cout << i << std::endl;
             bool stopMoving = TakeStepInVrep(action_offset, i, alreadyTouching, grasping_state, grasping_obs, reward);                 
-            if(stopMoving)
+            if(RobotInterface::version7)
             {
+                PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x);
+                grasping_state.vision_movement = CheckPointCloudMovement(starting_point_cloud,step_point_cloud);
+                grasping_obs.vision_movement = grasping_state.vision_movement;
+                //Py_DECREF(step_point_cloud); //Reference decreased with args in CheckPointCloudMovement
+                
+            }
+            if(stopMoving || grasping_state.vision_movement == 1)
+            {
+                if(grasping_state.vision_movement == 1)
+                {
+                    std::cout << "Stopping because object movement detected \n" ;
+                }
                 break;
             }
                     
@@ -1820,6 +1930,14 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
                 
             }
         }
+        if(RobotInterface::version7)
+            {
+                PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x);
+                grasping_state.vision_movement = CheckPointCloudMovement(starting_point_cloud,step_point_cloud);
+                grasping_obs.vision_movement = grasping_state.vision_movement;
+                //Py_DECREF(step_point_cloud); //Reference decreased with args in CheckPointCloudMovement
+
+            }
         
     }
     else if (action == A_PICK) { //Pick
@@ -1828,7 +1946,10 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         //return true;
     }
     
-
+    if(RobotInterface::version7)
+    {
+        Py_DECREF(starting_point_cloud);
+    }
     GetReward(initial_grasping_state, grasping_state, grasping_obs, action, reward);
     UpdateNextStateValuesBasedAfterStep(grasping_state,grasping_obs,reward,action);
     bool validState = IsValidState(grasping_state);
@@ -1977,19 +2098,9 @@ std::pair <std::map<int,double>,std::vector<double> > VrepInterface::GetBeliefOb
     //PyRun_SimpleString("import tensorflow as tf");
     
     //std::cout << "Initialized python" << std::endl;
-    PyObject *pName;
-    pName = PyString_FromString("get_initial_object_belief");
-    PyObject *pModule = PyImport_Import(pName);
-    if(pModule == NULL)
-    {
-        PyErr_Print();
-        fprintf(stderr, "Failed to load \"get_initial_object_belief\"\n");
-        assert(0==1);
-    }
-    Py_DECREF(pName);
+     
     
-    
-    PyObject *load_function = PyObject_GetAttrString(pModule, "get_belief_for_objects");
+    PyObject *load_function = PyObject_GetAttrString(get_belief_module, "get_belief_for_objects");
     if (!(load_function && PyCallable_Check(load_function)))
     {
         if (PyErr_Occurred())
@@ -2034,7 +2145,6 @@ std::pair <std::map<int,double>,std::vector<double> > VrepInterface::GetBeliefOb
     PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
     Py_DECREF(pArgs);
     Py_DECREF(load_function);
-    Py_DECREF(pModule);
     
     if (belief_probs != NULL) {
         std::cout << "Call to get belief probs succeded \n";

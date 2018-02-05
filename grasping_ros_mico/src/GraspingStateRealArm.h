@@ -25,6 +25,7 @@ class GraspingStateRealArm : public despot::State {
         int gripper_status; //1 for not stable or object not inside it 2 for stable grasp with object inside gripper //Based on reward achieved in last state and finger configuration. Useful to determine if the gripper did a stable grasp or unstable grasp and previous action was close
         double touch_value[2]; //Store the touch value observed for a given state. Useful to get observation for a No-OP
         bool closeCalled; //Can be used to evaluate gripper status
+        int vision_movement; //0 for no movement //1 for movement
         
         GraspingStateRealArm() {
             object_id = -1;
@@ -35,6 +36,7 @@ class GraspingStateRealArm : public despot::State {
             touch_value[0] = 0.0;
             touch_value[1] = 0.0;
             closeCalled = false; //We always start with open gripper
+            vision_movement = 0;
         }
     
     GraspingStateRealArm(const GraspingStateRealArm& initial_state) : State()
@@ -65,6 +67,7 @@ class GraspingStateRealArm : public despot::State {
         touch_value[0] = initial_state.touch_value[0];
         touch_value[1] = initial_state.touch_value[1];
         closeCalled = initial_state.closeCalled;
+        vision_movement = initial_state.vision_movement;
     }
 
     ~GraspingStateRealArm() {

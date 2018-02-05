@@ -22,6 +22,7 @@ public:
     geometry_msgs::PoseStamped mico_target_pose;
     //double touch_sensor_reading[48];
     double touch_sensor_reading[2];
+    int vision_movement;
     
     void PrintSimulationData(std::ostream& out = std::cout);
 };
@@ -29,7 +30,7 @@ public:
 
 class SimulationDataReader {
 public:
-    SimulationDataReader();
+    SimulationDataReader(int version_no = 6);
     SimulationDataReader(const SimulationDataReader& orig);
     virtual ~SimulationDataReader();
     
@@ -37,7 +38,7 @@ public:
 
     void parseSimulationDataLine(std::istream& simulationDataFile, SimulationData& simData, int& action, double& reward);
 private:
-
+    int version_no;
 };
 
 #endif	/* SIMULATION_DATA_READER_H */

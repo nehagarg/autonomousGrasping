@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 94_weight_final-26-Feb-2016-18-02-52.obj
 duplicate_mesh_size: !!python/tuple [0.2718600034713745, 0.2718600034713745, 0.1699100136756897]
+final_initial_object_pose: [0.49802296223993964, 0.1571890089091768, 1.0748003721237183]
 mesh_name: 94_weight_final-26-Feb-2016-18-02-52.obj
 object_initial_pose_z: 1.0748003721237183
 object_min_z: 1.0700003721237183
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.07480037
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: false
 pick_point: [0.45577703175191214, 0.15521100429921247, 1.0857872918586613]
 signal_name: mesh_location

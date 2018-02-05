@@ -10,6 +10,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 18_garbage_box_final-20-Jan-2016-07-48-08.obj
 duplicate_mesh_size: !!python/tuple [0.5662100315093994, 0.9436900019645691, 0.24014000594615936]
+final_initial_object_pose: [0.4990929977182273, 0.14057104583241903, 1.085033893585205]
 mesh_name: 18_garbage_box_final-20-Jan-2016-07-48-08.obj
 object_initial_pose_z: 1.085033893585205
 object_min_z: 1.0802338935852052
@@ -18,5 +19,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.08503389
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4547069962736245, 0.17182896737597025, 1.0833215443372084]
 signal_name: mesh_location

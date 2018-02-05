@@ -50,6 +50,7 @@ class MainWindow(QWidget):
         self.objectStableButton = QPushButton('ObjectStable', self)
         self.objectPickable = QPushButton('ObjectPickable', self)
         self.objectColliding = QPushButton('ObjectColliding', self)
+        self.objectVisible = QPushButton('ObjectVisible', self)
         
         
         self.verticalLayoutTR = QVBoxLayout()
@@ -57,6 +58,7 @@ class MainWindow(QWidget):
         self.verticalLayoutTR.addWidget(self.objectStableButton)
         self.verticalLayoutTR.addWidget(self.objectPickable)
         self.verticalLayoutTR.addWidget(self.objectColliding)
+        self.verticalLayoutTR.addWidget(self.objectVisible)
         
         
         self.hLayoutT = QHBoxLayout()
@@ -139,6 +141,13 @@ class MainWindow(QWidget):
                 self.objectColliding.setStyleSheet("background-color: green")
         else:
             self.objectColliding.setStyleSheet("background-color: yellow")
+        if('object_visible' in self.lo.instance_yaml.keys()):
+            if(self.lo.instance_yaml['object_visible']):
+                self.objectVisible.setStyleSheet("background-color: green")
+            else:
+                self.objectVisible.setStyleSheet("background-color: red")
+        else:
+            self.objectVisible.setStyleSheet("background-color: yellow")
         
     def handleGetPickPointButton(self):
         self.lo.get_pick_point()
@@ -255,6 +264,8 @@ class LabelObject:
     
     def check_collision(self):
         ol.check_for_object_collision(self.instance_yaml)
+    def check_visibility(self):
+        ol.check_object_point_cloud_clipping(self.instance_yaml)
     
     def load_object_properties(self, detect_duplicates = True):
         #get object properties
@@ -347,7 +358,21 @@ class LabelObject:
                         self.check_collision()
                         updated_object_instance_file_name = self.get_updated_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(j)
                         self.save_yaml(updated_object_instance_file_name, self.instance_yaml)  
-    
+    def check_visibility_for_all_objects(self):
+        for i in range(0,len(self.object_file_names)):
+            self.mesh_file_id = i
+            self.load_next_object(None)
+            if self.pure_shape or (self.yaml_out['object_use_label'] == 'S' and int(self.yaml_out['duplicate_mesh_index']) == 0):
+                    num_instances = self.get_num_instances()
+                    for j in range(0,num_instances):
+                        if not self.pure_shape:
+                            self.load_next_object(j,True,True)
+                        if('-' not in self.instance_yaml.keys()):
+                            if(ol.object_graspable(self.instance_yaml)):
+                                self.check_visibility()
+                                updated_object_instance_file_name = self.get_updated_instance_file_dir(self.output_file_name) + "/" + self.get_instance_file_name(j)
+                                self.save_yaml(updated_object_instance_file_name, self.instance_yaml)  
+                        
     def generate_point_clouds(self, for_classifier = False):
         for i in range(0,len(self.object_file_names)):
             self.mesh_file_id = i
@@ -534,26 +559,32 @@ def generate_point_clouds_for_classification(object_file_name, dir_name):
     lo.point_cloud_dir = '../grasping_ros_mico/point_clouds_for_classification'
     lo.generate_point_clouds(True)
 
+def  check_visibility_for_objects(object_file_name, dir_name):
+    lo = LabelObject(object_file_name, dir_name)
+    lo.check_visibility_for_all_objects()
     
 #dir_name gives config file location of updated instance configs    
-def generate_pickable_object_list(dir_name):
+def generate_pickable_object_list(dir_name, version_name = ""):
     pickable_list = []
     files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if '.yaml' in f]
     for i in range(0,len(files)):
         object_id = os.path.basename(files[i]).replace('.yaml', '')
         object_property_dir = dir_name
         mesh_properties = ol.get_object_properties(object_id, object_property_dir)
-        if(ol.object_graspable(mesh_properties)):
+        if(ol.object_graspable(mesh_properties, version_name)):
             pickable_list.append(object_id)
-    outfile_name = dir_name + "/object_instance_names.txt"
+    if version_name:
+        version_name = "_" + version_name
+    outfile_name = dir_name + "/object_instance_names" + version_name+ ".txt"
+    print outfile_name
     with open(outfile_name, 'w') as f:
-            f.write("\n".join(sorted(pickable_list)))  
-            f.write("\n")
+        f.write("\n".join(sorted(pickable_list)))  
+        f.write("\n")
 
 def main():
 
     dir_name = './'
-    opts, args = getopt.getopt(sys.argv[1:],"hlpqguco:",["outdir=",])
+    opts, args = getopt.getopt(sys.argv[1:],"hlpqvguco:",["outdir=",])
     
     generate_object_instances = False
     update_object_instances = False
@@ -561,6 +592,7 @@ def main():
     genetate_point_clouds_for_classification = False
     genetate_object_list = False
     collect_Selected_objects = False
+    check_visibility = False
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -579,9 +611,13 @@ def main():
       elif opt == '-l':
           genetate_object_list = True
       elif opt == '-c':
-          collect_Selected_objects = True    
-      
-    object_file_name = args[0]
+          collect_Selected_objects = True
+      elif opt == '-v':
+          check_visibility = True
+    
+    object_file_name = ""
+    if(len(args) > 0):
+        object_file_name = args[0]
     
     if(generate_object_instances):
         generate_object_instance_configs(object_file_name, dir_name)
@@ -592,7 +628,9 @@ def main():
     elif(genetate_point_clouds_for_classification):
         generate_point_clouds_for_classification(object_file_name, dir_name)
     elif(genetate_object_list) :
-        generate_pickable_object_list(dir_name)
+        generate_pickable_object_list(dir_name, object_file_name) #object_file_name is version name
+    elif(check_visibility):
+        check_visibility_for_objects(object_file_name, dir_name)
     else:
         app = QApplication([])
         currentState = MainWindow(object_file_name, dir_name, collect_Selected_objects)
@@ -615,6 +653,7 @@ if __name__ == '__main__':
     
     
 #Commands
-# python label_g3db_objects.py -g/-u/-p/-q -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
-#python label_g3db_objects.py -l -o ../grasping_ros_mico/g3db_object_labels/object_instances/object_instances_updated/ ../../../vrep/G3DB_object_dataset/obj_files/
-#python label_g3db_objects.py -g/-u/-p/-l/-q -o ../grasping_ros_mico/pure_shape_labels all_cylinders
+# python label_g3db_objects.py -g/-u/-p/-q/-v -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
+#python label_g3db_objects.py -l -o ../grasping_ros_mico/g3db_object_labels/object_instances/object_instances_updated/ version7
+#python label_g3db_objects.py -g/-u/-p/-l/-q/-v -o ../grasping_ros_mico/pure_shape_labels all_cylinders
+##python label_g3db_objects.py -l -o ../grasping_ros_mico/pure_shape_labels version7

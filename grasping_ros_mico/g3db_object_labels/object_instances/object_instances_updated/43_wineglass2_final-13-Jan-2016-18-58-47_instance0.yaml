@@ -4,6 +4,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 43_wineglass2_final-13-Jan-2016-18-58-47.obj
 duplicate_mesh_size: !!python/tuple [0.08283000439405441, 0.08282999694347382, 0.17753000557422638]
+final_initial_object_pose: [0.4660774229018258, 0.15782961652667327, 1.1387989521026611]
 mesh_name: 43_wineglass2_final-13-Jan-2016-18-58-47.obj
 object_initial_pose_z: 1.1387989521026611
 object_min_z: 1.1339989521026612
@@ -12,5 +13,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.13879895
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.487722571090026, 0.15457039668171602, 1.087329791764335]
 signal_name: mesh_location

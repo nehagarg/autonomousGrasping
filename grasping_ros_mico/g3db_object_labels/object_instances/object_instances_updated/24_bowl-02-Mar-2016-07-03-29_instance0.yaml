@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 24_bowl-02-Mar-2016-07-03-29.obj
 duplicate_mesh_size: !!python/tuple [0.20662999153137207, 0.20631000399589539, 0.06689000129699707]
+final_initial_object_pose: [0.5039333779857478, 0.15363690779842248, 1.0834789276123047]
 mesh_name: 24_bowl-02-Mar-2016-07-03-29.obj
 object_initial_pose_z: 1.0834789276123047
 object_min_z: 1.0786789276123048
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.08347892
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.44986661600610406, 0.1587631054099668, 1.0882234272946256]
 signal_name: mesh_location

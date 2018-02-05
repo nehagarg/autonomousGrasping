@@ -4,6 +4,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 50_carton_final-03-Dec-2015-09-48-16.obj
 duplicate_mesh_size: !!python/tuple [0.057339999824762344, 0.057339999824762344, 0.19362999498844147]
+final_initial_object_pose: [0.4893451831835742, 0.14191320448525646, 1.1468489170074463]
 mesh_name: 50_carton_final-03-Dec-2015-09-48-16.obj
 object_initial_pose_z: 1.1468489170074463
 object_min_z: 1.1420489170074464
@@ -12,5 +13,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.14684891
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4644548108082776, 0.17048680872313282, 1.0856369119924172]
 signal_name: mesh_location

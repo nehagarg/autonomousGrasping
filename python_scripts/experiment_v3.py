@@ -748,3 +748,6 @@ if __name__ == '__main__':
 #http://www.larkinweb.co.uk/computing/mounting_file_systems_over_two_ssh_hops.html
 # ssh -f userB@systemB -L 2222:systemC:22 -N
 # sshfs -p 2222 userC@localhost:/remote/path/ /mnt/localpath/
+
+#Periodically clean roscore
+#until false; do rosclean purge -y; sleep 600; done;

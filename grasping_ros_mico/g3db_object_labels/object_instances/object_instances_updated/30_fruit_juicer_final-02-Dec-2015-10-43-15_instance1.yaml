@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 30_fruit_juicer_final-02-Dec-2015-10-43-15.obj
 duplicate_mesh_size: !!python/tuple [0.06915999948978424, 0.06915000081062317, 0.19154000282287598]
+final_initial_object_pose: [0.5578801665334641, 0.17024904882629982, 1.0846140384674072]
 mesh_name: 30_fruit_juicer_final-02-Dec-2015-10-43-15.obj
 object_initial_pose_z: 1.0846140384674072
 object_min_z: 1.0798140384674073
@@ -15,6 +16,7 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.08461403
   0.0, 0.0, 0.0, 1.0]
 object_stable: false
 object_use_label: S
+object_visible: true
 pick_point: [0.3959198274583878, 0.14215096438208946, 1.0818342689353249]
 remarks: need to check which pose is stable
 signal_name: mesh_location

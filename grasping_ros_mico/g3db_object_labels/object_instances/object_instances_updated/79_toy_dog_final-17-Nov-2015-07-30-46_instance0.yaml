@@ -9,6 +9,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 79_toy_dog_final-17-Nov-2015-07-30-46.obj
 duplicate_mesh_size: !!python/tuple [0.1537100076675415, 0.14972999691963196, 0.25282999873161316]
+final_initial_object_pose: [0.4964254227321094, 0.15182075733934197, 1.1255297660827637]
 mesh_name: 79_toy_dog_final-17-Nov-2015-07-30-46.obj
 object_initial_pose_z: 1.1255297660827637
 object_min_z: 1.1207297660827638
@@ -17,5 +18,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.12552976
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4573745712597424, 0.1605792558690473, 1.0864878701596052]
 signal_name: mesh_location

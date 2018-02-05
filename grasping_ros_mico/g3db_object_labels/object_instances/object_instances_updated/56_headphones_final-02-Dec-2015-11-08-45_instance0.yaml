@@ -9,6 +9,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 56_headphones_final-02-Dec-2015-11-08-45.obj
 duplicate_mesh_size: !!python/tuple [0.34898000955581665, 0.32096001505851746, 0.127470001578331]
+final_initial_object_pose: [0.558318528532225, 0.11749963078544673, 1.085033893585205]
 mesh_name: 56_headphones_final-02-Dec-2015-11-08-45.obj
 object_initial_pose_z: 1.085033893585205
 object_min_z: 1.0802338935852052
@@ -17,5 +18,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.08503389
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.39548146545962687, 0.19490038242294255, 1.0815525024525492]
 signal_name: mesh_location

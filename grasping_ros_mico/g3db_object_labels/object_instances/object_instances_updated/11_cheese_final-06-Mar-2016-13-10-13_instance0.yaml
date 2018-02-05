@@ -8,6 +8,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 11_cheese_final-06-Mar-2016-13-10-13.obj
 duplicate_mesh_size: !!python/tuple [0.08455000072717667, 0.06531000137329102, 0.07032999396324158]
+final_initial_object_pose: [0.49144164779160354, 0.20724581545180581, 1.0852125883102417]
 mesh_name: 11_cheese_final-06-Mar-2016-13-10-13.obj
 object_initial_pose_z: 1.0852125883102417
 object_min_z: 1.0804125883102418
@@ -16,5 +17,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.08521258
   0.0, 0.0, 0.0, 1.0]
 object_stable: false
 object_use_label: S
+object_visible: true
 pick_point: [0.46235834620024824, 0.10515419775658347, 1.0871300787347435]
 signal_name: mesh_location

@@ -89,6 +89,18 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::version6 = false;
     } 
      
+    if(config["version7"])
+    {
+        RobotInterface::version7 = config["version7"].as<bool>();
+        //Keeping learning model problem name same 
+        //as no change in that due to change to ver6
+        LearningModel::problem_name  = "vrep/ver5";
+    }
+    else
+    {
+        RobotInterface::version7 = false;
+    } 
+     
     if(config["use_data_step"])
     {
         RobotInterface::use_data_step = config["use_data_step"].as<bool>();

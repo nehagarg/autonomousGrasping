@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 62_mouse_final-21-Nov-2015-06-46-41.obj
 duplicate_mesh_size: !!python/tuple [0.13022999465465546, 0.08759000152349472, 0.02913999930024147]
+final_initial_object_pose: [0.517757266634866, 0.1606332516533568, 1.0900338888168335]
 mesh_name: 62_mouse_final-21-Nov-2015-06-46-41.obj
 object_initial_pose_z: 1.0900338888168335
 object_min_z: 1.0852338888168336
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.09003388
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.43604272735698585, 0.1517667615550325, 1.0799506464639674]
 signal_name: mesh_location

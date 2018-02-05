@@ -9,6 +9,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 44_towelstand_final-16-Mar-2016-13-10-47.obj
 duplicate_mesh_size: !!python/tuple [0.11428999900817871, 0.240090012550354, 0.18269000947475433]
+final_initial_object_pose: [0.471842709189957, 0.15639896979399337, 1.1489489078521729]
 mesh_name: 44_towelstand_final-16-Mar-2016-13-10-47.obj
 object_initial_pose_z: 1.1489489078521729
 object_min_z: 1.144148907852173
@@ -17,5 +18,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.14894890
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.48195728480189476, 0.1560010434143959, 1.0838240046333782]
 signal_name: mesh_location

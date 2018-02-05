@@ -22,6 +22,7 @@ std::vector<std::string> RobotInterface::object_id_to_filename;
 bool RobotInterface::low_friction_table;
 bool RobotInterface::version5;
 bool RobotInterface::version6;
+bool RobotInterface::version7;
 bool RobotInterface::get_object_belief;
 bool RobotInterface::use_data_step;
 bool RobotInterface::use_regression_models;
@@ -76,7 +77,7 @@ RobotInterface::RobotInterface() {
     
     num_predictions_for_dynamic_function = 18;
     
-    if(version5 || version6)
+    if(version5 || version6 || version7)
     {
         touch_sensor_mean_ver5[0] = 0.11;
         touch_sensor_mean_ver5[1] = 0.12;
@@ -123,7 +124,7 @@ RobotInterface::RobotInterface() {
     }
     if(low_friction_table)
     {
-        if(version6)
+        if(version6 || version7)
         {
             initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table_version6;
             initial_gripper_pose_xx = initial_gripper_pose_xx_ver6;
@@ -188,6 +189,10 @@ GraspObject* RobotInterface::getGraspObject(std::string object_name) const{
             if(version6)
             {
                 data_dir = data_dir + "_ver6";
+            }
+            if(version7)
+            {
+                data_dir = data_dir + "_ver7";
             }
                     
         }
@@ -513,7 +518,16 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
    
     std::vector<int> ans ;
     //Read simualtion data with object
+    
     SimulationDataReader simDataReader;
+    if(RobotInterface::version7)
+    {
+        simDataReader = SimulationDataReader(7);
+    }
+    else
+    {
+        simDataReader = SimulationDataReader();
+    }
     std::ifstream simulationDataFile;
     std::ofstream myfile;
     simulationDataFile.open(simulationFileName);
@@ -751,7 +765,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     
     double finger_distance = 0;
     int inc = 1;
-    if (version5 || version6)
+    if (version5 || version6 || version7)
     {
         inc = 2;
     }
@@ -888,13 +902,24 @@ void RobotInterface::PrintObs(GraspingObservation& grasping_obs, std::ostream& o
         out << grasping_obs.touch_sensor_reading[i] ;
         if(i==1)
         {
-            out<<last_char;
+            if(RobotInterface::version7)
+            {
+                out<<"|";
+            }
+            else
+            {
+                out<<last_char;
+            }
         }
         else
         {
             out<<" ";
         }
     }
+     if(RobotInterface::version7)
+     {
+        out << grasping_obs.vision_movement << last_char ;
+     }
 }
 
 void RobotInterface::PrintState(const GraspingStateRealArm& grasping_state, std::ostream& out) const {
@@ -1324,7 +1349,7 @@ int RobotInterface::GetGripperStatus(GraspingStateRealArm grasping_state) const 
         degree_readings[i] = grasping_state.finger_joint_state[i]*180/3.14;
     }
     
-    if(version5 || version6)
+    if(version5 || version6 || version7)
     {
         if(grasping_state.closeCalled)
         {
@@ -1586,7 +1611,7 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
             if(action == A_PICK)
             {
                 int inc = 1;
-                if (version5 || version6)
+                if (version5 || version6 || version7)
                 {
                     inc = 2;
                 }
@@ -1880,7 +1905,7 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     else if (action == A_CLOSE)
     {
         grasping_state.closeCalled = true;
-        if(version5 || version6)
+        if(version5 || version6 || version7)
         {
             grasping_state.finger_joint_state[0] = 61.15*3.14/180;
             grasping_state.finger_joint_state[1] = 0*3.14/180;
@@ -1936,7 +1961,7 @@ void RobotInterface::GetObsUsingDefaultFunction(GraspingStateRealArm grasping_st
     
     int gripper_status = GetGripperStatus(grasping_state);
     
-    if(version5 || version6)
+    if(version5 || version6 || version7)
     {
         for(int i = 0; i < 2; i++)
         {

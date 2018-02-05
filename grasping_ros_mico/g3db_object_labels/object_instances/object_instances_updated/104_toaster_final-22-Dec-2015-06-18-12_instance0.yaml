@@ -10,6 +10,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 104_toaster_final-22-Dec-2015-06-18-12.obj
 duplicate_mesh_size: !!python/tuple [0.18439999222755432, 0.40863001346588135, 0.11931000649929047]
+final_initial_object_pose: [0.5414138125402264, 0.162105341696876, 1.1096889972686768]
 mesh_name: 104_toaster_final-22-Dec-2015-06-18-12.obj
 object_initial_pose_z: 1.1096889972686768
 object_min_z: 1.1048889972686768
@@ -18,5 +19,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.10968899
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4123861814516255, 0.1502946715115133, 1.0834554546664443]
 signal_name: mesh_location

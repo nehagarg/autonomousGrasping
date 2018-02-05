@@ -87,3 +87,6 @@ Note kinova_motion_execution_with_touch.py has been copied from studio code. The
 
 Then launch the policy from grasping_ros_mico code
 
+#G3DB objects
+Version 7 includes objects which are visible above gripper level. The test objects are same s verion 6 test objects. Only one extra object has been added randomly because one test object was not visible and had to be removed.
+

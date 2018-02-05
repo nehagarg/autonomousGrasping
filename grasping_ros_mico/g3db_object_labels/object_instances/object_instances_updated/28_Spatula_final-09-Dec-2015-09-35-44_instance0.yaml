@@ -12,4 +12,5 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.06414890
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: false
 signal_name: mesh_location

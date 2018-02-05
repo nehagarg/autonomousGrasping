@@ -9,6 +9,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 30_fruit_juicer_final-10-Mar-2016-18-32-48.obj
 duplicate_mesh_size: !!python/tuple [0.04463999718427658, 0.04463999718427658, 0.2246599793434143]
+final_initial_object_pose: [0.5105174600703288, 0.17807596289562527, 1.0723538398742676]
 mesh_name: 30_fruit_juicer_final-10-Mar-2016-18-32-48.obj
 object_initial_pose_z: 1.0723538398742676
 object_min_z: 1.0675538398742677
@@ -17,5 +18,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.07235383
   0.0, 0.0, 0.0, 1.0]
 object_stable: false
 object_use_label: S
+object_visible: false
 pick_point: [0.4432825339215229, 0.134324050312764, 1.0790646902158896]
 signal_name: mesh_location

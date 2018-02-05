@@ -9,6 +9,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 5_bottle_final-20-Dec-2015-10-50-58.obj
 duplicate_mesh_size: !!python/tuple [0.09643999487161636, 0.2064400017261505, 0.10008999705314636]
+final_initial_object_pose: [0.49955730826637684, 0.157284066249642, 1.1287240982055664]
 mesh_name: 5_bottle_final-20-Dec-2015-10-50-58.obj
 object_initial_pose_z: 1.1287240982055664
 object_min_z: 1.1239240982055665
@@ -17,5 +18,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.12872409
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.45424268572547494, 0.15511594695874728, 1.0836856640365156]
 signal_name: mesh_location

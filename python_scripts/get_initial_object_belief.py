@@ -107,7 +107,7 @@ class KinectSensor:
                 continue
         RT = RigidTransform()
 
-        print qat
+        #print qat
         qat_wxyz = [qat[-1], qat[0], qat[1], qat[2]]
 
         #rot = RT.rotation_from_quaternion(qat_wxyz) 
@@ -187,13 +187,13 @@ class GetInitialObjectBelief():
 
         depth_image = self.sensor.get_depth_im()
         inpainted_depth_image = depth_image.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
-        print camera_intrinsics.rosmsg
+        #print camera_intrinsics.rosmsg
         depth_im = inpainted_depth_image
         camera_intr = camera_intrinsics
         
 
-        print T_camera_world.translation
-        print T_camera_world.rotation
+        #print T_camera_world.translation
+        #print T_camera_world.rotation
         
         # project into 3D
         point_cloud_cam = camera_intr.deproject(depth_im)
@@ -231,11 +231,12 @@ class GetInitialObjectBelief():
         seg_point_cloud_world, _ = point_cloud_world.box_mask(box)
         return seg_point_cloud_world
     
-    def get_object_point_cloud_from_sensor(self):
+    def get_object_point_cloud_from_sensor(self, cfg = None):
         
         (camera_intr, point_cloud_world, T_camera_world) = self.get_world_point_cloud()
         
-        cfg = self.detector_cfg 
+        if cfg is None:
+            cfg = self.detector_cfg 
         seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
         
@@ -388,6 +389,34 @@ class GetInitialObjectBelief():
         self.database_objects = ans
         return ans
 
+def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True):
+    giob = GetInitialObjectBelief(None, debug, start_node)
+    (camera_intr, point_cloud_world, T_camera_world) = giob.get_world_point_cloud()
+    cfg = copy.deepcopy(giob.detector_cfg )
+    cfg['min_pt'][2] = cfg['min_z_for_movement']
+    if min_x > cfg['min_pt'][0]:
+        cfg['min_pt'][0] = min_x
+    seg_point_cloud_world = giob.get_segmented_point_cloud_world(cfg, point_cloud_world )
+    if debug:
+        seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
+        depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
+        vis.figure()
+        vis.subplot(1,1,1)
+        vis.imshow(depth_im_seg)
+        vis.show()
+    return seg_point_cloud_world
+
+def has_object_moved(point_cloud_1, point_cloud_2):
+    assert point_cloud_1.num_points > 0
+    assert point_cloud_2.num_points > 0
+    point_cloud_1_mean = point_cloud_1.mean()
+    point_cloud_2_mean = point_cloud_2.mean()
+    mean_diff = (point_cloud_1_mean - point_cloud_2_mean).vector;
+    movement = np.sqrt(np.dot(mean_diff, mean_diff))
+    print movement
+    return 1 if movement > 0.01 else 0
+    
+    
 def load_object_file(obj_file_names, debug = False, start_node=True):
     giob = GetInitialObjectBelief(obj_file_names, debug, start_node)
     return giob.load_object_point_clouds()

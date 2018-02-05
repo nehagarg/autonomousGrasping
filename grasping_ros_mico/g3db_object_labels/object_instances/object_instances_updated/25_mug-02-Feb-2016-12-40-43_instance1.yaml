@@ -9,6 +9,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 25_mug-02-Feb-2016-12-40-43.obj
 duplicate_mesh_size: !!python/tuple [0.15028999745845795, 0.11162000149488449, 0.10607999563217163]
+final_initial_object_pose: [0.5360041567640874, 0.152765467655036, 1.0900338888168335]
 mesh_name: 25_mug-02-Feb-2016-12-40-43.obj
 object_initial_pose_z: 1.0900338888168335
 object_min_z: 1.0852338888168336
@@ -17,5 +18,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.09003388
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.4177958372277644, 0.15963454555335327, 1.0862784997226054]
 signal_name: mesh_location

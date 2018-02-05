@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 40_carafe_final-20-Nov-2015-08-35-43.obj
 duplicate_mesh_size: !!python/tuple [0.16609999537467957, 0.16567999124526978, 0.3227499723434448]
+final_initial_object_pose: [0.4720271401329839, 0.15646735468102257, 1.0992956161499023]
 mesh_name: 40_carafe_final-20-Nov-2015-08-35-43.obj
 object_initial_pose_z: 1.0992956161499023
 object_min_z: 1.0944956161499024
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.09929561
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.48177285385886787, 0.1559326585273667, 1.0783368772974604]
 signal_name: mesh_location

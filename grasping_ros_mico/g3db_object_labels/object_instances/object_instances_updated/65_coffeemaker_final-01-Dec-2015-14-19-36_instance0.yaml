@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 65_coffeemaker_final-01-Dec-2015-14-19-36.obj
 duplicate_mesh_size: !!python/tuple [0.16995000839233398, 0.11640000343322754, 0.311379998922348]
+final_initial_object_pose: [0.48899906592183845, 0.16212390159755294, 1.170395851135254]
 mesh_name: 65_coffeemaker_final-01-Dec-2015-14-19-36.obj
 object_initial_pose_z: 1.170395851135254
 object_min_z: 1.165595851135254
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.17039585
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.46480092807001333, 0.15027611161083634, 1.0797856636719823]
 signal_name: mesh_location

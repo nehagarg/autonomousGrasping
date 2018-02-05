@@ -3,7 +3,7 @@
 import os
 import rospy
 from vrep_common.srv import *
-from get_initial_object_belief import GetInitialObjectBelief, save_object_file
+from get_initial_object_belief import GetInitialObjectBelief, save_object_file, get_current_point_cloud_for_movement
 import time
 import yaml
 import numpy as np
@@ -220,14 +220,18 @@ def add_object_from_properties(mesh_properties, set_grasp=False):
         mesh_properties['final_initial_object_pose'] = object_pose
     return mesh_properties
 
-def object_graspable(mesh_properties):
+def object_graspable(mesh_properties, version_name = ""):
     ans = False
     pure_shape = mesh_properties['signal_name'] == 'pure_shape'
     pickable_g3db = mesh_properties['object_use_label'] == 'S' and mesh_properties['object_pickable']
     if(pure_shape or pickable_g3db):
         if(mesh_properties['object_stable']):
             if not mesh_properties['colliding_with_gripper']:
-                ans = True
+                if(version_name == "version7"):
+                    if(mesh_properties['object_visible']):
+                        ans = True
+                else:
+                    ans = True
     return ans
     
 def get_object_pick_point(object_id, object_property_dir):
@@ -335,7 +339,55 @@ def check_for_object_stability(mesh_properties):
         time.sleep(1)
     mesh_properties['object_stable'] = object_stable
 
-   
+def check_gripper_point_cloud_clipping():
+    min_x_i = 0.3379
+    max_x_i = 0.5279
+    min_y_i = 0.0816
+    max_y_i = 0.2316
+    mico_target_pose = get_any_object_pose('Mico_target')
+    move_pose = [0,0,0]
+    move_pose[0] = min_x_i
+    move_pose[1] = min_y_i
+    move_pose[2] = mico_target_pose.pose.pose.position.z
+    set_any_object_position('Mico_target', move_pose)
+    start_stop_simulation('Start')
+    x_range = (max_x_i-min_x_i)/0.01
+    y_range = (max_y_i-min_y_i)/0.01
+    for i in range(0,int(x_range)):
+        for j in range(0,int(y_range)):
+            y = 0.01
+            if i%2 == 1:
+                y = -0.01
+            mico_target_pose = get_any_object_pose('Mico_target')
+            point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x)
+            assert point_cloud.num_points == 0
+            move_gripper([0.0, y,0.0])
+        mico_target_pose = get_any_object_pose('Mico_target')
+        point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x)
+        assert point_cloud.num_points == 0
+        move_gripper([0.01, 0.0,0.0])
+
+def check_object_point_cloud_clipping(mesh_properties):
+    object_pose = place_object_at_initial_location(mesh_properties)
+    mico_target_pose = get_any_object_pose('Mico_target')
+    object_visible = True
+    for x in np.arange(-0.04,0.04,0.01):
+        if not object_visible:
+            break
+        for y in np.arange(-0.04,0.05,0.01):
+            start_stop_simulation('Start')
+            point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x)
+            start_stop_simulation('Stop')
+            time.sleep(2)
+            if point_cloud.num_points < 10:
+                object_visible = False
+                break
+            object_pose_new = object_pose[0:3]
+            object_pose_new[0] = object_pose[0] + x
+            object_pose_new[1] = object_pose[1] + y
+            update_object({'set_object_pose': object_pose_new}, {})
+    mesh_properties['object_visible'] = object_visible
+
 def move_gripper(move_pos):
     mico_target_pose = get_any_object_pose('Mico_target')
     current_pos = [0,0,0]

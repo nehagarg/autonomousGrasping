@@ -7,6 +7,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 77_napkinholder_final-28-Nov-2015-13-06-17.obj
 duplicate_mesh_size: !!python/tuple [0.3383899927139282, 0.09345999360084534, 0.1742199957370758]
+final_initial_object_pose: [0.6026437182791382, 0.1401974625857163, 1.1295480728149414]
 mesh_name: 77_napkinholder_final-28-Nov-2015-13-06-17.obj
 object_initial_pose_z: 1.1295480728149414
 object_min_z: 1.1247480728149415
@@ -15,5 +16,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.12954807
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.35115627571271363, 0.17220255062267298, 1.0786439964151902]
 signal_name: mesh_location

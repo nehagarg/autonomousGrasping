@@ -102,7 +102,10 @@ private:
             std::ofstream& myfile, int i, int j, int action, int k1,
             geometry_msgs::PoseStamped mico_target_pose, std::string object_id) const;
     void CreateObjectStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
-
+    
+    PyObject* GetPointCloudAboveGripperPlane(double min_x) const;
+    int CheckPointCloudMovement(PyObject* starting_point_cloud, PyObject* step_point_cloud) const;
+    PyObject* get_belief_module;
 };
 
 #endif	/* VREPINTERFACE_H */

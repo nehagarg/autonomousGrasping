@@ -4,6 +4,7 @@ collisions: 0
 duplicate_mesh_index: 0
 duplicate_mesh_name: 54_candlestick_final-15-Nov-2015-05-18-35.obj
 duplicate_mesh_size: !!python/tuple [0.09623999893665314, 0.0949999988079071, 0.3551799952983856]
+final_initial_object_pose: [0.48948313102351565, 0.15753457096197035, 1.2276239395141602]
 mesh_name: 54_candlestick_final-15-Nov-2015-05-18-35.obj
 object_initial_pose_z: 1.2276239395141602
 object_min_z: 1.2228239395141602
@@ -12,5 +13,6 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.22762393
   0.0, 0.0, 0.0, 1.0]
 object_stable: true
 object_use_label: S
+object_visible: true
 pick_point: [0.46431686296833613, 0.15486544224641893, 1.0788285925455807]
 signal_name: mesh_location
