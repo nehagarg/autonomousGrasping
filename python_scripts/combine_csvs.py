@@ -5,10 +5,12 @@ def get_dir_list():
     for i in range(0,7):
         dir_list.append('belief_uniform_baseline_' + repr(i) + '_reward100_penalty10/simulator/fixed_distribution/')
     #dir_list.append('belief_uniform_cylinder_7_8_9_reward100_penalty10/use_discretized_data/simulator/fixed_distribution/')
-    dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/fixed_distribution/horizon90/t5_n160/')
-    dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/simulator/fixed_distribution/horizon90/t5_n160/')
-    dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/fixed_distribution/horizon90/t5_n320/')
-    dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/simulator/fixed_distribution/horizon90/t5_n320/')
+    #dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/fixed_distribution/horizon90/t5_n160/')
+    #dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/simulator/fixed_distribution/horizon90/t5_n160/')
+    #dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/fixed_distribution/horizon90/t5_n320/')
+    #dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/simulator/fixed_distribution/horizon90/t5_n320/')
+    dir_list.append('belief_uniform_g3db_instances_train2_reward100_penalty10/use_discretized_data/use_weighted_belief/use_classifier/20180123-085411/clip-5/simulator/fixed_distribution/horizon90/t5_n80/')
+    dir_list.append('belief_uniform_g3db_instances_train2_reward100_penalty10/use_discretized_data/use_weighted_belief/use_classifier/20180123-085411/clip-7/simulator/fixed_distribution/horizon90/t5_n160/')
     
     return dir_list
 
@@ -32,7 +34,9 @@ def main():
     
     dir_list = get_dir_list()
     #patterns = ['g3db_instances|', 'all_cylinders|']
-    patterns = ['g3db_instances_train1|', 'g3db_instances_validation1|'] #, 'g3db_instances_test|', 'g3db_instances#']
+    #patterns = ['g3db_instances_train1|', 'g3db_instances_validation1|'] #, 'g3db_instances_test|', 'g3db_instances#']
+    patterns = ['g3db_instances_train2|', 'g3db_instances_validation2|'] #, 'g3db_instances_test|', 'g3db_instances#']
+    
     out_dir = './unicorn_csv_files/grasping_ros_mico/results/despot_logs/low_friction_table/vrep_scene_ver6/multiObjectType/basline_and_cylinder_belief'
     pdr.PROBLEM_NAME = "vrep"
     for pattern in patterns:
