@@ -1,6 +1,7 @@
 import rospy
 import getopt
 import sys
+import os
 
 import perception as perception
 from perception import PointToPlaneICPSolver, PointToPlaneFeatureMatcher
@@ -91,12 +92,16 @@ class KinectSensor:
     def free(self):
         self.freeze = False
 
-    def get_T_cam_world(self, from_frame, to_frame):
+    def get_T_cam_world(self, from_frame, to_frame, config_path = './'):
         """ get transformation from camera frame to world frame"""
 
+        transform_filename = config_path + "/"+ from_frame + '_' + to_frame + '.tf'
+        if os.path.exists(transform_filename):
+            return RigidTransform.load(transform_filename)
         time = 0
         trans = None
         qat = None
+        
         while not rospy.is_shutdown():
             try:
                 time = self.tl.getLatestCommonTime(to_frame, from_frame)
@@ -115,8 +120,9 @@ class KinectSensor:
         #print rot
 
         #return RigidTransform(rot, trans, from_frame, to_frame)
-        return RigidTransform(translation=trans, rotation=qat_wxyz, from_frame=from_frame, to_frame=to_frame)
-
+        ans = RigidTransform(translation=trans, rotation=qat_wxyz, from_frame=from_frame, to_frame=to_frame)
+        ans.save(transform_filename)
+        return ans
 class GetInitialObjectBelief():
     def __init__(self, obj_filenames = None, debug = False, start_node=True):
         COLOR_TOPIC = '/kinect2/sd/image_color_rect'
@@ -127,8 +133,9 @@ class GetInitialObjectBelief():
         self.MICO_TARGET_FRAME = 'mico_target_frame'
         self.debug = debug
         rospack = rospkg.RosPack()
-        gqcnn_path = rospack.get_path('grasping_ros_mico')
-        self.config = YamlConfig(gqcnn_path + '/config_files/dexnet_config/mico_control_node.yaml')
+        self.grasping_ro_mico_path = rospack.get_path('grasping_ros_mico')
+        self.config_path = self.grasping_ro_mico_path + '/config_files/dexnet_config/'
+        self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
 
 
 
@@ -182,7 +189,7 @@ class GetInitialObjectBelief():
         #sensor = self.sensor
         camera_intrinsics = self.sensor.get_cam_intrinsic()
         #T_camera_world = RigidTransform.load('data/calib/primesense_overhead/kinect2_to_world.tf')
-        T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME)
+        T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME, self.config_path)
         
 
         depth_image = self.sensor.get_depth_im()
@@ -240,7 +247,7 @@ class GetInitialObjectBelief():
         seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
         
-        T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME)
+        T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME, self.config_path)
         #print T_camera_world
         #print T_camera_target
         #seg_point_cloud_target = T_camera_target * seg_point_cloud_cam
