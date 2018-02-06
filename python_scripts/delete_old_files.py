@@ -14,7 +14,7 @@ def main():
         if opt in ("-d", "--dir"):
             directory_name = arg
         if opt == '-t':
-            num_days = int(arg)
+            num_days = float(arg)
     if directory_name is None:
         print "Please specify directory name"
         return
