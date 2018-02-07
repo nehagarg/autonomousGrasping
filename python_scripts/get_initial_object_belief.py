@@ -34,7 +34,7 @@ class KinectSensor:
         self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
         self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
         self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback)
-        self.tl = tf.TransformListener()
+        
 
     def color_callback(self, data):
         if not self.freeze:
@@ -102,6 +102,7 @@ class KinectSensor:
         trans = None
         qat = None
         
+        self.tl = tf.TransformListener()
         while not rospy.is_shutdown():
             try:
                 time = self.tl.getLatestCommonTime(to_frame, from_frame)
@@ -414,14 +415,15 @@ def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True):
     return seg_point_cloud_world
 
 def has_object_moved(point_cloud_1, point_cloud_2):
-    assert point_cloud_1.num_points > 0
-    assert point_cloud_2.num_points > 0
-    point_cloud_1_mean = point_cloud_1.mean()
-    point_cloud_2_mean = point_cloud_2.mean()
-    mean_diff = (point_cloud_1_mean - point_cloud_2_mean).vector;
-    movement = np.sqrt(np.dot(mean_diff, mean_diff))
-    print movement
-    return 1 if movement > 0.01 else 0
+    if(point_cloud_1.num_points > 0 and point_cloud_2.num_points > 0):
+        point_cloud_1_mean = point_cloud_1.mean()
+        point_cloud_2_mean = point_cloud_2.mean()
+        mean_diff = (point_cloud_1_mean - point_cloud_2_mean).vector;
+        movement = np.sqrt(np.dot(mean_diff, mean_diff))
+        print movement
+        return 1 if movement > 0.01 else 0
+    else:
+        return 2
     
     
 def load_object_file(obj_file_names, debug = False, start_node=True):
