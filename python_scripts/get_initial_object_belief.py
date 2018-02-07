@@ -28,12 +28,15 @@ class KinectSensor:
         self.cam_info = None
         self.bridge = CvBridge()
         self.freeze = False
+        self.COLOR_TOPIC = COLOR_TOPIC
+        self.DEPTH_TOPIC = DEPTH_TOPIC
+        self.CAMINFO_TOPIC = CAMINFO_TOPIC
         #rospy.init_node('kinect_listener', disable_signals=True)
         if(start_node):
             rospy.init_node('kinect_listener', anonymous=True)
-        self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
-        self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
-        self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback)
+        #self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
+        #self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
+        #self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback)
         
 
     def color_callback(self, data):
@@ -49,9 +52,13 @@ class KinectSensor:
             self.cam_info = data
 
     def get_color_im(self):
-        while self.rgb is None:
-            print "Waiting for color"
-            rospy.sleep(2)
+        #while self.rgb is None:
+        #    print "Waiting for color"
+        #    rospy.sleep(2)
+        print "Waiting for color"
+        self.rgb = rospy.wait_for_message(self.COLOR_TOPIC, Image)
+        if self.cam_info is None:
+            self.get_cam_intrinsic()
         raw_color = self.bridge.imgmsg_to_cv2(self.rgb, 'bgr8')
         #print raw_color.shape
         color_arr = np.fliplr(np.flipud(copy.copy(raw_color)))
@@ -65,9 +72,13 @@ class KinectSensor:
         return color_image
 
     def get_depth_im(self):
-        while self.depth is None:
-            print "Waiting for depth"
-            rospy.sleep(2)
+        #while self.depth is None:
+        #    print "Waiting for depth"
+        #    rospy.sleep(2)
+        print "Waiting for depth"
+        self.depth = rospy.wait_for_message(self.DEPTH_TOPIC, Image)
+        if self.cam_info is None:
+            self.get_cam_intrinsic()
         raw_depth = self.bridge.imgmsg_to_cv2(self.depth, 'passthrough')
         depth_arr = np.flipud(copy.copy(raw_depth))
         depth_arr = np.fliplr(copy.copy(depth_arr))
@@ -79,9 +90,12 @@ class KinectSensor:
         return depth_image
 
     def get_cam_intrinsic(self):
-        while self.cam_info is None:
+        #while self.cam_info is None:
+        #    print "Waiting for cam_info"
+        #    rospy.sleep(2)
+        if self.cam_info is None:
             print "Waiting for cam_info"
-            rospy.sleep(2)
+            self.cam_info = rospy.wait_for_message(self.CAMINFO_TOPIC, CameraInfo)
         raw_camera_info = self.cam_info
         camera_intrinsics = perception.CameraIntrinsics(raw_camera_info.header.frame_id, raw_camera_info.K[0], raw_camera_info.K[4], raw_camera_info.K[2], raw_camera_info.K[5], raw_camera_info.K[1], raw_camera_info.height, raw_camera_info.width)
         return camera_intrinsics
@@ -248,7 +262,7 @@ class GetInitialObjectBelief():
         seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
         
-        T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME, self.config_path)
+        #T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME, self.config_path)
         #print T_camera_world
         #print T_camera_target
         #seg_point_cloud_target = T_camera_target * seg_point_cloud_cam
