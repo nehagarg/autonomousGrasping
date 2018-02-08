@@ -1,0 +1,3 @@
+<launch>
+<node pkg="tf" type="static_transform_publisher" name="table_marker" args="-0.09 -0.34 0.02 0 0 1 table_frame world 10 " />
+</launch>

@@ -87,6 +87,16 @@ Note kinova_motion_execution_with_touch.py has been copied from studio code. The
 
 Then launch the policy from grasping_ros_mico code
 
+To launce kinect2
+Install vision_ws kinect2 branch from AdaCompNus
+launch iai_kinect2 using command roslaunch kinect2_bridge kinect2_bridge.launch
+To get the frame of aruco_ros marker:
+From kinect2 aruco_ros branch launch
+roslaunch aruco_ros detect_marker.launch
+Please check that the marker size and id in the launch file is correct.
+Then compute the static transform between robot and the marker, if not already done. After that launch static transform file by making appropriate changes
+roslaunch grasping_ros_mico static_transform_publisher.launch
+
 #G3DB objects
 Version 7 includes objects which are visible above gripper level. The test objects are same s verion 6 test objects. Only one extra object has been added randomly because one test object was not visible and had to be removed.
 
