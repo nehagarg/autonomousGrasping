@@ -122,6 +122,10 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     
     VrepDataInterface::CreateStartState(initial_state, type);
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
+    //Move to pre grasp pos
+    micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.INIT_POS;
+    micoActionFeedbackClient.call(micoActionFeedback_srv);
+    
     micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.GET_TOUCH_THRESHOLD;
     if(micoActionFeedbackClient.call(micoActionFeedback_srv))
     {

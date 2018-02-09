@@ -57,6 +57,14 @@ def handle_action_request(req):
         res.touch_sensor_reading = [kinova_motion_executor_with_touch.THRES_TOUCH,kinova_motion_executor_with_touch.THRES_TOUCH]
         #print myKinovaMotionExecutor.initial_pressure
         return res
+    if req.action == req.INIT_POS:
+        myKinovaMotionExecutor.goto('table_pre_grasp2')
+        myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
+        myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+        myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+    
+    if req.action == req.MOVE_AWAY_POS:
+        myKinovaMotionExecutor.goto('home_r')
         
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
@@ -129,9 +137,9 @@ if __name__ == '__main__':
     myKinovaMotionExecutor.set_gripper_state('open')
     myKinovaMotionExecutor.goto('home_t')
     time.sleep(5)
-    myKinovaMotionExecutor.goto('table_pre_grasp2')
-    myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
-    myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
-    myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+    #myKinovaMotionExecutor.goto('table_pre_grasp2')
+    #myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
+    #myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+    #myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
     #myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
     mico_action_feedback_server()
