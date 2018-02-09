@@ -64,7 +64,7 @@ def handle_action_request(req):
         myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
     
     if req.action == req.MOVE_AWAY_POS:
-        myKinovaMotionExecutor.goto('home_r')
+        myKinovaMotionExecutor.goto('top_of_books')
         
     res = MicoActionFeedbackResponse()
     res.gripper_pose = myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
