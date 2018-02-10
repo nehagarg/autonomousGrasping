@@ -59,10 +59,16 @@ class VrepGripperState:
         self.fj3 = float(values[16])
         self.fj4 = float(values[17])
         
+        #used mainly for debugging and generating SASO
         self.g_xx = float(values[3])
         self.g_yy = float(values[4])
         self.g_zz = float(values[5])
         self.g_w = float(values[6])
+        self.o_xx = float(values[10])
+        self.o_yy = float(values[11])
+        self.o_zz = float(values[12])
+        self.o_w = float(values[13])
+        
     def get_obs(self):
         o = VrepGripperObs([0.0]*20)
         o.g_x = self.g_x
@@ -86,17 +92,21 @@ class VrepGripperObs:
         self.fj3 = float(values[16])
         self.fj4 = float(values[17])
         self.sensor_obs = [float(values[18]), float(values[19])]
+        if len(values) > 20:
+            self.vision_movement = float(values[20])
     
     def convert_to_array(self, state_type='vrep'): #used for generating deep learning data
         obs = self.sensor_obs[:]
         obs.append(self.g_x - VrepConstants.reference_g_x) #subtract reference so that it can be used with real arm also
         obs.append(self.g_y - VrepConstants.reference_g_y )  #subtract reference so that it can be used with real arm also
         obs.append(self.fj1)
-        if 'vrep/ver5' not in state_type:
+        if 'vrep/ver5' not in state_type and 'vrep/ver7' not in state_type:
             obs.append(self.fj2)
         obs.append(self.fj3)
-        if 'vrep/ver5' not in state_type:
+        if 'vrep/ver5' not in state_type and 'vrep/ver7' not in state_type:
             obs.append(self.fj4)
+        if 'vrep/ver7' in state_type:
+            obs.append(self.vision_movement)
         return obs
         
         
@@ -253,7 +263,7 @@ class ParseLogFile:
                     step_info = {}
                     step_info['belief'] = []
                     
-            if 'vrep/ver5/weighted' in state_type:
+            if 'weighted' in state_type:
                 object_prob_expression = '<Object Probabilities>'
                 objectProbStart = re.match(object_prob_expression, line)
                 if objectProbStart:

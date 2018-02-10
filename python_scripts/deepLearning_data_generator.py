@@ -112,7 +112,7 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
                 act = action_string_hash[("").join(fullData['stepInfo'][j]['action'][:-1].split(" "))]
             if 'obs' in fullData['stepInfo'][j]:
                 obs = fullData['stepInfo'][j]['obs'].convert_to_array(state_type)
-                if 'vrep/ver5/weighted' in state_type:
+                if 'weighted' in state_type:
                     obs = obs + fullData['roundInfo']['initial_object_probs']
                 #obs = fullData['stepInfo'][j]['obs'].sensor_obs
                 #obs.append(fullData['stepInfo'][j]['obs'].gripper_l_obs)
@@ -120,7 +120,7 @@ def process_full_data(fullData,seqs, state_type = 'toy', isTraining = True):
                 #obs.append(fullData['stepInfo'][j]['obs'].x_w_obs)
                 #obs.append(fullData['stepInfo'][j]['obs'].y_w_obs)
             seq.append((act,obs))
-        if 'vrep/ver5/weighted' in state_type:
+        if 'weighted' in state_type:
 	    obs = fullData['roundInfo']['state'].get_obs().convert_to_array(state_type)
             obs = obs + fullData['roundInfo']['initial_object_probs']
             seq = [('$', obs) ] + seq
@@ -189,6 +189,7 @@ def parse(fileName, belief_type = '', isTraining = False):
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
     elif fileName in ['vrep/version17']:
+        #data with number of objects = 10 bug
         object_list = get_grasping_object_name_list('g3db_instances_train1')
         for i in range(0,1000):
             for t in ['5']:

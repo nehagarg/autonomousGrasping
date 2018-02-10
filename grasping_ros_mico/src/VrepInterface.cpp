@@ -1863,7 +1863,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
     PyObject* starting_point_cloud;
     if(RobotInterface::version7)
     {
-        starting_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x);
+        starting_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x -0.03);
     }
     std::cout << "Action is " << action ;
     if (action < A_CLOSE) { 
@@ -1877,7 +1877,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
             bool stopMoving = TakeStepInVrep(action_offset, i, alreadyTouching, grasping_state, grasping_obs, reward);                 
             if(RobotInterface::version7)
             {
-                PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x);
+                PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x - 0.03);
                 grasping_state.vision_movement = CheckPointCloudMovement(starting_point_cloud,step_point_cloud);
                 grasping_obs.vision_movement = grasping_state.vision_movement;
                 //Py_DECREF(step_point_cloud); //Reference decreased with args in CheckPointCloudMovement
@@ -1932,7 +1932,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         }
         if(RobotInterface::version7)
             {
-                PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x);
+                PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x - 0.03);
                 grasping_state.vision_movement = CheckPointCloudMovement(starting_point_cloud,step_point_cloud);
                 grasping_obs.vision_movement = grasping_state.vision_movement;
                 //Py_DECREF(step_point_cloud); //Reference decreased with args in CheckPointCloudMovement

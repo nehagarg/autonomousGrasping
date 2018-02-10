@@ -94,7 +94,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::version7 = config["version7"].as<bool>();
         //Keeping learning model problem name same 
         //as no change in that due to change to ver6
-        LearningModel::problem_name  = "vrep/ver5";
+        LearningModel::problem_name  = "vrep/ver7";
     }
     else
     {
@@ -213,7 +213,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         {
             weighted_obs_size = 7;
         }
-        LearningModel::problem_name  = "vrep/ver5/weighted_" + to_string(weighted_obs_size);
+        LearningModel::problem_name  = LearningModel::problem_name + "/weighted_" + to_string(weighted_obs_size);
     }
     
     

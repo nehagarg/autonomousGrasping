@@ -760,8 +760,13 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     double sensor_weight = 4;
     double gripper_position_weight = 1;
     double gripper_orientation_weight = 1;
+    double vision_sensor_weight = 2;
     
     double tau = finger_weight + sensor_weight + gripper_position_weight + gripper_orientation_weight;
+    if(RobotInterface::version7)
+    {
+        tau = tau + vision_sensor_weight;
+    }
     
     double finger_distance = 0;
     int inc = 1;
@@ -781,6 +786,15 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
         sensor_distance = sensor_distance + RobotInterface::abs(grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i]);
     }
     sensor_distance = sensor_distance/2.0;
+    double vision_sensor_distance = 0;
+    if(RobotInterface::version7)
+    {
+        vision_sensor_distance = RobotInterface::abs(grasping_obs.vision_movement - grasping_obs_expected.vision_movement);
+        if (grasping_obs.vision_movement == 2 || grasping_obs_expected.vision_movement == 2)
+        {
+            vision_sensor_distance = 0.5;
+        }
+    }
     
     double gripper_distance = 0;
     gripper_distance = gripper_distance + pow(grasping_obs.gripper_pose.pose.position.x - grasping_obs_expected.gripper_pose.pose.position.x, 2);
@@ -796,7 +810,8 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     total_distance = (finger_distance*finger_weight) + 
                      (sensor_distance*sensor_weight) + 
                      (gripper_distance*gripper_position_weight) + 
-                     (gripper_quaternion_distance*gripper_orientation_weight);
+                     (gripper_quaternion_distance*gripper_orientation_weight)+
+                      (vision_sensor_weight*vision_sensor_distance)  ;
     double temperature = 5;
     double prob = pow(2, -1*temperature*total_distance/tau);
 
@@ -1324,6 +1339,7 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
             {
                 grasping_obs.touch_sensor_reading[i] = tempData.touch_sensor_reading[i];
             }
+            grasping_obs.vision_movement = tempData.vision_movement;
             //ConvertObs48ToObs2(tempData.touch_sensor_reading, grasping_obs.touch_sensor_reading);
 
         }
@@ -1404,6 +1420,7 @@ void RobotInterface::UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& g
     CheckTouch(grasping_obs.touch_sensor_reading, grasping_state.touch);
     grasping_state.touch_value[0] = grasping_obs.touch_sensor_reading[0];
     grasping_state.touch_value[1] = grasping_obs.touch_sensor_reading[1];
+    grasping_state.vision_movement = grasping_obs.vision_movement;
     if(grasping_state.closeCalled)
     {
         if(action==A_OPEN)
@@ -1857,6 +1874,7 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
         {
             grasping_obs.touch_sensor_reading[i] = tempData.touch_sensor_reading[i];
         }
+        grasping_obs.vision_movement = tempData.vision_movement;
         //ConvertObs48ToObs2(tempData.touch_sensor_reading, grasping_obs.touch_sensor_reading);
         
     }
@@ -1999,6 +2017,7 @@ void RobotInterface::GetObsUsingDefaultFunction(GraspingStateRealArm grasping_st
         }
         ConvertObs48ToObs2(touch_sensor_reading, grasping_obs.touch_sensor_reading);
     }
+    grasping_obs.vision_movement = 0;
 }
 
 void RobotInterface::GetReward(GraspingStateRealArm initial_grasping_state, GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, int action, double& reward) const {

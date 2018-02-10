@@ -28,16 +28,16 @@ class GraspingObservation : public ObservationClass {
     //TODO : add a struct for tactile sensor observation, implement gethash function
     //uint64_t GetHash() const {return obs;     };
     
-   void getObsFromString(std::string obs_string)
+   void getObsFromString(std::string obs_string, int version_no)
     {
       //  0.3379 0.1516 1.73337 -0.694327 -0.0171483 -0.719 -0.0255881|0.4586 0.0829 1.7066 -0.0327037 0.0315227 -0.712671 0.700027|-2.95639e-05 0.00142145 -1.19209e-
 //06 -0.00118446
         std::istringstream inputString(obs_string);
-        getObsFromStream(inputString);
+        getObsFromStream(inputString, version_no);
         
     }
     
-    void getObsFromStream(std::istream& inputString)
+    void getObsFromStream(std::istream& inputString, int version_no)
     {
         
         char c; 
@@ -67,6 +67,12 @@ class GraspingObservation : public ObservationClass {
         for(int i = 0; i < 2; i++)
         {
             inputString >> touch_sensor_reading[i]; 
+        }
+            
+        if(version_no == 7)
+        {
+            inputString >> c;
+           inputString >> vision_movement; 
         }
     }
     

@@ -196,12 +196,13 @@ public:
         double x_ref = robotInterface->min_x_i;
         double y_ref = robotInterface->min_y_i + (0.01*7);
         int weight_belief_values = 0;
-        if(LearningModel::problem_name.find("vrep/ver5/weighted") !=std::string::npos)
+        if(LearningModel::problem_name.find("weighted") !=std::string::npos)
         {
             weight_belief_values = prior_vision_observation.size();
         }
         int inc = 1;
-        if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos)
+        if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos
+            || LearningModel::problem_name.find("vrep/ver7") !=std::string::npos)    
         {
             inc = 2;
         }
@@ -239,7 +240,7 @@ public:
         
         
         
-        if(LearningModel::problem_name.find("vrep/ver5/weighted") !=std::string::npos)
+        if(LearningModel::problem_name.find("weighted") !=std::string::npos)
         {
             weight_belief_values = prior_vision_observation.size();
         
@@ -254,7 +255,8 @@ public:
         }
         
         int inc = 1;
-        if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos)
+        if(LearningModel::problem_name.find("vrep/ver5") !=std::string::npos
+           || LearningModel::problem_name.find("vrep/ver7") !=std::string::npos)
         {
             inc = 2;
         }
