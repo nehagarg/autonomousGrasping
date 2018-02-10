@@ -20,8 +20,14 @@ def get_problem_config(problem_name):
     if problem_name == 'vrep/ver5' :
         ans = get_problem_config('vrep')
         ans['input_length'] = 6
+    if problem_name == 'vrep/ver7' :
+        ans = get_problem_config('vrep')
+        ans['input_length'] = 7
     if 'vrep/ver5/weighted_' in problem_name:
         ans = get_problem_config('vrep/ver5')
+        ans['input_length'] = ans['input_length'] + int(problem_name.split('_')[-1])
+    if 'vrep/ver7/weighted_' in problem_name:
+        ans = get_problem_config('vrep/ver7')
         ans['input_length'] = ans['input_length'] + int(problem_name.split('_')[-1])
     if problem_name == 'toy' :
         ans['max_sequence_length'] = 90
