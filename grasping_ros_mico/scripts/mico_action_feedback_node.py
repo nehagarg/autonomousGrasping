@@ -59,7 +59,7 @@ def handle_action_request(req):
         return res
     if req.action == req.INIT_POS:
         myKinovaMotionExecutor.goto('table_pre_grasp2')
-        myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
+        #myKinovaMotionExecutor.goto_relative_pose(dz=0.005)
         myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
         myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
     
