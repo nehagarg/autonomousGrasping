@@ -31,6 +31,7 @@ micoWithSensorsMutliObjectTrialWithDespotIKVer6.ttt : Different from Ver5: Mico 
 Changed initial object y from 1485 to 1562 as it is the mid point of min and max range
 Increased gripper z by 0.005 as gripper was colliding with table and was not able to have proper movements
 Robot position shifted as gripper unstable when y = 0.08, pick height adjusted to 0.09 because of this
+Made mico palm invisible to kinect for easy detection of object movement
 
 
 
