@@ -32,6 +32,12 @@ def get_min_z_o(id):
     ans = get_initial_object_pose_z(id) -0.0048;
     return ans;
     
+def get_g3db_belief_ver7_low_friction_table_config(ans):
+    ans["object_mapping"] = get_grasping_object_name_list('cylinders_train')
+    ans["low_friction_table"] = True
+    ans["belief_object_ids"] = [0,1,2]
+    ans["version7"] = True
+    ans["auto_load_object"] = True
 
 def get_g3db_belief_ver6_low_friction_table_config(ans):
     ans["object_mapping"] = get_grasping_object_name_list('cylinders_train')
@@ -185,7 +191,9 @@ def modify_basic_config(filename, ans):
     
     #if 'pocman' in filename:
     #    return get_pocman_config(filename)
-    
+    if 'ver7' in filename:
+        get_g3db_belief_ver7_low_friction_table_config(ans)
+        return ans
     if 'ver6' in filename:
         get_g3db_belief_ver6_low_friction_table_config(ans)
         return ans
@@ -524,7 +532,7 @@ class ConfigFileGenerator():
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['','learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']#,'learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
         if('baseline' in type):
             self.belief_name = type
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -607,7 +615,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train1_discretize_weighted'
 #type = 'g3db_instances_train1_discretize'
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
-def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver6'):
+def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
     for filename,filetype,interface_type,object_type in gsf:
@@ -674,7 +682,7 @@ def main():
             #generate_G3DB_ver5_single_belief_files()
             #generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
-            generate_grasping_config_files(arg, 'ver6')
+            generate_grasping_config_files(arg, 'ver7')
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
