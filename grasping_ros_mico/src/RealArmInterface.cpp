@@ -76,7 +76,12 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
         AdjustRealFingerJointsToSimulatedJoints(obs.finger_joint_state);
         for(int i = 0; i < 2; i++)
         {
-            obs.touch_sensor_reading[i] = micoActionFeedback_srv.response.touch_sensor_reading[i];
+            int finger_index = i;
+            if(RobotInterface::version6 || RobotInterface::version7)
+            {
+                finger_index = 1-i;
+            }
+            obs.touch_sensor_reading[i] = micoActionFeedback_srv.response.touch_sensor_reading[finger_index];
         }
         AdjustTouchSensorToSimulatedTouchSensor(obs.touch_sensor_reading);
         
@@ -143,7 +148,8 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_OPEN;
     if(micoActionFeedbackClient.call(micoActionFeedback_srv))
     {
-       initial_state.gripper_pose = micoActionFeedback_srv.response.gripper_pose; 
+       initial_state.gripper_pose = micoActionFeedback_srv.response.gripper_pose;
+       //min_x offset for point clod movement is 0.39 - 0.355
        real_gripper_offset_x = min_x_i + initial_gripper_pose_index_x*0.01 - initial_state.gripper_pose.pose.position.x;
        real_gripper_offset_y = min_y_i + initial_gripper_pose_index_y*0.01 - initial_state.gripper_pose.pose.position.y;
        real_gripper_offset_z = initial_gripper_pose_z - initial_state.gripper_pose.pose.position.z;
