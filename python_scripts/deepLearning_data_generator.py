@@ -188,6 +188,19 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName in ['vrep/version18']:
+        object_list = get_grasping_object_name_list('cylinders_train')
+        for i in range(0,4000):
+            for t in ['5']:
+                for scenario in ['80']:
+                   for object in object_list:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
+                        logfileName = logfileName + 'vrep_scene_ver7/multiObjectType/'
+                        logfileName = logfileName + 'belief_uniform_cylinder_7_8_9_reward100_penalty10/'
+                        logfileName = logfileName + 'use_discretized_data/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver7') 
     elif fileName in ['vrep/version17']:
         #data with number of objects = 10 bug
         object_list = get_grasping_object_name_list('g3db_instances_train1')
