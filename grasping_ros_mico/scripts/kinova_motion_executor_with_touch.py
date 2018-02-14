@@ -21,13 +21,18 @@ class KinovaExecutorWithTouch(KinovaExecutor):
         self.sub_pressure_r = rospy.Subscriber('/pressure_calib_r', Float32, self.cb_pressure, 1)
         self.sub_touch_l = rospy.Subscriber('/touch_l', Float32, self.cb_touch, 0)
         self.sub_pressure_l = rospy.Subscriber('/pressure_calib_l', Float32, self.cb_pressure, 0)
+        self.sub_vision_movement = rospy.Subscriber('/object_vision_movement', Int8, self.cb_vision_movement)
         #self.curr_pose = None
         self.last_touch = [0, 0]
         self.max_pressure = [0.0, 0.0]
         self.initial_pressure = [None, None]
         self.detected_pressure = [0, 0]
+        self.vision_movement = 0
         super( KinovaExecutorWithTouch, self ).__init__(node)
 
+    def cb_vision_movement(self, msg):
+        self.vision_movement = msg.data
+        
     def cb_touch(self, msg, finger_index):
         print finger_index
         print 'touch=', msg.data
@@ -73,11 +78,14 @@ class KinovaExecutorWithTouch(KinovaExecutor):
         return ((self.max_pressure[0] > THRES_TOUCH) or ((self.max_pressure[1] > THRES_TOUCH)))
     
     @property
+    def has_moved(self):
+        return self.vision_movement == 1
+    @property
     def curr_pose(self):
         return self.get_current_pose()
     
     #move_until_touch in motion executor
-    def goto_relative_pose_until_touch(self, dx=0, dy=0, dz=0, droll=0, dpitch=0, dyaw=0):
+    def goto_relative_pose_until_touch(self, dx=0, dy=0, dz=0, droll=0, dpitch=0, dyaw=0, check_touch=True, check_vision_movement = False):
         """ 
             set end-effector 6DOF pose with respect to current pose while checking for touch every 1 ms
             input: geometry_msgs.PoseStamped (meters + degrees)
@@ -85,7 +93,8 @@ class KinovaExecutorWithTouch(KinovaExecutor):
         """
         print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (dx, dy, dz)
         self.max_pressure = [-1000, -1000]
-        check_need_cancel = lambda: self.is_touched
+        self.vision_movement = 0
+        check_need_cancel = lambda: (check_touch and self.is_touched) or (check_vision_movement and self.has_moved)
         
         (position_, orientation_q) = self.get_cartesian_goal_from_relative_pose(dx,dy,dz,droll,dpitch,dyaw)
         

@@ -25,28 +25,34 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
     }*/
     GraspingStateRealArm initial_grasping_state = state;
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
+    micoActionFeedback_srv.request.check_touch = true;
+    micoActionFeedback_srv.request.check_vision_movement = RobotInterface::version7;
     if(action < A_CLOSE)
     {
+        
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_MOVE;
         micoActionFeedback_srv.request.move_x = 0;
         micoActionFeedback_srv.request.move_y = 0;
-        int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
-        double movement_value = get_action_range(action, action_offset);
-        if(action_offset == A_INCREASE_X)
-        {
-            micoActionFeedback_srv.request.move_x = movement_value;
-        }
-        else if(action_offset == A_DECREASE_X)
-        {
-            micoActionFeedback_srv.request.move_x = -1*movement_value;
-        }
-        else if(action_offset == A_INCREASE_Y)
-        {
-            micoActionFeedback_srv.request.move_y = movement_value;
-        }
-        else if(action_offset == A_DECREASE_Y)
-        {
-            micoActionFeedback_srv.request.move_y = -1*movement_value;
+        if (state.gripper_status > 0)
+            {
+            int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
+            double movement_value = get_action_range(action, action_offset);
+            if(action_offset == A_INCREASE_X)
+            {
+                micoActionFeedback_srv.request.move_x = movement_value;
+            }
+            else if(action_offset == A_DECREASE_X)
+            {
+                micoActionFeedback_srv.request.move_x = -1*movement_value;
+            }
+            else if(action_offset == A_INCREASE_Y)
+            {
+                micoActionFeedback_srv.request.move_y = movement_value;
+            }
+            else if(action_offset == A_DECREASE_Y)
+            {
+                micoActionFeedback_srv.request.move_y = -1*movement_value;
+            }
         }
     }
     else if(action == A_CLOSE)
@@ -173,7 +179,13 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
     initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y;
     initial_state.object_pose.pose.position.z = graspObjects[initial_state.object_id]->initial_object_pose_z;
     AdjustRealObjectPoseToSimulatedPose(initial_state.object_pose);
-    
+    int proceed;
+    std::cout << "Shall I prroceed?[1=yes]\n";
+    std::cin >> proceed;
+    if(proceed !=1)
+    {
+        assert(0==1);
+    }
 
 }
 
