@@ -4,7 +4,7 @@
 import rospy
 import kinova_motion_executor
 from kinova_motion_executor import KinovaExecutor
-from std_msgs.msg import String, Int16MultiArray, Float32, Float64
+from std_msgs.msg import String, Float32, Float64, Int8
 
 kinova_motion_executor.DEFAULT_FINGER_MAX_TURN = 6800
 kinova_motion_executor.DEFAULT_FINGER_MAX_DIST = 18.9/2/1000
@@ -16,18 +16,18 @@ THRES_TOUCH = 150
 
 class KinovaExecutorWithTouch(KinovaExecutor):
     def __init__(self, node=None):
-        
+        self.last_touch = [0, 0]
+        self.max_pressure = [0.0, 0.0]
+        self.initial_pressure = [None, None]
+        self.detected_pressure = [0, 0]
+        self.vision_movement = 0
         self.sub_touch_r = rospy.Subscriber('/touch_r', Float32, self.cb_touch, 1)
         self.sub_pressure_r = rospy.Subscriber('/pressure_calib_r', Float32, self.cb_pressure, 1)
         self.sub_touch_l = rospy.Subscriber('/touch_l', Float32, self.cb_touch, 0)
         self.sub_pressure_l = rospy.Subscriber('/pressure_calib_l', Float32, self.cb_pressure, 0)
         self.sub_vision_movement = rospy.Subscriber('/object_vision_movement', Int8, self.cb_vision_movement)
         #self.curr_pose = None
-        self.last_touch = [0, 0]
-        self.max_pressure = [0.0, 0.0]
-        self.initial_pressure = [None, None]
-        self.detected_pressure = [0, 0]
-        self.vision_movement = 0
+
         super( KinovaExecutorWithTouch, self ).__init__(node)
 
     def cb_vision_movement(self, msg):

@@ -9,7 +9,7 @@ screen -S numatac_server -X stuff 'until rostopic list ; do sleep 1; done ; sudo
 screen -S numatac_client -d -m
 screen -S numatac_client -X stuff 'until rostopic list ; do sleep 1; done ; roscd numatac_can_driver; python detect_touch_on_each_finger.py ^M'
 screen -S detect_marker -d -m
-screen -S detect_marker -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch grasping_ros_mico mico_double_calib_kinect2.launch ^M'
+screen -S detect_marker -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch grasping_ros_mico mico_double_calib_kinect2.launch publish_tf:=true^M'
 screen -S static_transform -d -m
 screen -S static_transform -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch grasping_ros_mico static_transform_publisher.launch ^M'
 screen -S mico_client -d -m
