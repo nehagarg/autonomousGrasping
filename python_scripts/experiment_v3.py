@@ -751,3 +751,12 @@ if __name__ == '__main__':
 
 #Periodically clean roscore
 #until false; do rosclean purge -y; sleep 600; done;
+
+#check process memory
+#pmap -x pid
+
+#To check stuck processes dur to roscore
+#tail -2 ~/1[0-9][0-9][0-9]_despot_* | grep -B 2 communicate | grep despot | cut -d'/' -f4 | cut -d' ' -f1 | awk '{print "grep "$1" running_nodes.txt"}' | bash
+#tail -n 2 ~/1[5-9][0-9][0-9]_despot_* | grep -B 2 communicate | grep despot | cut -d'/' -f4 | cut -d' ' -f1 | awk '{print "grep "$1" running_nodes.txt"}' | bash | sed -e 's/despot_without_display/roscore/g' | awk '{print "echo ssh "$1";grep "$2" main_command_file.txt | tail -n 1"}' | bash | paste -d'|' - - | awk -F'|' '{print $1" \"" $2" \""}'
+
+
