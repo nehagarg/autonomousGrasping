@@ -217,12 +217,21 @@ public:
         {
             char c = ',';
             if (j+inc >=4){
-                if(weight_belief_values == 0)
+                if(weight_belief_values == 0 && LearningModel::problem_name.find("vrep/ver7") ==std::string::npos)
                         {
                             c = '*';
                         }    
             }
             oss << o.finger_joint_state[j] << c;
+        }
+        if(LearningModel::problem_name.find("vrep/ver7") !=std::string::npos)
+        {
+            char c = ',';
+            if(weight_belief_values == 0)
+            {
+                c = '*';
+            }
+            oss << o.vision_movement << c;
         }
         for(int j = 0; j < weight_belief_values;j++)
             {
@@ -275,7 +284,11 @@ public:
         }
         else
         {
-            oss << NumActions() << ",-1,-1,-1,-1,-1,-1" ; 
+            oss << NumActions() << ",-1,-1,-1,-1,-1,-1" ;
+            if (LearningModel::problem_name.find("vrep/ver7") !=std::string::npos)
+            {
+                oss << ",-1";
+            }
             for(int j = 0; j < weight_belief_values; j++)
             {
                 oss << ",-1";
