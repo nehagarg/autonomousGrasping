@@ -2,9 +2,8 @@ import roslib; roslib.load_manifest('grasping_ros_mico')
 from grasping_ros_mico.srv import *
 import rospy
 #from moveit_commander import MoveGroupCommander
-from sensor_msgs.msg import (
-    JointState
-)
+from sensor_msgs.msg import JointState, PointCloud2
+
 from std_msgs.msg import Int8
 #import motion_executor
 #from motion_executor import Executor
