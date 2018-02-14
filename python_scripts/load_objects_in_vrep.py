@@ -353,18 +353,23 @@ def check_gripper_point_cloud_clipping():
     start_stop_simulation('Start')
     x_range = (max_x_i-min_x_i)/0.01
     y_range = (max_y_i-min_y_i)/0.01
+    x_offset = 0.03 
     for i in range(0,int(x_range)):
         for j in range(0,int(y_range)):
             y = 0.01
             if i%2 == 1:
                 y = -0.01
             mico_target_pose = get_any_object_pose('Mico_target')
-            point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x)
-            assert point_cloud.num_points == 0
+            point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x - x_offset )
+            if point_cloud.num_points > 0:
+                point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x - x_offset, debug = True)
+                assert point_cloud.num_points == 0
             move_gripper([0.0, y,0.0])
         mico_target_pose = get_any_object_pose('Mico_target')
-        point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x)
-        assert point_cloud.num_points == 0
+        point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x - x_offset)
+        if point_cloud.num_points > 0:
+                point_cloud = get_current_point_cloud_for_movement(mico_target_pose.pose.pose.position.x - x_offset, debug = True)
+                assert point_cloud.num_points == 0
         move_gripper([0.01, 0.0,0.0])
 
 def check_object_point_cloud_clipping(mesh_properties):

@@ -21,7 +21,7 @@ from grasping_object_list import get_grasping_object_name_list
 
 
 class KinectSensor:
-    def __init__(self, COLOR_TOPIC,DEPTH_TOPIC, CAMINFO_TOPIC, start_node = True):
+    def __init__(self, COLOR_TOPIC,DEPTH_TOPIC, CAMINFO_TOPIC, start_node = True,env = 'simulator'):
         print CAMINFO_TOPIC 
         self.rgb = None
         self.depth = None
@@ -31,6 +31,7 @@ class KinectSensor:
         self.COLOR_TOPIC = COLOR_TOPIC
         self.DEPTH_TOPIC = DEPTH_TOPIC
         self.CAMINFO_TOPIC = CAMINFO_TOPIC
+        self.env = env
         #rospy.init_node('kinect_listener', disable_signals=True)
         if(start_node):
             rospy.init_node('kinect_listener', anonymous=True)
@@ -80,9 +81,11 @@ class KinectSensor:
         if self.cam_info is None:
             self.get_cam_intrinsic()
         raw_depth = self.bridge.imgmsg_to_cv2(self.depth, 'passthrough')
-        depth_arr = np.flipud(copy.copy(raw_depth))
-        depth_arr = np.fliplr(copy.copy(depth_arr))
-        #depth_arr = copy.copy(raw_depth)
+        if self.env=='simulator':
+            depth_arr = np.flipud(copy.copy(raw_depth))
+            depth_arr = np.fliplr(copy.copy(depth_arr))
+        else:
+            depth_arr = copy.copy(raw_depth)
         depth_arr = depth_arr * 0.001
         depth_image = perception.DepthImage(depth_arr, self.cam_info.header.frame_id)
 
@@ -139,7 +142,7 @@ class KinectSensor:
         ans.save(transform_filename)
         return ans
 class GetInitialObjectBelief():
-    def __init__(self, obj_filenames = None, debug = False, start_node=True):
+    def __init__(self, obj_filenames = None, debug = False, start_node=True, env = 'simulator'):
         COLOR_TOPIC = '/kinect2/sd/image_color_rect'
         DEPTH_TOPIC = '/kinect2/sd/image_depth_rect'
         CAMINFO_TOPIC = '/kinect2/sd/camera_info'
@@ -151,6 +154,8 @@ class GetInitialObjectBelief():
         self.grasping_ro_mico_path = rospack.get_path('grasping_ros_mico')
         self.config_path = self.grasping_ro_mico_path + '/config_files/dexnet_config/'
         self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
+        if env == 'real':
+            self.config = YamlConfig(self.config_path + 'mico_control_node_real.yaml')
 
 
 
@@ -172,7 +177,7 @@ class GetInitialObjectBelief():
         self.sensor = None
         print "Creating sensor"
         rospy.loginfo('Creating RGBD Sensor')
-        self.sensor = KinectSensor(COLOR_TOPIC, DEPTH_TOPIC, CAMINFO_TOPIC, start_node )
+        self.sensor = KinectSensor(COLOR_TOPIC, DEPTH_TOPIC, CAMINFO_TOPIC, start_node ,env)
         
         rospy.loginfo('Sensor Running')
         print "Sensor running"
@@ -251,6 +256,7 @@ class GetInitialObjectBelief():
 
 
         seg_point_cloud_world, _ = point_cloud_world.box_mask(box)
+        #seg_point_cloud_world = point_cloud_world
         return seg_point_cloud_world
     
     def get_object_point_cloud_from_sensor(self, cfg = None):
@@ -272,8 +278,8 @@ class GetInitialObjectBelief():
         from sensor_msgs.msg import Image, PointCloud2, PointField
         print point_cloud_world.data.shape
         pc2 = PointCloud2()
-        pc2.header.frame_id = self.MICO_TARGET_FRAME
-        segmented_pc = pcl2.create_cloud_xyz32(pc2.header, np.transpose(seg_point_cloud_target.data))
+        pc2.header.frame_id = self.WORLD_FRAME
+        segmented_pc = pcl2.create_cloud_xyz32(pc2.header, np.transpose(seg_point_cloud_world.data))
         pcl_pub = rospy.Publisher('mico_node/pointcloud', PointCloud2, queue_size=10)
         
         while not rospy.is_shutdown():
@@ -411,14 +417,49 @@ class GetInitialObjectBelief():
         self.database_objects = ans
         return ans
 
-def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True):
-    giob = GetInitialObjectBelief(None, debug, start_node)
+def get_current_point_cloud(debug = False, start_node=True, env = 'simulator'):
+    giob = GetInitialObjectBelief(None, debug, start_node, env)
+    (depth_im_seg,_) = giob.get_object_point_cloud_from_sensor()
+    if debug:
+        vis.figure()
+        vis.subplot(1,1,1)
+        vis.imshow(depth_im_seg)
+        vis.show()
+        
+def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True, env = 'simulator', min_z = None):
+    
+    giob = GetInitialObjectBelief(None, debug, start_node,env)
     (camera_intr, point_cloud_world, T_camera_world) = giob.get_world_point_cloud()
     cfg = copy.deepcopy(giob.detector_cfg )
     cfg['min_pt'][2] = cfg['min_z_for_movement']
+    if min_z is not None:
+        cfg['min_pt'][2] = min_z
     if min_x > cfg['min_pt'][0]:
         cfg['min_pt'][0] = min_x
     seg_point_cloud_world = giob.get_segmented_point_cloud_world(cfg, point_cloud_world )
+    
+    """
+    import sensor_msgs.point_cloud2 as pcl2
+    from sensor_msgs.msg import Image, PointCloud2, PointField
+    print point_cloud_world.data.shape
+    pc2 = PointCloud2()
+    pc2.header.frame_id = giob.WORLD_FRAME
+    segmented_pc = pcl2.create_cloud_xyz32(pc2.header, np.transpose(seg_point_cloud_world.data))
+    pcl_pub = rospy.Publisher('mico_node/pointcloud', PointCloud2, queue_size=10)
+
+    i = 0
+    while not rospy.is_shutdown():
+       #hello_str = "hello world %s" % rospy.get_time()
+       #rospy.loginfo(hello_str)
+       pcl_pub.publish(segmented_pc)
+       #depth_im_pub.publish(depth_im)
+       rospy.sleep(5)
+       i = i+1
+       if i > 5:
+           break
+    
+    #return copy.deepcopy(point_cloud_world)
+    """
     if debug:
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
         depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
