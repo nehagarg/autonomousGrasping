@@ -281,15 +281,22 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
     model_name = keras_model_dir + keras_model_name + '.h5'
     model = load_model(model_name)
     ans = model_prediction(model,np.array(X))[0]
-    object_labels = get_baseline_labels(baseline_results_dir)
+    use_kmeans = False
+    if 'kmeans' in keras_model_name:
+        use_kmeans = True
+    object_labels = get_baseline_labels(baseline_results_dir,use_kmeans)
     object_list = giob.get_object_filenames(object_group_name, "")
     object_list = [x.replace('.yaml',"").replace("/","") for x in object_list]
-    object_list_pred = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
-    print object_list_pred
-    mean_error_list = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
-    probs_unnormalized = [np.exp(1.0/((10*x) + 0.1)) for x in mean_error_list]
-    z = sum(probs_unnormalized)
-    probs = [x/z for x in probs_unnormalized]
+    if use_kmeans:
+        probs = [ans[object_labels[o]] for o in object_list]
+    else:
+        
+        object_list_pred = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
+        print object_list_pred
+        mean_error_list = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
+        probs_unnormalized = [np.exp(1.0/((10*x) + 0.1)) for x in mean_error_list]
+        z = sum(probs_unnormalized)
+        probs = [x/z for x in probs_unnormalized]
     return list(ans),np.array(probs)
 
         
