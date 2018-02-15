@@ -141,7 +141,7 @@ def parse(fileName, belief_type = '', isTraining = False):
     seqs = []
     if fileName =='test':
         
-        for i in range(0,81):
+        for i in range(0,100):
             #logfileName = '/home/neha/WORK_FOLDER/neha_github/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_gaussian_belief_with_state_in_belief_t5_n10_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/separate_close_reward/singleObjectType/cylinder_9cm_reward100_penalty10/t1_n320_withoutLCAP/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t1_n320_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n80/Table_scene_low_friction_9cm_cylinder_belief_gaussian_with_state_in_t5_n80_trial_' + repr(i) +'.log'
@@ -150,18 +150,18 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/learning/version8/Table_scene_low_friction_7cm_cylinder_v8_trial_' + repr(i) +'.log'
             t = '5'
-            scenario = '40'
+            scenario = '80'
             
-            object = '84_yogurtcup_final-13-Nov-2015-10-32-33_instance0'
+            #object = '84_yogurtcup_final-13-Nov-2015-10-32-33_instance0'
             
-            #object = 'Cylinder_9'
+            object = 'Cylinder_7'
             #object='G3DB84_yogurtcup_final'
             #object = 'G3DB1_Coffeecup_final-20-dec-2015'
             #object = '9cm'
-            logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/vrep_scene_ver6/multiObjectType/'
+            logfileName = '/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/vrep_scene_ver7/multiObjectType/'
             #logfileName = logfileName + 'belief_uniform_g3db_single_reward100_penalty10/simulator/fixed_distribution/t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
-            #logfileName = logfileName + 'belief_uniform_cylinder_7_8_9_reward100_penalty10/use_discretized_data/fixed_distribution/'
-            logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/fixed_distribution/horizon90/'
+            logfileName = logfileName + 'belief_uniform_cylinder_7_8_9_reward100_penalty10/use_discretized_data/'
+            #logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/fixed_distribution/horizon90/'
             logfileName = logfileName +'t' + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
             #logfileName = logfileName + 'belief_uniform_g3db_1_84_reward100_penalty10/icp_score_weighted/simulator/fixed_distribution/learning/version13/'
             #logfileName = logfileName + 'Table_scene_' + object + '_trial_' + repr(i) +'.log'
@@ -173,7 +173,7 @@ def parse(fileName, belief_type = '', isTraining = False):
             #logfileName = '/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10/simulator/fixed_distribution/t1_n40/Table_scene_low_friction_7cm_cylinder_belief_gaussian_with_state_in_t1_n40_trial_' + repr(i) +'.log'
             
             #print i
-            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep')
+            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver7')
 
             #logfileName = '../../grasping_ros_mico/results/despot_logs/singleObjectType/cylinder_9cm_reward100_penalty10/t5_n20/TableScene_cylinder_9cm_gaussian_belief_with_state_in_belief_t5_n20_trial_' + repr(i) +'.log'
             #print i
@@ -188,6 +188,19 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName in ['vrep/version19']:
+        object_list = get_grasping_object_name_list('g3db_instances_train1_version7')
+        for i in range(0,243):
+            for t in ['5']:
+                for scenario in ['160']:
+                   for object in object_list:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
+                        logfileName = logfileName + 'vrep_scene_ver7/multiObjectType/'
+                        logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/'
+                        logfileName = logfileName + 'use_discretized_data/horizon90/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver7') 
     elif fileName in ['vrep/version18']:
         object_list = get_grasping_object_name_list('cylinders_train')
         for i in range(0,4000):
@@ -411,7 +424,7 @@ def test_parser(filename = 'test'):
     seqs = parse(filename, '', False)
     action_seqs = []
     for seq in seqs :
-        action_seq = [x[0] for x in seq]
+        action_seq = [x[1] for x in seq]
         action_seqs = action_seqs + [action_seq]
     print action_seqs
     print len(action_seqs)
