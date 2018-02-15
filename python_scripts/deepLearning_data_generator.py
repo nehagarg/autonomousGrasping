@@ -197,7 +197,7 @@ def parse(fileName, belief_type = '', isTraining = False):
                         logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
                         logfileName = logfileName + 'vrep_scene_ver7/multiObjectType/'
                         logfileName = logfileName + 'belief_uniform_g3db_instances_train1_reward100_penalty10/'
-                        logfileName = logfileName + 'use_discretized_data/horizon90/t' 
+                        logfileName = logfileName + 'use_discretized_data/fixed_distribution/horizon90/t' 
                         logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
                         #print i
                         seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver7') 
