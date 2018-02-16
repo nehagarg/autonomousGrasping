@@ -24,7 +24,7 @@ def model_prediction(model,X_train):
     (X_train,input_shape) = reshape_keras_input(X_train)
     return model.predict(X_train)
 
-def get_keras_cnn_model(X_train, Y_train):
+def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
     from keras.models import Sequential
     from keras.layers import Dense, Dropout, Activation, Flatten
     from keras.layers import Convolution2D, MaxPooling2D
@@ -33,6 +33,8 @@ def get_keras_cnn_model(X_train, Y_train):
     np.random.seed(1)
     batch_size = 128
     nb_classes = 7
+    if use_kmeans:
+        nb_classes = 3
     nb_epoch = 30
 
     
@@ -56,7 +58,8 @@ def get_keras_cnn_model(X_train, Y_train):
 
     # convert class vectors to binary class matrices
     #y_train_copy = [ord(x) - ord('a') for x in y_train]
-    #Y_train = np_utils.to_categorical(y_train_copy, nb_classes)
+    if use_kmeans:
+        Y_train_categortical = np_utils.to_categorical(Y_train, nb_classes)
     #Y_test = np_utils.to_categorical(y_test, nb_classes)
 
     model = Sequential()
@@ -75,13 +78,23 @@ def get_keras_cnn_model(X_train, Y_train):
     model.add(Activation('relu'))
     #model.add(Dropout(0.5))
     model.add(Dense(nb_classes))
-    #model.add(Activation('softmax'))
+    if use_kmeans:
+        model.add(Activation('softmax'))
 
-    model.compile(loss='mean_squared_error',
+    if use_kmeans:
+        model.compile(loss='categorical_crossentropy',
+              optimizer='adadelta',
+              metrics=['accuracy'])
+    else:
+        model.compile(loss='mean_squared_error',
               optimizer='adadelta',
               metrics=['accuracy'])
     start_time = time.time()
-    model.fit(X_train, Y_train, validation_split=0.2, batch_size=batch_size, nb_epoch=nb_epoch,
+    if use_kmeans:
+        model.fit(X_train, Y_train_categortical, validation_split=0.2, batch_size=batch_size, nb_epoch=nb_epoch,
+          verbose=1)
+    else:
+        model.fit(X_train, Y_train, validation_split=0.2, batch_size=batch_size, nb_epoch=nb_epoch,
           verbose=1)
     end_time = time.time()
     
@@ -149,21 +162,28 @@ def get_dir_list():
     dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/simulator/fixed_distribution/horizon90/')
     return dir_list
 
-def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6'):
+def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6',use_kmeans=False):
     grasping_ros_mico_path = get_grasping_ros_mico_path()
-    baseline_result_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/a_success_cases_g3db_instances.csv"
+    baseline_result_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/"
+    if(use_kmeans):
+        baseline_result_file_name = baseline_result_file_name + "kmeans_object_labels_g3db_instances.csv"
+    else:
+        baseline_result_file_name = baseline_result_file_name + "a_success_cases_g3db_instances.csv"
     object_labels = {}
     with open(baseline_result_file_name) as f:
         line = f.readline().rstrip('\n').split(",")
         for line in f:
             data = line.rstrip('\n').split(",")
-            object_labels[data[0]] = [float(x)/81.0 for x in data[1:8]]
+            if use_kmeans:
+                object_labels[data[0]] = int(data[1])
+            else:
+                object_labels[data[0]] = [float(x)/81.0 for x in data[1:8]]
             
     return object_labels
                 
     
-def get_data():   
-    object_labels = get_baseline_labels()
+def get_data(use_kmeans=False):   
+    object_labels = get_baseline_labels(use_kmeans = use_kmeans)
     
     object_name = 'g3db_instances_non_test'
     #object_name = '1_Coffeecup_final-10-Dec-2015-06-58-01_instance0'
@@ -230,17 +250,20 @@ def get_data():
     #object_names_shuf = object_names[arr[0:num_samples]]
     return (X_shuf,Y_shuf, object_names ,arr,model_dir)
     
-def train():
+def train(use_kmeans = False):
         
         
-    (X_shuf,Y_shuf, object_names, arr,model_dir) = get_data()
-    (model,train_predicted) = get_keras_cnn_model(X_shuf,Y_shuf)
+    (X_shuf,Y_shuf, object_names, arr,model_dir) = get_data(use_kmeans)
+    (model,train_predicted) = get_keras_cnn_model(X_shuf,Y_shuf,use_kmeans)
     print train_predicted[0]
     print Y_shuf[0]
     print object_names[arr[0]]
     
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    model.save(model_dir + timestr + '.h5')
+    model_file_name = model_dir + timestr + '.h5'
+    if use_kmeans:
+        model_file_name = model_dir + "kmeans_" + timestr + '.h5'
+    model.save(model_file_name)
     return (X_shuf,Y_shuf, model_dir,timestr)
     
 def test(model_name):
@@ -258,15 +281,22 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
     model_name = keras_model_dir + keras_model_name + '.h5'
     model = load_model(model_name)
     ans = model_prediction(model,np.array(X))[0]
-    object_labels = get_baseline_labels(baseline_results_dir)
+    use_kmeans = False
+    if 'kmeans' in keras_model_name:
+        use_kmeans = True
+    object_labels = get_baseline_labels(baseline_results_dir,use_kmeans)
     object_list = giob.get_object_filenames(object_group_name, "")
     object_list = [x.replace('.yaml',"").replace("/","") for x in object_list]
-    object_list_pred = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
-    print object_list_pred
-    mean_error_list = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
-    probs_unnormalized = [np.exp(1.0/((10*x) + 0.1)) for x in mean_error_list]
-    z = sum(probs_unnormalized)
-    probs = [x/z for x in probs_unnormalized]
+    if use_kmeans:
+        probs = [ans[object_labels[o]] for o in object_list]
+    else:
+        
+        object_list_pred = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
+        print object_list_pred
+        mean_error_list = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
+        probs_unnormalized = [np.exp(1.0/((10*x) + 0.1)) for x in mean_error_list]
+        z = sum(probs_unnormalized)
+        probs = [x/z for x in probs_unnormalized]
     return list(ans),np.array(probs)
 
         
@@ -298,8 +328,35 @@ def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1
         return object_beliefs
 """
 
+def cluster_labels():
+    from sklearn.cluster import KMeans
+    object_labels = get_baseline_labels()
+    object_key_to_array_index = {}
+    X = []
+    for object_name in object_labels.keys():
+        sum_value = sum(object_labels[object_name])
+        object_labels[object_name] = [x/sum_value for x in object_labels[object_name]]
+        object_key_to_array_index[object_name] = len(X)
+        X.append(object_labels[object_name])
+    kmeans = KMeans(n_clusters=3, random_state=0).fit(X)  
+    transormed_X = kmeans.transform(X)
+    
+    
+    for object_name in object_labels.keys():
+        print repr(kmeans.labels_[object_key_to_array_index[object_name]])+':' + object_name + ':'  + repr(transormed_X[object_key_to_array_index[object_name]])
+    
+    baseline_result_dir = 'data_low_friction_table_exp_ver6'
+    grasping_ros_mico_path = get_grasping_ros_mico_path()
+    label_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/kmeans_object_labels_g3db_instances.csv"
+
+    with open(label_file_name,'w') as f:
+        for object_name in object_labels.keys():
+            f.write(object_name+"," +repr(kmeans.labels_[object_key_to_array_index[object_name]]) + '\n' )
+    return kmeans
+    
 def main():
-    train()
+    train(use_kmeans = True)
+    #cluster_labels()
     
 if __name__ == '__main__':
     main()    

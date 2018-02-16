@@ -1,0 +1,5 @@
+{additional_params: --number=-2 -l CAP, begin_index: 0, belief_type: UNIFORM_WITH_STATE_IN,
+  config_file: config_files/low_friction_table/vrep_scene_ver7/multiObjectType/g3db_instances_train1_reward100_penalty10/use_discretized_data/learning/version19/1_Coffeecup_final-10-Dec-2015-06-58-01_instance0.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_1_Coffeecup_final-10-Dec-2015-06-58-01_instance0,
+  horizon: 90, number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/vrep_scene_ver7/multiObjectType/belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/horizon90/learning/version19,
+  planning_time: 1, solver: DEEPLEARNING}
