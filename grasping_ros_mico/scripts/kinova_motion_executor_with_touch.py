@@ -21,6 +21,7 @@ class KinovaExecutorWithTouch(KinovaExecutor):
         self.initial_pressure = [None, None]
         self.detected_pressure = [0, 0]
         self.vision_movement = 0
+        self.cancelled_execution = 0
         self.sub_touch_r = rospy.Subscriber('/touch_r', Float32, self.cb_touch, 1)
         self.sub_pressure_r = rospy.Subscriber('/pressure_calib_r', Float32, self.cb_pressure, 1)
         self.sub_touch_l = rospy.Subscriber('/touch_l', Float32, self.cb_touch, 0)
@@ -92,11 +93,17 @@ class KinovaExecutorWithTouch(KinovaExecutor):
             output: goal result
         """
         print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (dx, dy, dz)
+        (position_, orientation_q) = self.get_cartesian_goal_from_relative_pose(dx,dy,dz,droll,dpitch,dyaw)
+        return goto_absolute_pose_until_touch(position_, orientation_q, check_touch, check_vision_movement)
+    
+    def goto_absolute_pose_until_touch(self, position_, orientation_q, check_touch=True, check_vision_movement = False):
+        print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (position_[0],position_[1] , position_[2])
         self.max_pressure = [-1000, -1000]
         self.vision_movement = 0
+        self.cancelled_execution = 0
         check_need_cancel = lambda: (check_touch and self.is_touched) or (check_vision_movement and self.has_moved)
         
-        (position_, orientation_q) = self.get_cartesian_goal_from_relative_pose(dx,dy,dz,droll,dpitch,dyaw)
+        
         
         try:
             client = self.cartesian_pose_client_send_goal(position_, orientation_q)
@@ -105,7 +112,7 @@ class KinovaExecutorWithTouch(KinovaExecutor):
                     if check_need_cancel():
                         rospy.loginfo('cancelling...')
                         client.cancel_goal()
-
+                        self.cancelled_execution = 1
             result = client.get_result()
         except rospy.ROSInterruptException:
             print "program interrupted before completion"

@@ -8,11 +8,21 @@ sensor_cfg:
     flip_images: 1
     type: primesense_ros
 
-kinect_sensor_cfg:
+kinect_sensor_cfg_hd:
     color_topic: /kinect2/hd/image_color_rect
     depth_topic: /kinect2/hd/image_depth_rect
     camera_info_topic: /kinect2/hd/camera_info
     cam_frame: kinect2_rgb_optical_frame
+    cam_point_cloud: /move_group/filtered_cloud 
+    #/kinect2/hd/points
+    
+kinect_sensor_cfg:
+    color_topic: /kinect2/sd/image_color_rect
+    depth_topic: /kinect2/sd/image_depth_rect
+    camera_info_topic: /kinect2/sd/camera_info
+    cam_frame: kinect2_ir_optical_frame
+    cam_point_cloud: /move_group/filtered_cloud 
+    #/kinect2/sd/points
     
 # inpaint
 inpaint_rescale_factor: 0.5
