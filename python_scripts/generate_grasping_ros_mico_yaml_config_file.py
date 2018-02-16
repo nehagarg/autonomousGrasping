@@ -532,7 +532,7 @@ class ConfigFileGenerator():
         if('g3db_instances_train1_version7' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
-            self.filetypes = ['']# 'learning/version17/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['', 'learning/version19/'] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -592,6 +592,8 @@ def get_keras_classifier_model_from_version(version_name):
     pass
 
 def get_learning_model_from_version(version_name):
+    if version_name == 'vrep/version19':
+        return 'model.ckpt-923'
     if version_name == 'vrep/version18':
         return 'model.ckpt-800'
     if version_name == 'vrep/version17':
