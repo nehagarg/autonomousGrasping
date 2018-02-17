@@ -206,17 +206,8 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         belief_object_ids.push_back(test_object_id);
     }
     
-    if(RobotInterface::get_object_belief)
-    {
-        int weighted_obs_size = belief_object_ids.size();
-        if(RobotInterface::use_classifier_for_belief)
-        {
-            weighted_obs_size = 7;
-        }
-        LearningModel::problem_name  = LearningModel::problem_name + "/weighted_" + to_string(weighted_obs_size);
-    }
     
-    
+       
     /*start_state_index = -1;
     if(config["start_state_index"])
     {
@@ -258,6 +249,17 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     else
     {
         robotInterface->classifier_string_name = "";
+    }
+    
+    if(RobotInterface::get_object_belief)
+    {
+        int weighted_obs_size = belief_object_ids.size();
+        if(RobotInterface::use_classifier_for_belief)
+        {
+            weighted_obs_size = robotInterface->GetWeightedObservationSize();
+            
+        }
+        LearningModel::problem_name  = LearningModel::problem_name + "/weighted_" + to_string(weighted_obs_size);
     }
     /*
      * 

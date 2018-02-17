@@ -2165,7 +2165,8 @@ std::pair <std::map<int,double>,std::vector<double> > VrepInterface::GetBeliefOb
     
     if(RobotInterface::use_classifier_for_belief)
     {
-        for(int i = belief_object_ids.size(); i < belief_object_ids.size()+7; i++)
+        int weighted_obs_size = GetWeightedObservationSize();
+        for(int i = belief_object_ids.size(); i < belief_object_ids.size()+weighted_obs_size; i++)
         {
             PyObject* tmpObj = PyList_GetItem(belief_probs, i);
             vision_observation.push_back(PyFloat_AsDouble(tmpObj));

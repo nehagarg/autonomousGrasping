@@ -1050,6 +1050,18 @@ std::pair <std::map<int,double>,std::vector<double> > RobotInterface::GetBeliefO
     return std::make_pair(ans,ans1);
 }
 
+int RobotInterface::GetWeightedObservationSize() const{
+
+    int weighted_obs_size = 7;
+    if(classifier_string_name.find("kmeans") != std::string::npos)
+    {
+        weighted_obs_size = 3;
+    }
+    return weighted_obs_size;
+        
+}
+
+
 
 double RobotInterface::get_action_range(int action, int action_type) const {
 if ((action - action_type) >= (A_DECREASE_X - A_INCREASE_X)) {

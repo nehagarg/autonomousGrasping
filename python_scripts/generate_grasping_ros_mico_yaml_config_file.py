@@ -532,7 +532,7 @@ class ConfigFileGenerator():
         if('g3db_instances_train1_version7' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
-            self.filetypes = ['', 'learning/version19/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']#, 'learning/version19/'] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -549,6 +549,8 @@ class ConfigFileGenerator():
         if('classifier' in type):
             self.use_object_classifier = True
             self.keras_model_name = "20180123-085411"
+            if "kmeans" in type:
+                self.keras_model_name = "kmeans_20180215-115011"
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
@@ -624,6 +626,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train1_discretize'
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
 #type = 'g3db_instances_train1_version7_discretize'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)

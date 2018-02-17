@@ -193,6 +193,7 @@ public:
     bool isDataEntrySameAsDefault(SimulationData simData, int action, int object_id) const;
     GraspObject* getGraspObject(std::string object_name) const;
     void loadObjectDynamicModel(int object_id);
+    int GetWeightedObservationSize() const;
     
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
     virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
