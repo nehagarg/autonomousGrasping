@@ -643,6 +643,8 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
     if(take_step)
     {
        //Check if already touching
+        if(RobotInterface::check_touch)
+        {
         if(step_no == 0)
         {
 
@@ -664,6 +666,7 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
         if(alreadyTouching)
         {
             std::cout<< "Already touching" <<  " " << std::endl; 
+        }
         }
         
         SetMicoTargetPose(mico_target_pose);
@@ -710,6 +713,8 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
     
      // if touch toggle is detected stop as actions are move until touch
     bool stop_due_to_touch = false; 
+    if(RobotInterface::check_touch)
+    {
     if(!alreadyTouching)
     {
     
@@ -724,7 +729,8 @@ bool VrepInterface::TakeStepInVrep(int action_offset, int step_no, bool& already
         std::cout << std::endl;
      }
     }
-     
+    }
+    
     if(take_step)
     {
         if(stateValid)

@@ -10,6 +10,9 @@
 RealArmInterface::RealArmInterface(int start_state_index_) : VrepDataInterface(start_state_index_) {
     micoActionFeedbackClient = grasping_n.serviceClient<grasping_ros_mico::MicoActionFeedback>("mico_action_feedback_server");
     //realArmObs = true;
+    max_x_i = 0.5279 + 0.08;  // range for gripper movement
+    //min_y_i = 0.0816 - 0.08; // range for gripper movement
+    //max_y_i = 0.2316 + 0.08;
 }
 
 RealArmInterface::RealArmInterface(const RealArmInterface& orig) {
@@ -25,32 +28,49 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
     }*/
     GraspingStateRealArm initial_grasping_state = state;
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
-    micoActionFeedback_srv.request.check_touch = true;
+    micoActionFeedback_srv.request.check_touch = RobotInterface::check_touch;
     micoActionFeedback_srv.request.check_vision_movement = RobotInterface::version7;
     if(action < A_CLOSE)
     {
-        
+        //std::cout << "gripper statsu is  " << state.gripper_status << std::endl ;
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_MOVE;
         micoActionFeedback_srv.request.move_x = 0;
         micoActionFeedback_srv.request.move_y = 0;
-        if (state.gripper_status > 0)
+        if (state.gripper_status == 0)
             {
             int action_offset = (action/(A_DECREASE_X - A_INCREASE_X)) * (A_DECREASE_X - A_INCREASE_X);
             double movement_value = get_action_range(action, action_offset);
+            //std::cout << "Movement value is " << movement_value << std::endl;
             if(action_offset == A_INCREASE_X)
             {
+                if ((state.gripper_pose.pose.position.x + movement_value) > max_x_i)
+                {
+                    movement_value = max_x_i - state.gripper_pose.pose.position.x;
+                }
                 micoActionFeedback_srv.request.move_x = movement_value;
             }
             else if(action_offset == A_DECREASE_X)
             {
+                if ((state.gripper_pose.pose.position.x - movement_value) < min_x_i)
+                {
+                    movement_value = -min_x_i + state.gripper_pose.pose.position.x;
+                }
                 micoActionFeedback_srv.request.move_x = -1*movement_value;
             }
             else if(action_offset == A_INCREASE_Y)
             {
+                if ((state.gripper_pose.pose.position.y + movement_value) > max_y_i)
+                {
+                    movement_value = max_y_i - state.gripper_pose.pose.position.y;
+                }
                 micoActionFeedback_srv.request.move_y = movement_value;
             }
             else if(action_offset == A_DECREASE_Y)
             {
+                if ((state.gripper_pose.pose.position.y - movement_value) < min_y_i)
+                {
+                    movement_value = -min_y_i + state.gripper_pose.pose.position.y;
+                }
                 micoActionFeedback_srv.request.move_y = -1*movement_value;
             }
         }
@@ -90,7 +110,10 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
             obs.touch_sensor_reading[i] = micoActionFeedback_srv.response.touch_sensor_reading[finger_index];
         }
         AdjustTouchSensorToSimulatedTouchSensor(obs.touch_sensor_reading);
-        
+        if(RobotInterface::version7)
+        {
+            obs.vision_movement = micoActionFeedback_srv.response.vision_movement;
+        }
         obs.gripper_pose = state.gripper_pose;
         obs.mico_target_pose = obs.gripper_pose; //Not being used
         

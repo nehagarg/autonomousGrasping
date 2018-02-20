@@ -31,6 +31,7 @@ bool RobotInterface::use_pruned_data;
 bool RobotInterface::use_discretized_data;
 bool RobotInterface::use_probabilistic_step;
 bool RobotInterface::use_classifier_for_belief;
+bool RobotInterface::check_touch;
 
 RobotInterface::RobotInterface() {
     min_x_i = 0.3379; //range for gripper movement

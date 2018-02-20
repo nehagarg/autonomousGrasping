@@ -520,6 +520,7 @@ class ConfigFileGenerator():
         self.use_weighted_belief = False
         self.use_object_classifier = False
         self.clip_objects = False
+        self.check_touch = True
         self.filetypes = [''] #Con contain learning and combined policy dir paths
         if('g3db_instances_train2' in type):
             self.belief_name = 'g3db_instances_train2'
@@ -554,6 +555,8 @@ class ConfigFileGenerator():
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
+        if('no_touch' in type):
+            self.check_touch = False
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -622,6 +625,7 @@ def get_hand_defined_actions(type):
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
 #type = 'baseline_<no>'
+#type = 'baseline__no_touch_<no>'
 #type = 'g3db_instances_train1_discretize_weighted'
 #type = 'g3db_instances_train1_discretize'
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
@@ -637,7 +641,7 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
         if(cfg.use_pruned_data):
             ans["use_pruned_data"] = True
         if(cfg.use_discretized_data):
-            ans["use_discretized_data"] = True      
+            ans["use_discretized_data"] = True
         ans["interface_type"] = 1
         if interface_type == 'simulator/':
             ans["interface_type"] = 0
@@ -653,7 +657,8 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["object_classifier_string_name"] = cfg.keras_model_name
         if(cfg.clip_objects):
             ans["clip_number_of_objects"] = int(cfg.num_clip)
-            
+        if(not cfg.check_touch):
+            ans['check_touch'] = False
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
@@ -696,7 +701,7 @@ def main():
             #generate_G3DB_ver5_single_belief_files()
             #generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
-            generate_grasping_config_files(arg, 'ver7')
+            generate_grasping_config_files(arg, 'ver6')
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"

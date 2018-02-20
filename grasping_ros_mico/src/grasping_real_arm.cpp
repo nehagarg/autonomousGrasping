@@ -189,6 +189,16 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     }
     
     
+    if(config["check_touch"])
+    {
+        RobotInterface::check_touch = config["check_touch"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::check_touch = true;
+    }
+    
+    
     if(config["belief_object_ids"]) 
     {
         for(int i = 0; i < config["belief_object_ids"].size(); i++)

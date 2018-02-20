@@ -138,6 +138,7 @@ public:
     static bool auto_load_object;
     static bool use_pruned_data;
     static bool use_discretized_data;
+    static bool check_touch;
     static bool use_probabilistic_step; //Use gaussian distribution 0f 5mm in step function
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
