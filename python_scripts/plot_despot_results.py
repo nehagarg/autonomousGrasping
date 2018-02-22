@@ -765,7 +765,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
         fig, ax = plt.subplots(3,len(dir_list))
     for i in range(0,len(dir_list)):
         yaml_file_name_prefix = get_csv_name_prefix(dir_list[i])
-        yaml_file_name = yaml_file_name_prefix + "_success_failure_stuck_map.yaml"
+        yaml_file_name = yaml_file_name_prefix + "_success_failure_stuck_map_" + pattern + ".yaml"
         compute_data = True
         if(plot_graph == 'yes'):
             if(os.path.exists(yaml_file_name)):
@@ -773,7 +773,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
                 if overwrite_file != 'y':
                     compute_data = False
         if compute_data:    
-            iteration_data = get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern)
+            iteration_data = get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern+ "_")
             output = dump(iteration_data, Dumper=Dumper)
             f = open(yaml_file_name, 'w')
             f.write(output)
