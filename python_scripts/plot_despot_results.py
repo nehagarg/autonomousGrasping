@@ -536,6 +536,7 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
 
 def generate_combined_csv(base_dir, dir_list, pattern, out_dir ):
     
+    patterns=[]
     if('|' in pattern):
         pattern = pattern.strip('|')
         patterns = [pattern] 
@@ -751,14 +752,48 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     
 
 
-def get_and_plot_success_failure_cases_for_vrep(dir_names, pattern):
+def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
+    import yaml
+    from yaml import dump
+    try:
+        from yaml import CDumper as Dumper
+    except ImportError:
+        from yaml import Dump
+    
     dir_list = dir_names.split(',')
-    fig, ax = plt.subplots(3,len(dir_list))
+    if(plot_graph == 'yes'):
+        fig, ax = plt.subplots(3,len(dir_list))
     for i in range(0,len(dir_list)):
-        get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern, i+1, len(dir_list))
-    plt.show()
+        yaml_file_name_prefix = get_csv_name_prefix(dir_list[i])
+        yaml_file_name = yaml_file_name_prefix + "_success_failure_stuck_map.yaml"
+        compute_data = True
+        if(plot_graph == 'yes'):
+            if(os.path.exists(yaml_file_name)):
+                overwrite_file = raw_input("File " + yaml_file_name_prefix + " already exists. Shall I overwrite?[y|n]")
+                if overwrite_file != 'y':
+                    compute_data = False
+        if compute_data:    
+            iteration_data = get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern)
+            output = dump(iteration_data, Dumper=Dumper)
+            f = open(yaml_file_name, 'w')
+            f.write(output)
+        else:
+            if(plot_graph == 'yes'):
+                with open(yaml_file_name,'r') as stream:
+                    iteration_data = yaml.load(stream)
+        if(plot_graph == 'yes'):        
+            num_iterations = len(iteration_data.keys)
+            plot_no = i+1
+            plot_tot = len(dir_list)
+            for j in range(0,num_iterations):
+                (x,y,colors) = iteration_data[j]
+                for k in range(0,3):
+                    plt.subplot(3,plot_tot,plot_no + (k*plot_tot))
+                    plot_scatter_graph(y, x, colors[k], 1.0/num_iterations)
+    if(plot_graph == 'yes'):
+        plt.show()
 
-def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern, plot_no, plot_tot):
+def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern):
     
     min_x_o = 0.4586  #range for object location
     max_x_o = 0.5517; #range for object location
@@ -781,6 +816,7 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern, plot_no
     num_cases = 81
     num_iterations = 3
     #fig, ax = plt.subplots(1,1)
+    iteration_data = {}
     for j in range(0,num_iterations):
         x = []
         y = []
@@ -824,10 +860,10 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern, plot_no
                 colors[2].append('yellow')
                 colors[0].append('white')
                 colors[1].append('white')
-        for k in range(0,3):
-            plt.subplot(3,plot_tot,plot_no + (k*plot_tot))
-            plot_scatter_graph(y, x, colors[k], 1.0/num_iterations)
+        iteration_data[j] = (x[:],y[:],[colors[0][:], colors[1][:],colors[2][:]])
+        
     os.chdir(cur_dir)
+    return iteration_data
     #plt.show()
     #fig.savefig("figure_1.png")
     
@@ -899,13 +935,26 @@ def main():
                 if line is not None:
                     inputs = line.split(' ')
                     pattern = inputs[0]
-                    if('|' in pattern):
-                        pattern = pattern.strip('|')
-                        patterns = [pattern] + get_grasping_object_name_list(pattern)
+                    if('|' in pattern or '#' in pattern):
+                        if('|' in pattern):
+                            pattern = pattern.strip('|')
+                            patterns = [pattern] + get_grasping_object_name_list(pattern)
+                   
+                        if('#' in pattern):
+                            pattern = pattern.strip('#')
+                            patterns = []
+    
+                        patterns = patterns + get_grasping_object_name_list(pattern)
                         for p in patterns:
-                            get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p, inputs)
+                            if(plot_sucess_failure_cases):
+                                get_and_plot_success_failure_cases_for_vrep(plot_graph,  dir_name, p)
+                            else:
+                                get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p, inputs)
                     else:
-                        get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs)
+                        if(plot_sucess_failure_cases):
+                            get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_name, pattern)
+                        else:
+                            get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs)
 
     else:
         pattern = 'test'
@@ -914,7 +963,7 @@ def main():
         #if input_pattern in input_patterns:
         pattern = input_pattern
         if(plot_sucess_failure_cases):
-            get_and_plot_success_failure_cases_for_vrep(dir_name, pattern)
+            get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_name, pattern)
         else:
             get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
             
