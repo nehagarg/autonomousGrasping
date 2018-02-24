@@ -534,7 +534,7 @@ class ConfigFileGenerator():
         if('g3db_instances_train1_version7' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
-            self.filetypes = ['', 'learning/version20/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']#, 'learning/version20/'] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
