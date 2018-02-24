@@ -519,6 +519,7 @@ class ConfigFileGenerator():
         self.use_discretized_data = False
         self.use_weighted_belief = False
         self.use_object_classifier = False
+        self.use_probabilistic_step = False
         self.clip_objects = False
         self.check_touch = True
         self.filetypes = [''] #Con contain learning and combined policy dir paths
@@ -533,7 +534,7 @@ class ConfigFileGenerator():
         if('g3db_instances_train1_version7' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
-            self.filetypes = ['']#, 'learning/version19/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['', 'learning/version20/'] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -545,6 +546,8 @@ class ConfigFileGenerator():
             self.use_pruned_data = True
         if('discretize' in type):
             self.use_discretized_data = True
+        if('probabilistic' in type):
+            self.use_probabilistic_step = True
         if('weighted' in type):
             self.use_weighted_belief = True
         if('classifier' in type):
@@ -552,6 +555,8 @@ class ConfigFileGenerator():
             self.keras_model_name = "20180123-085411"
             if "kmeans" in type:
                 self.keras_model_name = "kmeans_20180215-115011"
+            if "kmeans_label_1" in type:
+                self.keras_model_name = "kmeans_label_1_20180223-105821"
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
@@ -578,6 +583,8 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_pruned_data"
                     if(self.use_discretized_data):
                         file_prefix = file_prefix + "/use_discretized_data"
+                    if(self.use_probabilistic_step):
+                        file_prefix = file_prefix + "/use_probabilistic_step"    
                     if(self.use_weighted_belief):
                         file_prefix = file_prefix + "/use_weighted_belief"
                     if(self.use_object_classifier):
@@ -597,6 +604,8 @@ def get_keras_classifier_model_from_version(version_name):
     pass
 
 def get_learning_model_from_version(version_name):
+    if version_name == 'vrep/version20':
+        return 'model.ckpt-800'
     if version_name == 'vrep/version19':
         return 'model.ckpt-923'
     if version_name == 'vrep/version18':
@@ -631,6 +640,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
 #type = 'g3db_instances_train1_version7_discretize'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1_probabilistic'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -659,6 +669,8 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["clip_number_of_objects"] = int(cfg.num_clip)
         if(not cfg.check_touch):
             ans['check_touch'] = False
+        if(cfg.use_probabilistic_step):
+            ans['use_probabilistic_step'] = True
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
@@ -701,7 +713,7 @@ def main():
             #generate_G3DB_ver5_single_belief_files()
             #generate_G3DB_ver5_cylinder_belief_files('true')
             #generate_G3DB_ver5_cylinder_cup_belief_files()
-            generate_grasping_config_files(arg, 'ver6')
+            generate_grasping_config_files(arg, 'ver7')
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
