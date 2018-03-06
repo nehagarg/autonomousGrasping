@@ -641,6 +641,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train1_version7_discretize'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1_probabilistic'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
