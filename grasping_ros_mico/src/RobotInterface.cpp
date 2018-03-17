@@ -32,6 +32,7 @@ bool RobotInterface::use_discretized_data;
 bool RobotInterface::use_probabilistic_step;
 bool RobotInterface::use_classifier_for_belief;
 bool RobotInterface::check_touch;
+bool RobotInterface::use_binary_touch;
 
 RobotInterface::RobotInterface() {
     min_x_i = 0.3379; //range for gripper movement
@@ -782,9 +783,22 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     finger_distance = finger_distance/(4.0/inc);
     
     double sensor_distance = 0;
+    int on_bits2[2];
+    int on_bits2_expected[2];
+    
+    if (RobotInterface::use_binary_touch)
+    {
+       CheckTouch(grasping_obs.touch_sensor_reading, on_bits2);
+        CheckTouch(grasping_obs_expected.touch_sensor_reading, on_bits2_expected);
+    }
     for(int i = 0; i < 2; i++)
     {
-        sensor_distance = sensor_distance + RobotInterface::abs(grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i]);
+        double distance_1 = grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i];
+        if (RobotInterface::use_binary_touch)
+        {
+            distance_1 = on_bits2[i] - on_bits2_expected[i];
+        }
+        sensor_distance = sensor_distance + RobotInterface::abs(distance_1);
     }
     sensor_distance = sensor_distance/2.0;
     double vision_sensor_distance = 0;
@@ -2141,7 +2155,22 @@ void RobotInterface::ConvertObs48ToObs2(double current_sensor_values[], double o
         }
     }
 }
-
+bool RobotInterface::CheckTouch(double current_sensor_values[], int on_bits[], int size) const {
+//return false;
+    bool touchDetected = false;
+    for(int i = 0; i < size; i++)
+    {
+        on_bits[i] = 0;
+        //if(current_sensor_values[i] > (touch_sensor_mean[i] + (3*touch_sensor_std[i])))
+        if(current_sensor_values[i] > vrep_touch_threshold)
+        {
+            touchDetected = true;
+            on_bits[i] = 1;
+        }
+    }
+    
+    return touchDetected;
+}
 
 
 

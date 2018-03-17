@@ -43,6 +43,7 @@ public:
     void GenerateUniformParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
     
     void GetDefaultStartState(GraspingStateRealArm& initial_state) const;
+    bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;
     static double abs(double x) {
         if (x < 0) 
         {
@@ -140,6 +141,7 @@ public:
     static bool use_discretized_data;
     static bool check_touch;
     static bool use_probabilistic_step; //Use gaussian distribution 0f 5mm in step function
+    static bool use_binary_touch; //Use binary touch to update obs prob
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
@@ -197,7 +199,7 @@ public:
     int GetWeightedObservationSize() const;
     
     virtual void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const = 0;
-    virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
+    //virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
     virtual bool IsValidPick(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs) const = 0;
     virtual void CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const = 0;
     virtual void GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type = 2) const = 0;

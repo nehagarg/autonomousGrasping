@@ -58,22 +58,7 @@ void VrepDataInterface::CheckAndUpdateGripperBounds(GraspingStateRealArm& graspi
     }
 }
 
-bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[], int size) const {
-//return false;
-    bool touchDetected = false;
-    for(int i = 0; i < size; i++)
-    {
-        on_bits[i] = 0;
-        //if(current_sensor_values[i] > (touch_sensor_mean[i] + (3*touch_sensor_std[i])))
-        if(current_sensor_values[i] > vrep_touch_threshold)
-        {
-            touchDetected = true;
-            on_bits[i] = 1;
-        }
-    }
-    
-    return touchDetected;
-}
+
 
 void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     

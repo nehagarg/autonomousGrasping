@@ -19,7 +19,7 @@ public:
     mutable int start_state_index;
     void CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const;
 
-    bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;
+    //bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;
     
 
     virtual void CreateStartState(GraspingStateRealArm& initial_state, std::string type) const;

@@ -198,6 +198,16 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::check_touch = true;
     }
     
+     
+    if(config["binary_touch"])
+    {
+        RobotInterface::use_binary_touch = config["use_binary_touch"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_binary_touch = false;
+    }
+    
     
     if(config["belief_object_ids"]) 
     {
