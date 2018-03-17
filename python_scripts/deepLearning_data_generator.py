@@ -61,6 +61,9 @@ def get_next_step_from_log(lfp,step):
     state_value = lfp.stepInfo_[step]['state']
     touch_0 = lfp.stepInfo_[step]['obs'].sensor_obs[0]
     touch_1 = lfp.stepInfo_[step]['obs'].sensor_obs[1]
+    vision_movement = 0
+    if hasattr(lfp.stepInfo_[step]['obs'], 'vision_movement'):
+        vision_movement = lfp.stepInfo_[step]['obs'].vision_movement
     values = [state_value.g_x, state_value.g_y, state_value.g_z]
     values.append(state_value.g_xx)
     values.append(state_value.g_yy)
@@ -75,6 +78,7 @@ def get_next_step_from_log(lfp,step):
     values.append(state_value.fj4)
     values.append(touch_0)
     values.append(touch_1)
+    values.append(vision_movement)
     values.append(action_string_hash[("").join(lfp.stepInfo_[step]['action'][:-1].split(" "))])
     values.append(lfp.stepInfo_[step]['reward'])
     

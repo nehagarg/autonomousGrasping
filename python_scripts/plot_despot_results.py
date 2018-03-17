@@ -769,7 +769,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
         compute_data = True
         if(plot_graph == 'yes'):
             if(os.path.exists(yaml_file_name)):
-                overwrite_file = raw_input("File " + yaml_file_name_prefix + " already exists. Shall I overwrite?[y|n]")
+                overwrite_file = raw_input("File " + yaml_file_name + " already exists. Shall I overwrite?[y|n]")
                 if overwrite_file != 'y':
                     compute_data = False
         if compute_data:    
@@ -782,7 +782,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
                 with open(yaml_file_name,'r') as stream:
                     iteration_data = yaml.load(stream)
         if(plot_graph == 'yes'):        
-            num_iterations = len(iteration_data.keys)
+            num_iterations = len(iteration_data.keys())
             plot_no = i+1
             plot_tot = len(dir_list)
             for j in range(0,num_iterations):
