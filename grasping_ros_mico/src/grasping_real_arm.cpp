@@ -208,6 +208,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         RobotInterface::use_binary_touch = false;
     }
     
+    if(config["use_wider_workspace"])
+    {
+        RobotInterface::use_wider_object_workspace = config["use_wider_object_workspace"].as<bool>();
+    }
+    else
+    {
+       RobotInterface::use_wider_object_workspace = false; 
+    }
+    
     
     if(config["belief_object_ids"]) 
     {

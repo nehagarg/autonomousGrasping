@@ -33,7 +33,7 @@ bool RobotInterface::use_probabilistic_step;
 bool RobotInterface::use_classifier_for_belief;
 bool RobotInterface::check_touch;
 bool RobotInterface::use_binary_touch;
-
+bool RobotInterface::use_wider_object_workspace;
 RobotInterface::RobotInterface() {
     min_x_i = 0.3379; //range for gripper movement
     max_x_i = 0.5279;  // range for gripper movement
@@ -184,6 +184,10 @@ GraspObject* RobotInterface::getGraspObject(std::string object_name) const{
     if(low_friction_table)
         {
             data_dir = "data_low_friction_table_exp";
+            if(use_wider_object_workspace)
+            {
+                data_dir = data_dir + "_wider_object_workspace";
+            }
             if(version5)
             {
                 data_dir = data_dir + "_ver5";

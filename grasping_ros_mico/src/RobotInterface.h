@@ -142,6 +142,7 @@ public:
     static bool check_touch;
     static bool use_probabilistic_step; //Use gaussian distribution 0f 5mm in step function
     static bool use_binary_touch; //Use binary touch to update obs prob
+    static bool use_wider_object_workspace;
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
