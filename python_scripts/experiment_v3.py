@@ -76,7 +76,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         command_prefix_parts = command_prefix.split('_')
         y_start = -1
         y_end = -1
-        if len(command_prefix_parts > 2):
+        if len(command_prefix_parts) > 2:
             y_start = int(command_prefix_parts[2])
             y_end = y_start + 1
         command = command + ' ' + ",".join(map(str,[begin_index, end_index, y_start, y_end]))
