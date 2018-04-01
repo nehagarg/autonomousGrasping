@@ -35,7 +35,7 @@ def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
     batch_size = 128
     nb_classes = 7
     if use_kmeans:
-        nb_classes = 3
+        nb_classes = (np.unique(Y_train)).size()
     nb_epoch = 30
 
     
@@ -383,7 +383,8 @@ def cluster_labels(num_clusters=3):
     return kmeans
     
 def main():
-    test('kmeans_20180215-115011', use_kmeans = True )
+    train(use_kmeans = True, kmeans_label = '_2')
+    #test('kmeans_20180215-115011', use_kmeans = True )
     #test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
     #train(use_kmeans = True, kmeans_label = '_1')
     #cluster_labels(3)
