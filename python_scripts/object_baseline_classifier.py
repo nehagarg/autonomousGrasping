@@ -383,7 +383,8 @@ def cluster_labels(num_clusters=3):
     return kmeans
     
 def main():
-    test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
+    test('kmeans_20180215-115011', use_kmeans = True )
+    #test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
     #train(use_kmeans = True, kmeans_label = '_1')
     #cluster_labels(3)
     
