@@ -35,7 +35,7 @@ def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
     batch_size = 128
     nb_classes = 7
     if use_kmeans:
-        nb_classes = (np.unique(Y_train)).size()
+        nb_classes = (np.unique(Y_train)).size
     nb_epoch = 30
 
     
