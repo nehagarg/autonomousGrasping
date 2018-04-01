@@ -211,7 +211,13 @@ def get_data(use_kmeans=False,kmeans_label = '', for_test = False):
         object_instance_name = object_file_name_.replace('.yaml','').split('/')[-1]
         
         for i in range(0,81):
-            Y.append(object_labels[object_instance_name])
+            if for_test:
+                if object_instance_name in object_labels.keys():
+                    Y.append(object_labels[object_instance_name])
+                else:
+                    Y.append(1000)
+            else:
+                Y.append(object_labels[object_instance_name])
             object_names.append(object_instance_name+ "/" + repr(i))
             object_file_name = object_file_name_.replace('.yaml','') + "/" + repr(i)
             thumbnail_object_file_name = object_file_name + "_thumbnail.npy"
