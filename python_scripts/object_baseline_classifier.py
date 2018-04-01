@@ -230,6 +230,7 @@ def get_data(use_kmeans=False,kmeans_label = '', for_test = False):
                     vis.imshow(depth_im_cropped)
                     vis.show()
             else:
+                print "Creating " + thumbnail_object_file_name
                 object_list = giob.load_object_file([object_file_name])
                 (depth_im_cropped,clipped) = get_depth_image_thumbmail(object_list[0][0], 200,160,False)
                 depth_im_cropped.save(thumbnail_object_file_name)
