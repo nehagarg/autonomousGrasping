@@ -184,10 +184,13 @@ def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6'
     return object_labels
                 
     
-def get_data(use_kmeans=False,kmeans_label = ''):   
+def get_data(use_kmeans=False,kmeans_label = '', for_test = False):   
     object_labels = get_baseline_labels(use_kmeans = use_kmeans, kmeans_label=kmeans_label)
     
     object_name = 'g3db_instances_non_test_version7'
+    if for_test:
+        object_name = 'g3db_instances_version7'
+        #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
     #object_name = '1_Coffeecup_final-10-Dec-2015-06-58-01_instance0'
     #object_name = 'Cylinder_7'
     #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
@@ -270,10 +273,20 @@ def train(use_kmeans = False, kmeans_label = ''):
     model.save(model_file_name)
     return (X_shuf,Y_shuf, model_dir,timestr)
     
-def test(model_name):
+def test(model_name, use_kmeans = False, kmeans_label = '' ):
     from keras.models import load_model
-    (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data()
-    model = load_model(model_dir + model_name + '.h5')
+    (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data(use_kmeans,kmeans_label, for_test = True)
+    #if model_name is None:
+    model_name = model_dir + model_name + '.h5'
+    model = load_model(model_name)
+    ans = model_prediction(model,X_shuf)
+    model_prediction_filename = model_name.replace('.h5','.pred')
+    with open(model_prediction_filename,'w') as f:
+        for i in range(0,len(ans)):
+            f.write(object_names[arr[i]] + " " + repr(ans[i]) + " " + 
+            repr(np.argmax(ans[i])) + " " + repr(Y_shuf[i]) + "\n")
+        
+    #model = load_model(model_dir + model_name + '.h5')
     #y_predicted = model.predict(X_test)
     
 def get_object_represention_and_weighted_belief(depth_im, 
@@ -363,7 +376,8 @@ def cluster_labels(num_clusters=3):
     return kmeans
     
 def main():
-    train(use_kmeans = True, kmeans_label = '_1')
+    test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
+    #train(use_kmeans = True, kmeans_label = '_1')
     #cluster_labels(3)
     
 if __name__ == '__main__':
