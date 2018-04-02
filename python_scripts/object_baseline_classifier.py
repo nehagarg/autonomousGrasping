@@ -290,7 +290,7 @@ def test(model_name, use_kmeans = False, kmeans_label = '' ):
     model_prediction_filename = model_name.replace('.h5','.pred')
     with open(model_prediction_filename,'w') as f:
         for i in range(0,len(ans)):
-            f.write(object_names[arr[i]] + " " + repr(ans[i]) + " " + 
+            f.write(object_names[arr[i]] + " " + repr(list(ans[i])) + " " + 
             repr(np.argmax(ans[i])) + " " + repr(Y_shuf[i]) + "\n")
         
     #model = load_model(model_dir + model_name + '.h5')
