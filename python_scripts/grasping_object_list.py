@@ -49,7 +49,11 @@ def get_grasping_object_name_list(type='used'):
 	pattern_list.append('62_mouse_final-21-Nov-2015-06-46-41_instance0') 
 	pattern_list.append('6_jar_final-14-Nov-2015-19-14-33_instance0')
         pattern_list.append('6_jar_final-20-Dec-2015-09-26-23_instance0')
-
+    elif type=='training_towelstand':
+        pattern_list = ['44_towelstand_final-16-Mar-2016-13-30-01_instance0']
+        pattern_list.append('44_towelstand_final-15-Mar-2016-15-53-08_instance0')
+        pattern_list.append('44_towelstand_final-15-Mar-2016-15-37-58_instance0')
+        
     else:
         pattern_list=[type]
         
