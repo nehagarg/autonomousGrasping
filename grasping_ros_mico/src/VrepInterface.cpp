@@ -1283,6 +1283,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     std::string filename_suffix;
     if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7)
     {
+        file_dir =  graspObjects[0]->regression_data_dir_name + "/";
+        /*
         if(version5)
         {
             file_dir = "data_low_friction_table_exp_ver5/data_for_regression/";
@@ -1295,6 +1297,7 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
         {
             file_dir = "data_low_friction_table_exp_ver7/data_for_regression/";
         }
+        */
         filename =  object_id + "/SASOData_";
         if (gap == 0.01)
         {
@@ -1362,6 +1365,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     
     if(generate_default)
     {
+        std::string filename_pruned;
+        /*
         std::string filename_pruned = "data_low_friction_table_exp";
         if(RobotInterface::version5)
         {
@@ -1376,6 +1381,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
             filename_pruned = filename_pruned + "_ver7";
         }
         filename_pruned = filename_pruned + "/pruned_data_files/";
+        */
+        filename_pruned = graspObjects[0]->regression_data_dir_name + "/pruned_data_files/";
         filename_pruned = filename_pruned + filename_suffix;
         std::vector<int> line_nos = getSimulationDataFromFile(initial_state.object_id, filename, action_type, true, filename_pruned);
         std::string filename_lineno = filename+ ".Usedlinenos";
