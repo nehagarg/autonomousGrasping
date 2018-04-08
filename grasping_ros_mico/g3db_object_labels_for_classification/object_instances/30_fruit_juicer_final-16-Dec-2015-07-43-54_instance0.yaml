@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xy_y: 0.08734056083819212}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 30_fruit_juicer_final-16-Dec-2015-07-43-54.obj
+duplicate_mesh_size: !!python/tuple [0.07611000537872314, 0.07610999792814255, 0.11866000294685364]
+mesh_name: 30_fruit_juicer_final-16-Dec-2015-07-43-54.obj
+object_use_label: S
+signal_name: mesh_location

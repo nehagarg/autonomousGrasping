@@ -1,0 +1,8 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 68_toy_final-22-Nov-2015-08-51-12.obj
+duplicate_mesh_size: !!python/tuple [0.2631399929523468, 0.21807999908924103, 0.1807200014591217]
+mesh_name: 68_toy_final-22-Nov-2015-08-51-12.obj
+object_use_label: D
+remarks: gripper not able to move freely because of collision with other parts of
+  object
+signal_name: mesh_location

@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 99_orange_final-29-Feb-2016-17-51-23.obj
+duplicate_mesh_size: !!python/tuple [0.10299000144004822, 0.10279998183250427, 0.05988999456167221]
+mesh_name: 99_orange_final-29-Feb-2016-17-51-23.obj
+object_use_label: D
+remarks: unstable
+signal_name: mesh_location

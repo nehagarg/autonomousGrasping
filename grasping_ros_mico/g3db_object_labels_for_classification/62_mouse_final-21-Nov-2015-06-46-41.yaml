@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_z: 0.07-0.09}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 62_mouse_final-21-Nov-2015-06-46-41.obj
+duplicate_mesh_size: !!python/tuple [0.13022999465465546, 0.08759000152349472, 0.02913999930024147]
+mesh_name: 62_mouse_final-21-Nov-2015-06-46-41.obj
+object_use_label: S
+signal_name: mesh_location

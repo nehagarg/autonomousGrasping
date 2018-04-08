@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xyz_z: 0.175249336236798}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 42_wineglass_final-20-Jan-2016-07-00-58.obj
+duplicate_mesh_size: !!python/tuple [0.08686999976634979, 0.08686999976634979, 0.18619000911712646]
+mesh_name: 42_wineglass_final-20-Jan-2016-07-00-58.obj
+object_use_label: S
+signal_name: mesh_location

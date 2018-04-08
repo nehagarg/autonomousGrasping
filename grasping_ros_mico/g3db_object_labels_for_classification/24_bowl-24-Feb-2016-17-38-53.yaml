@@ -1,0 +1,3 @@
+{mesh_name: 24_bowl-24-Feb-2016-17-38-53.obj, object_use_label: T, remarks: lower
+    width required for side grasp. Reducing the width makes object unstable as base
+    becomes very small, signal_name: mesh_location}

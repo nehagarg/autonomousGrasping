@@ -1,0 +1,12 @@
+actions:
+- {rotate_z: -175}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.08505039087668785}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 74_lamp_final-01-Dec-2015-14-31-11.obj
+duplicate_mesh_size: !!python/tuple [0.16284000873565674, 0.15303000807762146, 0.26928001642227173]
+mesh_name: 74_lamp_final-01-Dec-2015-14-31-11.obj
+object_use_label: S
+signal_name: mesh_location

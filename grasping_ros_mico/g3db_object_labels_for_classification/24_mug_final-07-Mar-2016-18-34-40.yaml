@@ -1,0 +1,7 @@
+duplicate_mesh_index: 1
+duplicate_mesh_name: 24_mug_final-07-Mar-2016-18-34-39.obj
+duplicate_mesh_size: !!python/tuple [0.13137999176979065, 0.13141000270843506, 0.2062000036239624]
+mesh_name: 24_mug_final-07-Mar-2016-18-34-40.obj
+object_use_label: D
+remarks: duplicate of 24_mug_final-07-Mar-2016-18-34-39.obj
+signal_name: mesh_location

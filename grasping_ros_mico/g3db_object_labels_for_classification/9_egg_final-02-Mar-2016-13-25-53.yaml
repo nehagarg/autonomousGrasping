@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 9_egg_final-02-Mar-2016-13-25-53.obj
+duplicate_mesh_size: !!python/tuple [0.12093999981880188, 0.09759999811649323, 0.08313000202178955]
+mesh_name: 9_egg_final-02-Mar-2016-13-25-53.obj
+object_use_label: D
+remarks: object unstable
+signal_name: mesh_location

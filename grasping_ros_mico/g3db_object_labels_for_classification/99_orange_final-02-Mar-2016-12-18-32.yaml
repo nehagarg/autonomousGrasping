@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 99_orange_final-02-Mar-2016-12-18-32.obj
+duplicate_mesh_size: !!python/tuple [0.13896000385284424, 0.13877001404762268, 0.062049999833106995]
+mesh_name: 99_orange_final-02-Mar-2016-12-18-32.obj
+object_use_label: D
+remarks: does not look like orange, have a similar bowl which is more stable
+signal_name: mesh_location

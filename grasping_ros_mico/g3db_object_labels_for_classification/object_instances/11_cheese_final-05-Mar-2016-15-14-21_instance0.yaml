@@ -1,0 +1,12 @@
+actions:
+- {rotate_x: 180}
+- reorient_bounding_box
+- {set_size_abs_xyz_z: 0.07981352839825734}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 11_cheese_final-05-Mar-2016-15-14-21.obj
+duplicate_mesh_size: !!python/tuple [0.060920000076293945, 0.045830000191926956, 0.058820001780986786]
+mesh_name: 11_cheese_final-05-Mar-2016-15-14-21.obj
+object_use_label: S
+signal_name: mesh_location

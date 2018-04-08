@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 64_tongs_final-15-Nov-2015-04-10-37.obj
+duplicate_mesh_size: !!python/tuple [0.1521099954843521, 0.036629997193813324, 0.05876000225543976]
+mesh_name: 64_tongs_final-15-Nov-2015-04-10-37.obj
+object_use_label: S
+signal_name: mesh_location

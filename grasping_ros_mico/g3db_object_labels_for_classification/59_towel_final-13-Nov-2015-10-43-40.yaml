@@ -1,0 +1,15 @@
+actions:
+- {rotate_z: -41.1}
+- reorient_bounding_box
+- {set_size_abs_x: 0.1275}
+- {set_size_abs_y: 0.065-0.08}
+- {set_size_abs_z: 0.06857}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 59_towel_final-13-Nov-2015-10-43-40.obj
+duplicate_mesh_size: !!python/tuple [0.30171000957489014, 0.28439998626708984, 0.13767999410629272]
+mesh_name: 59_towel_final-13-Nov-2015-10-43-40.obj
+object_use_label: D
+remarks: very far pick point, might be unstable
+signal_name: mesh_location

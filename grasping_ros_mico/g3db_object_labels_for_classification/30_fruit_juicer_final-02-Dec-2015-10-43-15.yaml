@@ -1,0 +1,12 @@
+actions:
+- [noop]
+- - {rotate_y: -90}
+  - reorient_bounding_box
+  - move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 30_fruit_juicer_final-02-Dec-2015-10-43-15.obj
+duplicate_mesh_size: !!python/tuple [0.06915999948978424, 0.06915000081062317, 0.19154000282287598]
+mesh_name: 30_fruit_juicer_final-02-Dec-2015-10-43-15.obj
+object_use_label: S
+remarks: need to check which pose is stable
+signal_name: mesh_location

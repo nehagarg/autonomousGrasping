@@ -1,0 +1,8 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 49_apple_final-09-Dec-2015-10-42-13.obj
+duplicate_mesh_size: !!python/tuple [0.07362999767065048, 0.07284000515937805, 0.062059998512268066]
+mesh_name: 49_apple_final-09-Dec-2015-10-42-13.obj
+object_use_label: S
+remarks: might be unstable
+signal_name: mesh_location

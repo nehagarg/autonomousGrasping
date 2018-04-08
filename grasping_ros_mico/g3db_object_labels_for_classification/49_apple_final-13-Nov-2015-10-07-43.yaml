@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 49_apple_final-13-Nov-2015-10-07-43.obj
+duplicate_mesh_size: !!python/tuple [0.07234999537467957, 0.07189999520778656, 0.0658000037074089]
+mesh_name: 49_apple_final-13-Nov-2015-10-07-43.obj
+object_use_label: S
+remarks: might not be stable
+signal_name: mesh_location
