@@ -78,6 +78,10 @@ def update_size_action(action, action_value):
         action_ans = 'rotate'
         action_value_ans = [0.0,0.0,0.0]
         action_value_ans[j] = action_value*3.14/180.0 #Api takes radians
+    elif('set_size_min_' in action):
+        if action_value > object_size[j]:
+           val = action_value/object_size[j]
+           action_value_ans[j] = val 
     else:
         action_ans = action
         action_value_ans = action_value

@@ -1,5 +1,5 @@
 actions:
-- {set_size_abs_xyz_y: 0.08350785672319584}
+- {set_size_abs_xyz_y: 0.07834977270773777}
 - {set_size_abs_z: 0.1}
 - set_mass
 - move_to_table

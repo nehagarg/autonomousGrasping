@@ -239,9 +239,22 @@ class LabelObject:
                         self.instance_yaml = ol.add_object_from_properties(self.instance_yaml, True)
         
         if(self.collect_objects):
+            objects_to_be_collected = []
+            object_to_be_collected_filename = 'class_2.txt'#self.get_updated_instance_file_dir(self.output_file_name) + "/object_instance_names_validation1_version7.txt"
+            with open(object_to_be_collected_filename, 'r') as f:
+                objects_to_be_collected = [x.strip('\n') for x in f.readlines()]
+            ob2 = []
+            object_to_be_collected_filename = self.get_updated_instance_file_dir(self.output_file_name) + "/object_instance_names_test_version7.txt"
+            with open(object_to_be_collected_filename, 'r') as f:
+                ob2 = [x.strip('\n') for x in f.readlines()]
+                
             if('-' not in self.instance_yaml.keys()):
-                if(ol.object_graspable(self.instance_yaml)):
-
+                instance_name = self.get_instance_file_name(instance).replace('.yaml', '')
+                print instance_name
+                print objects_to_be_collected
+                #if(ol.object_graspable(self.instance_yaml)):
+                if instance_name in objects_to_be_collected and instance_name not in ob2:
+                
                     object_class = self.get_object_class_from_mesh_name(self.instance_yaml['mesh_name'])
                     random.seed(hash(object_class))
                     c1 = random.random()

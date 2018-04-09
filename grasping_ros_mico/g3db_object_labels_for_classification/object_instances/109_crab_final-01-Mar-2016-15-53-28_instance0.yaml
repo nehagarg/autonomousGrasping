@@ -1,7 +1,7 @@
 actions:
-- {set_size_abs_z: 0.06298611674099848}
-- {set_size_abs_x: 0.19942091563698255}
-- {set_size_abs_y: 0.16632238983126854}
+- {set_size_abs_z: 0.06740360861698641}
+- {set_size_abs_x: 0.1825626072330229}
+- {set_size_abs_y: 0.17626521369032938}
 - set_mass
 - move_to_table
 duplicate_mesh_index: 0

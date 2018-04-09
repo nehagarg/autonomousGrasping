@@ -2,7 +2,7 @@ actions:
 - {rotate_x: 90}
 - reorient_bounding_box
 - {rotate_z: -90}
-- {set_size_abs_z: 0.08063032759558651}
+- {set_size_abs_z: 0.08756250348143815}
 - reorient_bounding_box
 - set_mass
 - move_to_table
