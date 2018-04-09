@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 28_Spatula_final-07-Mar-2016-18-34-51.obj
+duplicate_mesh_size: !!python/tuple [0.2385300099849701, 0.08107999712228775, 0.04602999985218048]
+mesh_name: 28_Spatula_final-07-Mar-2016-18-34-51.obj
+object_initial_pose_z: 1.0730489492416382
+object_min_z: 1.0682489492416383
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0730489492416382,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4111111503566842, 0.16224164426652576, 1.078786444164543]
+signal_name: mesh_location

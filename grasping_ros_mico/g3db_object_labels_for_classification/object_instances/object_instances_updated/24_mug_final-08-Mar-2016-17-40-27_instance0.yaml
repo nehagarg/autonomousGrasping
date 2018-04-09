@@ -1,0 +1,23 @@
+actions:
+- {rotate_x: 90}
+- reorient_bounding_box
+- {rotate_z: -90}
+- {set_size_abs_z: 0.08756250348143815}
+- reorient_bounding_box
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 24_mug_final-08-Mar-2016-17-40-27.obj
+duplicate_mesh_size: !!python/tuple [0.10179999470710754, 0.10195999592542648, 0.15565000474452972]
+mesh_name: 24_mug_final-08-Mar-2016-17-40-27.obj
+object_initial_pose_z: 1.0938150882720947
+object_min_z: 1.0890150882720948
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.0938150882720947,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4140362395303061, 0.15833566482094558, 1.08119022484641]
+signal_name: mesh_location

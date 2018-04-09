@@ -1,0 +1,16 @@
+actions: []
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 87_bottleset_final-17-Dec-2015-14-55-11.obj
+duplicate_mesh_size: !!python/tuple [0.05210000276565552, 0.05211000144481659, 0.23789000511169434]
+mesh_name: 87_bottleset_final-17-Dec-2015-14-55-11.obj
+object_initial_pose_z: 1.1689789295196533
+object_min_z: 1.1641789295196534
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1689789295196533,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.46527370339395296, 0.1516750675923633, 1.0826850209193415]
+signal_name: mesh_location

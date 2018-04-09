@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_z: 0.1411583094118811}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 84_yogurtcup_final-13-Nov-2015-10-32-33.obj
+duplicate_mesh_size: !!python/tuple [0.15275999903678894, 0.1540600061416626, 0.17671999335289001]
+mesh_name: 84_yogurtcup_final-13-Nov-2015-10-32-33.obj
+object_initial_pose_z: 1.1206130981445312
+object_min_z: 1.1158130981445313
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1206130981445312,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4503645607541907, 0.15675476742698818, 1.0879030728923416]
+signal_name: mesh_location

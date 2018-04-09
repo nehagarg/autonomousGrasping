@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.09561966924689652}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 54_candlestick_final-15-Nov-2015-05-18-35.obj
+duplicate_mesh_size: !!python/tuple [0.09623999893665314, 0.0949999988079071, 0.3551799952983856]
+mesh_name: 54_candlestick_final-15-Nov-2015-05-18-35.obj
+object_initial_pose_z: 1.228782296180725
+object_min_z: 1.2239822961807252
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.228782296180725,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4641051508535164, 0.15865173705655536, 1.0788376022315487]
+signal_name: mesh_location

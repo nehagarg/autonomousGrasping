@@ -1,0 +1,22 @@
+actions:
+- {rotate_z: 60}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.08523946979168508}
+- {set_size_min_z: 0.1}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 79_toy_dog_final-02-Dec-2015-11-16-57.obj
+duplicate_mesh_size: !!python/tuple [0.2019599974155426, 0.20385999977588654, 0.23726999759674072]
+mesh_name: 79_toy_dog_final-02-Dec-2015-11-16-57.obj
+object_initial_pose_z: 1.1076335906982422
+object_min_z: 1.1028335906982423
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1076335906982422,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.45840156159870543, 0.15819740445736707, 1.0801303835091618]
+signal_name: mesh_location

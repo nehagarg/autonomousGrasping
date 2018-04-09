@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.08733363978869839}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 77_napkinholder_final-16-Dec-2015-15-04-41.obj
+duplicate_mesh_size: !!python/tuple [0.35534000396728516, 0.10012000054121017, 0.13064000010490417]
+mesh_name: 77_napkinholder_final-16-Dec-2015-15-04-41.obj
+object_initial_pose_z: 1.1070119142532349
+object_min_z: 1.102211914253235
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1070119142532349,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.36552689298279706, 0.1622652998257283, 1.0783740597279303]
+signal_name: mesh_location

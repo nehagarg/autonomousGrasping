@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_z: 0.3206530715243417}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 76_mirror_final-09-Dec-2015-08-53-17.obj
+duplicate_mesh_size: !!python/tuple [0.23315000534057617, 0.12937000393867493, 0.3234400153160095]
+mesh_name: 76_mirror_final-09-Dec-2015-08-53-17.obj
+object_initial_pose_z: 1.2103605270385742
+object_min_z: 1.2055605270385743
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.2103605270385742,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4845884534526664, 0.1548004495476413, 1.0852365132690067]
+signal_name: mesh_location

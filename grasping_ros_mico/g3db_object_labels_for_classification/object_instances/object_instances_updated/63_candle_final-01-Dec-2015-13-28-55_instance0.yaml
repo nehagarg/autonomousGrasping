@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_z: 0.05914740853091059}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 63_candle_final-01-Dec-2015-13-28-55.obj
+duplicate_mesh_size: !!python/tuple [0.15103000402450562, 0.11433999985456467, 0.05501999706029892]
+mesh_name: 63_candle_final-01-Dec-2015-13-28-55.obj
+object_initial_pose_z: 1.079607605934143
+object_min_z: 1.0748076059341432
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.079607605934143,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4107933503315172, 0.15525492415031075, 1.0793036480580804]
+signal_name: mesh_location

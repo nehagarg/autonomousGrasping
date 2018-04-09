@@ -1,0 +1,21 @@
+actions:
+- {set_size_abs_z: 0.06740360861698641}
+- {set_size_abs_x: 0.1825626072330229}
+- {set_size_abs_y: 0.17626521369032938}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 109_crab_final-01-Mar-2016-15-53-28.obj
+duplicate_mesh_size: !!python/tuple [0.1946299970149994, 0.17101000249385834, 0.05861999839544296]
+mesh_name: 109_crab_final-01-Mar-2016-15-53-28.obj
+object_initial_pose_z: 1.083735704421997
+object_min_z: 1.0789357044219972
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.083735704421997,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4530293571378648, 0.13601005445700454, 1.0798905266743286]
+signal_name: mesh_location

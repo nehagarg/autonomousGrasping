@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.08175700397642172}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 66_chocolatebox_final-07-Dec-2015-01-58-28.obj
+duplicate_mesh_size: !!python/tuple [0.08455999940633774, 0.062449999153614044, 0.1918499916791916]
+mesh_name: 66_chocolatebox_final-07-Dec-2015-01-58-28.obj
+object_initial_pose_z: 1.1756150722503662
+object_min_z: 1.1708150722503663
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1756150722503662,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.436928719890781, 0.1544590357950476, 1.079913699099679]
+signal_name: mesh_location

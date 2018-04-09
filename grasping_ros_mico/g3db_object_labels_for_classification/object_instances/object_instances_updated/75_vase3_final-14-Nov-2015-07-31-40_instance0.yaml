@@ -1,0 +1,21 @@
+actions:
+- {rotate_z: 90}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.07648099745624252}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 75_vase3_final-14-Nov-2015-07-31-40.obj
+duplicate_mesh_size: !!python/tuple [0.07717999815940857, 0.14209000766277313, 0.3233800232410431]
+mesh_name: 75_vase3_final-14-Nov-2015-07-31-40.obj
+object_initial_pose_z: 1.2101823091506958
+object_min_z: 1.2053823091506959
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.2101823091506958,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.45073971332793167, 0.14378131145984324, 1.0881523525877945]
+signal_name: mesh_location
