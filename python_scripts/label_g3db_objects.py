@@ -569,7 +569,7 @@ def generate_point_clouds(object_file_name, dir_name):
 #dir_name gives config file location
 def generate_point_clouds_for_classification(object_file_name, dir_name):
     lo = LabelObject(object_file_name, dir_name)
-    lo.point_cloud_dir = '../grasping_ros_mico/point_clouds_for_classification'
+    lo.point_cloud_dir = '../grasping_ros_mico/point_clouds_for_classification/additional_g3db_objects_for_classification'
     lo.generate_point_clouds(True)
 
 def  check_visibility_for_objects(object_file_name, dir_name):

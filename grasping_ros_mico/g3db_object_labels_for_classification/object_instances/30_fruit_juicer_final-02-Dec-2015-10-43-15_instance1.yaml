@@ -1,6 +1,8 @@
 actions:
+- {set_size_abs_xyz_y: 0.08767092724438642}
 - {rotate_y: -90}
 - reorient_bounding_box
+- set_mass
 - move_to_table
 duplicate_mesh_index: 0
 duplicate_mesh_name: 30_fruit_juicer_final-02-Dec-2015-10-43-15.obj

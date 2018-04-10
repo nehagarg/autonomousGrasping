@@ -1,10 +1,10 @@
 actions:
-- [noop]
+- - {set_size_abs_xy_y: 0.06-0.09}
+  - set_mass
+  - move_to_table
 - - {rotate_z: 180}
   - reorient_bounding_box
-- - {rotate_z: 180}
-  - reorient_bounding_box
-  - {set_size_abs_z: 0.09}
+  - {set_size_abs_z: 0.08-0.12}
   - set_mass
   - move_to_table
 duplicate_mesh_index: 0

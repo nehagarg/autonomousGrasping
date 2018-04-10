@@ -1,4 +1,7 @@
-actions: []
+actions:
+- {set_size_abs_xy_y: 0.06737370969871034}
+- set_mass
+- move_to_table
 colliding_with_gripper: false
 collisions: 0
 duplicate_mesh_index: 0
@@ -12,5 +15,5 @@ object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.10718894
   0.0, 0.0, 0.0, 1.0]
 object_stable: false
 object_use_label: S
-pick_point: [0.44653327441349316, 0.15729229814980622, 1.086576578482794]
+pick_point: [0.45808987163957654, 0.1575508079670508, 1.0860137226397075]
 signal_name: mesh_location

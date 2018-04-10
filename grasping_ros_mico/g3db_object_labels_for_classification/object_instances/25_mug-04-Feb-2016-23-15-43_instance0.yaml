@@ -1,4 +1,7 @@
-actions: []
+actions:
+- {set_size_abs_xy_y: 0.06737370969871034}
+- set_mass
+- move_to_table
 duplicate_mesh_index: 0
 duplicate_mesh_name: 25_mug-04-Feb-2016-23-15-43.obj
 duplicate_mesh_size: !!python/tuple [0.11030000448226929, 0.09083999693393707, 0.11430999636650085]
