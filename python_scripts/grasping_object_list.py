@@ -52,7 +52,7 @@ def get_grasping_object_name_list(type='used'):
     elif type=='training_towelstand':
         pattern_list = ['44_towelstand_final-16-Mar-2016-13-30-01_instance0']
         pattern_list.append('44_towelstand_final-15-Mar-2016-15-53-08_instance0')
-        pattern_list.append('44_towelstand_final-15-Mar-2016-15-37-58_instance0')
+        pattern_list.append('44_towelstand_final-15-Mar-2016-15-37-58_instance0')    
         
     else:
         pattern_list=[type]
@@ -77,6 +77,8 @@ def get_g3db_instances(type = 'all'):
     g3db_object_list_file = get_g3db_txt_file_path()
     if(type == 'all'):
        g3db_object_list_file = g3db_object_list_file +  "object_instance_names.txt"
+    elif(type == 'for_classification'):
+       g3db_object_list_file = g3db_object_list_file.replace('g3db_object_labels', 'g3db_object_labels_for_classification') +  "object_instance_names.txt" 
     else:
         g3db_object_list_file = g3db_object_list_file +  "object_instance_names_" + type + ".txt"
     

@@ -163,11 +163,11 @@ def get_dir_list():
     dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/simulator/fixed_distribution/horizon90/')
     return dir_list
 
-def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6',use_kmeans=False , kmeans_label = ''):
+def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6',use_kmeans=False , kmeans_label = '', object_type = 'g3db_instances'):
     grasping_ros_mico_path = get_grasping_ros_mico_path()
     baseline_result_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/"
     if(use_kmeans):
-        baseline_result_file_name = baseline_result_file_name + "kmeans_object_labels_g3db_instances" + kmeans_label + ".csv"
+        baseline_result_file_name = baseline_result_file_name + "kmeans_object_labels_" +object_type +  kmeans_label + ".csv"
     else:
         baseline_result_file_name = baseline_result_file_name + "a_success_cases_g3db_instances.csv"
     object_labels = {}
@@ -183,21 +183,25 @@ def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6'
             
     return object_labels
                 
+def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_test = False): 
+    object_labels = get_baseline_labels(use_kmeans = use_kmeans, kmeans_label=kmeans_label, object_type = object_type)
     
-def get_data(use_kmeans=False,kmeans_label = '', for_test = False):   
-    object_labels = get_baseline_labels(use_kmeans = use_kmeans, kmeans_label=kmeans_label)
-    
-    object_name = 'g3db_instances_non_test_version7'
-    if for_test:
-        object_name = 'g3db_instances_version7'
+    if object_type == 'g3db_instances':
+        object_name = 'g3db_instances_non_test_version7'
+        if for_test:
+            object_name = 'g3db_instances_version7'
         #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
-    #object_name = '1_Coffeecup_final-10-Dec-2015-06-58-01_instance0'
-    #object_name = 'Cylinder_7'
-    #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
-    object_file_dir = '../grasping_ros_mico/point_clouds_for_classification'
-    model_dir = object_file_dir + '/keras_model/'
-    object_file_names = giob.get_object_filenames(object_name, object_file_dir)
+        #object_name = '1_Coffeecup_final-10-Dec-2015-06-58-01_instance0'
+        #object_name = 'Cylinder_7'
+        #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
+        object_file_dir = '../grasping_ros_mico/point_clouds_for_classification'
+    if object_type == 'g3db_instances_for_classification':
+        object_name = 'g3db_instances_for_classification'
+        #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
+        object_file_dir = '../grasping_ros_mico/point_clouds_for_classification/additional_g3db_objects_for_classification'
     
+    object_file_names = giob.get_object_filenames(object_name, object_file_dir)
+
     X = []
     Y = []
     object_names = []
@@ -244,6 +248,16 @@ def get_data(use_kmeans=False,kmeans_label = '', for_test = False):
             f.write("\n".join(sorted(clipped_objects)))  
             f.write("\n")
     assert len(X) == len(Y)
+    return (X,Y,object_names)
+    
+def get_data(use_kmeans=False,kmeans_label = '', for_test = False, use_extra = False):   
+    (X,Y,object_names) = get_data_from_source('g3db_instances', use_kmeans, kmeans_label, for_test)
+    if use_extra:
+        (X2,Y2,object_names_2) = get_data_from_source('g3db_instances_for_classification', use_kmeans, kmeans_label, for_test)
+        X = X+X2
+        Y = Y + Y2
+        object_names = object_names + object_names_2
+    
     num_samples = len(X)
     print num_samples
     X = np.array(X)
@@ -260,14 +274,18 @@ def get_data(use_kmeans=False,kmeans_label = '', for_test = False):
     X_shuf = X[arr[0:num_samples]]
     Y_shuf = Y[arr[0:num_samples]]
     #object_names_shuf = object_names[arr[0:num_samples]]
+    model_dir =  '../grasping_ros_mico/point_clouds_for_classification'+ '/keras_model/'
     return (X_shuf,Y_shuf, object_names ,arr,model_dir)
     
-def train(use_kmeans = False, kmeans_label = ''):
-        
+def train(use_kmeans = False, kmeans_label = '',use_extra = False):
+    
+    model_name_prefix = "kmeans"
+    if use_extra:
+        model_name_prefix = model_name_prefix + "-extra-data"
     label_tag = ''
     if kmeans_label !='':
         label_tag = "label" + kmeans_label + "_"
-    (X_shuf,Y_shuf, object_names, arr,model_dir) = get_data(use_kmeans,kmeans_label)
+    (X_shuf,Y_shuf, object_names, arr,model_dir) = get_data(use_kmeans,kmeans_label, False,use_extra)
     (model,train_predicted) = get_keras_cnn_model(X_shuf,Y_shuf,use_kmeans)
     print train_predicted[0]
     print Y_shuf[0]
@@ -276,13 +294,13 @@ def train(use_kmeans = False, kmeans_label = ''):
     timestr = time.strftime("%Y%m%d-%H%M%S")
     model_file_name = model_dir + timestr + '.h5'
     if use_kmeans:
-        model_file_name = model_dir + "kmeans_" +label_tag + timestr + '.h5'
+        model_file_name = model_dir + model_name_prefix + "_" +label_tag + timestr + '.h5'
     model.save(model_file_name)
     return (X_shuf,Y_shuf, model_dir,timestr)
     
-def test(model_name, use_kmeans = False, kmeans_label = '' ):
+def test(model_name, use_kmeans = False, kmeans_label = '', use_extra = False ):
     from keras.models import load_model
-    (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data(use_kmeans,kmeans_label, for_test = True)
+    (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data(use_kmeans,kmeans_label, True, use_extra)
     #if model_name is None:
     model_name = model_dir + model_name + '.h5'
     model = load_model(model_name)
@@ -383,7 +401,8 @@ def cluster_labels(num_clusters=3):
     return kmeans
     
 def main():
-    test('kmeans_label_2_20180401-014151', use_kmeans = True, kmeans_label = '_2' )
+    train(use_kmeans = True, kmeans_label = '_2', use_extra = True)
+    #test('kmeans_label_2_20180401-014151', use_kmeans = True, kmeans_label = '_2' )
     #train(use_kmeans = True, kmeans_label = '_2')
     #test('kmeans_20180215-115011', use_kmeans = True )
     #test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
