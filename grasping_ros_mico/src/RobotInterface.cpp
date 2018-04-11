@@ -1104,6 +1104,14 @@ int RobotInterface::GetWeightedObservationSize() const{
     if(classifier_string_name.find("kmeans") != std::string::npos)
     {
         weighted_obs_size = 3;
+        if(classifier_string_name.find("label_2") != std::string::npos)
+        {
+            weighted_obs_size = 7;
+        }
+        if(classifier_string_name.find("label_3") != std::string::npos)
+        {
+            weighted_obs_size = 5;
+        }
     }
     return weighted_obs_size;
         
