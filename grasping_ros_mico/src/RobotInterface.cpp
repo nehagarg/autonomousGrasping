@@ -598,14 +598,42 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
 
    std::map<std::string, std::vector<int> > ans;
     //Read simualtion data with object
-    SimulationDataReader simDataReader;
-    std::ifstream simulationDataFile;
+    //SimulationDataReader simDataReader;
+    //std::ifstream simulationDataFile;
     
     std::vector<std::string> sasoFilenames = graspObjects[object_id]->getSASOFilenames(use_pruned_data, use_discretized_data);
     
     for(int i = 0; i < sasoFilenames.size(); i++)
     {
+        int readAction = -1;
+        std::cout << sasoFilenames[i] << " ";
         //simulationDataFile.open("data/simulationData1_allParts.txt");
+        if(sasoFilenames[i].find("_allActions.txt")!=std::string::npos)
+        {
+            //std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
+            readAction = 3;
+            std::cout << readAction << std::endl;
+            
+        }
+        if(sasoFilenames[i].find("_openAction.txt")!=std::string::npos)
+        {
+            //std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
+            readAction = 1;
+             std::cout << readAction << std::endl;
+            
+        }
+        if(sasoFilenames[i].find("_closeAndPushAction.txt")!=std::string::npos)
+        {
+            //std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
+            readAction = 2;
+             std::cout << readAction << std::endl;
+            
+        }
+        if(readAction > 0)
+        {
+            ans[sasoFilenames[i]] = getSimulationDataFromFile(object_id, sasoFilenames[i], readAction, false);
+        }
+        /*
         std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
         ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, 3, false);
         
@@ -616,6 +644,7 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
         simulationFileName = sasoFilenames[i]+"closeAndPushAction.txt";
         ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, 2, false);
         //simulationDataFile.open("data/simulationData_1_openAction.txt");
+         */ 
     }
     return ans;
     

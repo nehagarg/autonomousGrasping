@@ -522,6 +522,8 @@ class ConfigFileGenerator():
         self.use_probabilistic_step = False
         self.clip_objects = False
         self.check_touch = True
+        self.use_binary_touch = False
+        self.use_wider_workspace = False
         self.filetypes = [''] #Con contain learning and combined policy dir paths
         if('g3db_instances_train2' in type):
             self.belief_name = 'g3db_instances_train2'
@@ -562,6 +564,10 @@ class ConfigFileGenerator():
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
         if('no_touch' in type):
             self.check_touch = False
+        if('binary_touch' in type):
+            self.use_binary_touch = True
+        if('wider_workspace' in type):
+            self.use_wider_workspace = True
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -584,7 +590,11 @@ class ConfigFileGenerator():
                     if(self.use_discretized_data):
                         file_prefix = file_prefix + "/use_discretized_data"
                     if(self.use_probabilistic_step):
-                        file_prefix = file_prefix + "/use_probabilistic_step"    
+                        file_prefix = file_prefix + "/use_probabilistic_step"
+                    if(self.use_binary_touch):
+                        file_prefix = file_prefix + "/use_binary_touch"
+                    if(self.use_wider_workspace):
+                        file_prefix = file_prefix + "/use_wider_workspace"
                     if(self.use_weighted_belief):
                         file_prefix = file_prefix + "/use_weighted_belief"
                     if(self.use_object_classifier):
@@ -672,6 +682,10 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans['check_touch'] = False
         if(cfg.use_probabilistic_step):
             ans['use_probabilistic_step'] = True
+        if(cfg.use_binary_touch):
+            ans['use_binary_touch'] = True
+        if(cfg.use_wider_workspace):
+            ans['use_wider_workspace'] = True
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []

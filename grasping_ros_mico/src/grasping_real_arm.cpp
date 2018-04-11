@@ -210,7 +210,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     
     if(config["use_wider_workspace"])
     {
-        RobotInterface::use_wider_object_workspace = config["use_wider_object_workspace"].as<bool>();
+        RobotInterface::use_wider_object_workspace = config["use_wider_workspace"].as<bool>();
     }
     else
     {
