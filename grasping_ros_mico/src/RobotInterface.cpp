@@ -606,7 +606,7 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
     for(int i = 0; i < sasoFilenames.size(); i++)
     {
         int readAction = -1;
-        std::cout << sasoFilenames[i] << " ";
+        //std::cout << sasoFilenames[i] << " ";
         //simulationDataFile.open("data/simulationData1_allParts.txt");
         if(sasoFilenames[i].find("_allActions.txt")!=std::string::npos)
         {
