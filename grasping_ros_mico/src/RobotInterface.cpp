@@ -552,6 +552,11 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
         SimulationData simData; double reward; int action;
         std::string line;
         std::getline(simulationDataFile, line);
+        while(line.find("#") == 0)
+        {
+            std::cout << "Skipping" << line;
+           std::getline(simulationDataFile, line); 
+        }
         std::istringstream iss(line);
         //TODO check for nan
         //simData.current_gripper_pose.pose.position.x = temp_read;
@@ -612,21 +617,21 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
         {
             //std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
             readAction = 3;
-            std::cout << readAction << std::endl;
+            //std::cout << readAction << std::endl;
             
         }
         if(sasoFilenames[i].find("_openAction.txt")!=std::string::npos)
         {
             //std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
             readAction = 1;
-             std::cout << readAction << std::endl;
+             //std::cout << readAction << std::endl;
             
         }
         if(sasoFilenames[i].find("_closeAndPushAction.txt")!=std::string::npos)
         {
             //std::string simulationFileName = sasoFilenames[i]+"allActions.txt";
             readAction = 2;
-             std::cout << readAction << std::endl;
+             //std::cout << readAction << std::endl;
             
         }
         if(readAction > 0)
@@ -1106,11 +1111,11 @@ int RobotInterface::GetWeightedObservationSize() const{
         weighted_obs_size = 3;
         if(classifier_string_name.find("label_2") != std::string::npos)
         {
-            weighted_obs_size = 7;
+            weighted_obs_size = 8;
         }
         if(classifier_string_name.find("label_3") != std::string::npos)
         {
-            weighted_obs_size = 5;
+            weighted_obs_size = 6;
         }
     }
     return weighted_obs_size;
