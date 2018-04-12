@@ -753,7 +753,9 @@ if __name__ == '__main__':
 #SSh over 2 hops
 #http://www.larkinweb.co.uk/computing/mounting_file_systems_over_two_ssh_hops.html
 # ssh -f userB@systemB -L 2222:systemC:22 -N
+# ssh -f a0117042@sunfire-r.comp.nus.edu.sg -L 2222:unicorn0.d2.comp.nus.edu.sg:22 -N
 # sshfs -p 2222 userC@localhost:/remote/path/ /mnt/localpath/
+# sshfs -p 2222 neha@localhost:/data/neha/WORK_FOLDER unicorn_dir_mount/
 
 #Periodically clean roscore
 #until false; do rosclean purge -y; sleep 600; done;

@@ -559,6 +559,8 @@ class ConfigFileGenerator():
                 self.keras_model_name = "kmeans_20180215-115011"
             if "kmeans_label_1" in type:
                 self.keras_model_name = "kmeans_label_1_20180223-105821"
+            if "kmeans_label_2" in type:
+                self.keras_model_name = "kmeans-extra-data_label_2_20180410-212342"
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
@@ -652,6 +654,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1_probabilistic'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_2'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)

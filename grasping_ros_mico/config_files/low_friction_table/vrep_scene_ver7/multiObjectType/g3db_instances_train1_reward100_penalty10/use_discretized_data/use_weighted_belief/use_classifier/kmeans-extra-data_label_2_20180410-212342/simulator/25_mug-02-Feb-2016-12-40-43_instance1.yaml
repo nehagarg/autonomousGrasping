@@ -1,0 +1,43 @@
+auto_load_object: true
+belief_object_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+  18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+  38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]
+get_object_belief: true
+interface_type: 0
+invalid_state_penalty: -10
+low_friction_table: true
+num_belief_particles: 1000
+object_classifier_string_name: kmeans-extra-data_label_2_20180410-212342
+object_mapping: [49_apple_final-06-Dec-2015-04-56-58_instance0, 56_headphones_final-16-Nov-2015-11-29-41_instance0,
+  109_crab_final-02-Mar-2016-13-38-29_instance0, 48_bottle_and_plug_final-14-Mar-2016-16-30-28_instance0,
+  52_jar2_final-14-Mar-2016-16-30-35_instance0, 67_jug_final-20-Jan-2016-06-21-17_instance0,
+  50_carton_final-03-Dec-2015-09-48-16_instance0, 30_fruit_juicer_final-20-Nov-2015-08-01-26_instance1,
+  5_bottle_final-20-Dec-2015-10-50-58_instance0, 76_mirror_final-10-Dec-2015-07-39-19_instance0,
+  30_fruit_juicer_final-11-Nov-2015-15-04-20_instance0, 24_mug_final-07-Mar-2016-18-34-39_instance0,
+  50_carton_final-18-Jan-2016-06-19-09_instance0, 6_jar_final-14-Nov-2015-19-14-33_instance0,
+  11_cheese_final-24-Dec-2015-13-31-20_instance0, 24_mug_final-08-Mar-2016-18-17-15_instance0,
+  76_mirror_final-09-Dec-2015-08-53-17_instance0, 24_bowl-02-Mar-2016-07-03-29_instance0,
+  104_toaster_final-18-Dec-2015-13-56-59_instance0, 92_shell_final-26-Feb-2016-17-47-12_instance0,
+  104_toaster_final-22-Dec-2015-06-18-12_instance0, 48_bottle_and_plug_final-15-Mar-2016-16-03-12_instance0,
+  39_beerbottle_final-13-Nov-2015-09-07-13_instance0, 25_mug-03-Feb-2016-18-01-09_instance1,
+  91_peppershaker_final-05-Dec-2015-05-50-49_instance0, 44_towelstand_final-16-Mar-2016-13-30-01_instance0,
+  62_mouse_final-21-Nov-2015-06-46-41_instance0, 44_towelstand_final-15-Mar-2016-15-53-08_instance0,
+  52_jar2_final-05-Dec-2015-06-31-52_instance0, 44_towelstand_final-15-Mar-2016-15-37-58_instance0,
+  86_bread_final-29-Nov-2015-19-00-11_instance0, 41_jar_and_lid_final-12-Jan-2016-14-34-29_instance0,
+  5_bottle_final-15-Dec-2015-15-43-28_instance0, 86_bread_final-20-Nov-2015-06-45-04_instance0,
+  41_jar_and_lid_final-19-Nov-2015-12-15-38_instance0, 65_coffeemaker_final-13-Nov-2015-08-31-50_instance0,
+  76_mirror_final-10-Dec-2015-08-18-13_instance0, 41_jar_and_lid_final-15-Jan-2016-15-15-52_instance0,
+  24_bowl-29-Feb-2016-15-01-53_instance0, 84_yogurtcup_final-15-Dec-2015-15-41-51_instance0,
+  109_crab_final-01-Mar-2016-15-53-28_instance0, 52_jar2_final-19-Dec-2015-12-40-36_instance0,
+  6_jar_final-19-Nov-2015-11-40-31_instance0, 43_wineglass2_final-11-Nov-2015-15-08-47_instance0,
+  50_carton_final-18-Dec-2015-10-30-55_instance0, 24_bowl-26-Feb-2016-08-35-29_instance0,
+  42_wineglass_final-01-Nov-2015-05-15-02_instance0, 25_mug-04-Feb-2016-23-15-43_instance1,
+  40_carafe_final-20-Nov-2015-08-35-43_instance0, 25_mug-03-Feb-2016-18-01-09_instance0,
+  25_mug-02-Feb-2016-12-40-43_instance1]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+test_object_id: 50
+use_classifier_for_belief: true
+use_discretized_data: true
+version7: true
