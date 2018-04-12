@@ -52,7 +52,12 @@ def get_grasping_object_name_list(type='used'):
     elif type=='training_towelstand':
         pattern_list = ['44_towelstand_final-16-Mar-2016-13-30-01_instance0']
         pattern_list.append('44_towelstand_final-15-Mar-2016-15-53-08_instance0')
-        pattern_list.append('44_towelstand_final-15-Mar-2016-15-37-58_instance0')    
+        pattern_list.append('44_towelstand_final-15-Mar-2016-15-37-58_instance0')
+    elif type=='g3db_train1_version7_without_towel':
+        pattern_list = get_grasping_object_name_list('g3db_instances_train1_version7')
+        pattern_list2 = get_grasping_object_name_list('training_towelstand')
+        for a in pattern_list2:
+            pattern_list.remove(a)
         
     else:
         pattern_list=[type]
