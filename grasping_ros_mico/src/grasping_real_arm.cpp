@@ -10,7 +10,7 @@
 #include <despot/core/lower_bound.h>
 #include <math.h>
 #include "yaml-cpp/yaml.h"
-#include "grasping_v4_particle_belief.h"
+
 
 #include "grasping_ros_mico/Belief.h"
 #include "grasping_ros_mico/State.h"
@@ -20,6 +20,111 @@
 #include <string>
 #include "boost/bind.hpp"
 #include "VrepLogFileInterface.h"  
+
+
+GraspingMicoParticleBelief::GraspingMicoParticleBelief(std::vector<State*> particles, 
+        const DSPOMDP* model, Belief* prior, bool split): GraspingParticleBelief(particles, model,
+	 prior, split), grasping_model_(static_cast<const GraspingRealArm*>(model)) {
+
+}
+
+
+    
+   void GraspingMicoParticleBelief::Update(int action, OBS_TYPE obs) {
+	history_.Add(action, obs);
+
+	std::vector<State*> updated;
+	double total_weight = 0;
+	double reward;
+	OBS_TYPE o;
+	// Update particles
+        std::cout << "Updating particles" << std::endl;
+	for (int i = 0; i <particles_.size(); i++) {
+		State* particle = particles_[i];
+                //model_->PrintState(*particle);
+		bool terminal = model_->Step(*particle, Random::RANDOM.NextDouble(),
+			action, reward, o);
+                if(!terminal)
+                {
+                    grasping_model_->SyncParticleState(*particle,obs);
+                }
+                //model_->PrintState(*particle);
+		double prob = model_->ObsProb(obs, *particle, action);
+                //std::cout << "Obs Prob:" <<  prob << std::endl;
+                
+		if (!terminal && prob) { // Terminal state is not required to be explicitly represented and may not have any observation
+			particle->weight *= prob;
+			total_weight += particle->weight;
+			updated.push_back(particle);
+		} else {
+			model_->Free(particle);
+		}
+	}
+
+	logi << "[ParticleBelief::Update] " << updated.size()
+		<< " particles survived among " << particles_.size() << std::endl;
+	particles_ = updated;
+
+	// Resample if the particle set is empty
+	if (particles_.size() == 0) {
+		logw << "Particle set is empty!" << std::endl;
+		if (prior_ != NULL) {
+			logw
+				<< "Resampling by drawing random particles from prior which are consistent with history"
+				<< std::endl;
+			particles_ = Resample(num_particles_, *prior_, history_);
+		} else {
+			logw
+				<< "Resampling by searching initial particles which are consistent with history"
+				<< std::endl;
+			particles_ = Resample(num_particles_, initial_particles_, model_,
+				history_);
+		}
+
+		if (particles_.size() == 0 && state_indexer_ != NULL) {
+			logw
+				<< "Resampling by searching states consistent with last (action, observation) pair"
+				<< std::endl;
+			particles_ = Resample(num_particles_, model_, state_indexer_,
+				action, obs);
+		}
+
+		if (particles_.size() == 0) {
+			logw << "Resampling failed - Using initial particles" << std::endl;
+			for (int i = 0; i < initial_particles_.size(); i ++)
+				particles_.push_back(model_->Copy(initial_particles_[i]));
+		}
+		
+		//Update total weight so that effective number of particles are computed correctly 
+		total_weight = 0;
+                for (int i = 0; i < particles_.size(); i++) {
+		    State* particle = particles_[i];
+                    total_weight = total_weight + particle->weight;
+                }
+	}
+
+	
+	double weight_square_sum = 0;
+	for (int i = 0; i < particles_.size(); i++) {
+		State* particle = particles_[i];
+		particle->weight /= total_weight;
+		weight_square_sum += particle->weight * particle->weight;
+	}
+
+	// Resample if the effective number of particles is "small"
+	double num_effective_particles = 1.0 / weight_square_sum;
+	if (num_effective_particles < num_particles_ / 2.0) {
+             logi << "Resampling because effective number of particles (" << num_effective_particles << ") is small" << std::endl;
+
+		std::vector<State*> new_belief = Belief::Sample(num_particles_, particles_,
+			model_);
+		for (int i = 0; i < particles_.size(); i++)
+			model_->Free(particles_[i]);
+
+		particles_ = new_belief;
+	}
+}
+
 
 GraspingRealArm::GraspingRealArm(int start_state_index_, int interfaceType) {
  
@@ -199,7 +304,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     }
     
      
-    if(config["binary_touch"])
+    if(config["use_binary_touch"])
     {
         RobotInterface::use_binary_touch = config["use_binary_touch"].as<bool>();
     }
@@ -207,6 +312,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
         RobotInterface::use_binary_touch = false;
     }
+    std::cout << "binary touch is " << RobotInterface::use_binary_touch << std::endl;
     
     if(config["use_wider_workspace"])
     {
@@ -216,6 +322,39 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
        RobotInterface::use_wider_object_workspace = false; 
     }
+    
+    if(config["use_probabilistic_neighbour_step"])
+    {
+        RobotInterface::use_probabilistic_neighbour_step = config["use_probabilistic_neighbour_step"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_probabilistic_neighbour_step = false;
+    }
+    std::cout << "probabilitic neighbour step " << RobotInterface::use_probabilistic_neighbour_step << std::endl;
+    
+    
+    if(config["use_discrete_observation_in_step"])
+    {
+        RobotInterface::use_discrete_observation_in_step = config["use_discrete_observation_in_step"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_discrete_observation_in_step = false;
+    }
+    std::cout << "discrete observation in step " << RobotInterface::use_discrete_observation_in_step << std::endl;
+    
+    
+    
+    if(config["use_discrete_observation_in_update"])
+    {
+        RobotInterface::use_discrete_observation_in_update = config["use_discrete_observation_in_update"].as<bool>();
+    }
+    else
+    {
+        RobotInterface::use_discrete_observation_in_update = false;
+    }
+    std::cout << "discrete observation in update " << RobotInterface::use_discrete_observation_in_update << std::endl;
     
     
     if(config["belief_object_ids"]) 
@@ -379,6 +518,12 @@ void GraspingRealArm::InitializeRobotInterface(int interfaceType) {
      
 }
 
+
+void GraspingRealArm::SyncParticleState(State& state, OBS_TYPE obs) const{
+     GraspingStateRealArm& grasping_state = static_cast<GraspingStateRealArm&> (state);
+     GraspingObservation o = obsHashMap[obs];
+     robotInterface->SyncParticleState(grasping_state,o);
+}
 
 /*
 GraspingRealArm::GraspingRealArm(std::string dataFileName, int start_state_index_) {
@@ -621,7 +766,15 @@ bool GraspingRealArm::Step(State& state, double random_num, int action,
     //std::cout << "Reward " << reward << std::endl;
     //Update observation class hash
     std::ostringstream obs_string;
-    PrintObs(grasping_obs, obs_string);
+    
+    if(RobotInterface::use_discrete_observation_in_step)
+    {
+        robotInterface->PrintDicretizedObs(grasping_obs, action, obs_string);
+    }
+    else
+    {
+        PrintObs(grasping_obs, obs_string);
+    }
     uint64_t hashValue = obsHash(obs_string.str());
     obs.SetIntObs(hashValue);
     if (store_obs_hash) {
@@ -662,7 +815,7 @@ double GraspingRealArm::ObsProb(ObservationClass obs, const State& state, int ac
 Belief* GraspingRealArm::InitialBelief(const State* start, std::string type) const
 {
     std::cout << "Here" << std::endl;
-    return new GraspingParticleBelief(InitialBeliefParticles(start,type), this, NULL, false);
+    return new GraspingMicoParticleBelief(InitialBeliefParticles(start,type), this, NULL, false);
 }
 
 
@@ -1137,11 +1290,11 @@ public:
 
 		// changed
 		const GraspingStateRealArm& cstate = static_cast<const GraspingStateRealArm&>(state);
-		double toClose_x = abs(cstate.object_pose.pose.position.x - cstate.gripper_pose.pose.position.x) - 0.245;
+		double toClose_x = abs(cstate.object_pose.pose.position.x - cstate.gripper_pose.pose.position.x); //- 0.245;
                 toClose_x = toClose_x > 0 ? toClose_x : 0;
-                double toClose_y = abs(cstate.object_pose.pose.position.y - cstate.gripper_pose.pose.position.y) - 0.036;
+                double toClose_y = abs(cstate.object_pose.pose.position.y - cstate.gripper_pose.pose.position.y);// - 0.036;
                 toClose_y = toClose_y > 0 ? toClose_y : 0;
-                return graspingRealArm_->GetMaxReward() + (-0.5) + (-1) * (toClose_x + toClose_y) / 0.01;
+                return graspingRealArm_->GetMaxReward() + (-0.5) + (-1) * (std::ceil(toClose_x/0.08) + std::ceil(toClose_y / 0.08));
 	}
 };
 

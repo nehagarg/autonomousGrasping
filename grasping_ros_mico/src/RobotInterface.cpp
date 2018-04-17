@@ -34,6 +34,9 @@ bool RobotInterface::use_classifier_for_belief;
 bool RobotInterface::check_touch;
 bool RobotInterface::use_binary_touch;
 bool RobotInterface::use_wider_object_workspace;
+bool RobotInterface::use_probabilistic_neighbour_step;
+bool RobotInterface::use_discrete_observation_in_step;
+bool RobotInterface::use_discrete_observation_in_update;
 RobotInterface::RobotInterface() {
     min_x_i = 0.3379; //range for gripper movement
     max_x_i = 0.5279;  // range for gripper movement
@@ -391,7 +394,7 @@ bool RobotInterface::isDataEntrySameAsDefault(SimulationData simData, int action
     GraspingStateRealArm initState(nextState);
     GraspingObservation graspingObs;
     
-    GetNextStateAndObsUsingDefaulFunction(nextState, graspingObs, action);
+    GetNextStateAndObsUsingDefaulFunction(nextState, graspingObs, action, 0.0);
 
     double reward;
     GetReward(initState, nextState, graspingObs, action, reward);
@@ -737,7 +740,7 @@ GraspingStateRealArm initial_grasping_state = grasping_state;
         }
         else
         {
-            GetNextStateAndObsUsingDefaulFunction(grasping_state, grasping_obs, action, debug);
+            GetNextStateAndObsUsingDefaulFunction(grasping_state, grasping_obs, action, random_num, debug);
         }
        /* grasping_state.gripper_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + pick_z_diff;
         grasping_state.gripper_pose.pose.position.x =  pick_x_val; 
@@ -793,14 +796,16 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
    // PrintObs(grasping_obs_expected);
     double total_distance = 0;
     double finger_weight = 1;
+    double sensor_weight = 4;
+    double gripper_position_weight = 2;
+    double gripper_orientation_weight = 0;
+    double vision_sensor_weight = 2;
     if(action == A_CLOSE)
     {
         finger_weight = 2;
+        vision_sensor_weight = 1;
     }
-    double sensor_weight = 4;
-    double gripper_position_weight = 1;
-    double gripper_orientation_weight = 1;
-    double vision_sensor_weight = 2;
+    
     
     double tau = finger_weight + sensor_weight + gripper_position_weight + gripper_orientation_weight;
     if(RobotInterface::version7)
@@ -809,22 +814,48 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     }
     
     double finger_distance = 0;
-    int inc = 1;
-    if (version5 || version6 || version7)
+    int gripper_status, gripper_status_expected;
+    if(RobotInterface::use_discrete_observation_in_update)
     {
-        inc = 2;
+        bool closeCalled = action==A_CLOSE;
+        gripper_status = GetGripperStatus(grasping_obs.finger_joint_state, closeCalled);
+        gripper_status_expected = GetGripperStatus(grasping_obs_expected.finger_joint_state, closeCalled);
     }
-    for(int i = 0; i < 4; i=i+inc)
+    else
     {
-        finger_distance = finger_distance + RobotInterface::abs(grasping_obs.finger_joint_state[i] - grasping_obs_expected.finger_joint_state[i]);
+        gripper_status = 2;
+        gripper_status_expected = 2;
     }
-    finger_distance = finger_distance/(4.0/inc);
+    if(gripper_status !=gripper_status_expected)
+    {
+        finger_distance = 2;
+    }
+    else
+    {
+        if(gripper_status == 2)
+        {
+            int inc = 1;
+            if (version5 || version6 || version7)
+            {
+                inc = 2;
+            }
+            for(int i = 0; i < 4; i=i+inc)
+            {
+                finger_distance = finger_distance + RobotInterface::abs(grasping_obs.finger_joint_state[i] - grasping_obs_expected.finger_joint_state[i]);
+            }
+            finger_distance = finger_distance/(4.0/inc);
+        }
+        else
+        {
+            finger_distance = 0;
+        }
+    }
     
     double sensor_distance = 0;
     int on_bits2[2];
     int on_bits2_expected[2];
     
-    if (RobotInterface::use_binary_touch)
+    if (RobotInterface::use_binary_touch || RobotInterface::use_discrete_observation_in_update)
     {
        CheckTouch(grasping_obs.touch_sensor_reading, on_bits2);
         CheckTouch(grasping_obs_expected.touch_sensor_reading, on_bits2_expected);
@@ -832,7 +863,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     for(int i = 0; i < 2; i++)
     {
         double distance_1 = grasping_obs.touch_sensor_reading[i] - grasping_obs_expected.touch_sensor_reading[i];
-        if (RobotInterface::use_binary_touch)
+        if (RobotInterface::use_binary_touch || RobotInterface::use_discrete_observation_in_update)
         {
             distance_1 = on_bits2[i] - on_bits2_expected[i];
         }
@@ -852,14 +883,28 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     double gripper_distance = 0;
     gripper_distance = gripper_distance + pow(grasping_obs.gripper_pose.pose.position.x - grasping_obs_expected.gripper_pose.pose.position.x, 2);
     gripper_distance = gripper_distance + pow(grasping_obs.gripper_pose.pose.position.y - grasping_obs_expected.gripper_pose.pose.position.y, 2);
-    gripper_distance = gripper_distance + pow(grasping_obs.gripper_pose.pose.position.z - grasping_obs_expected.gripper_pose.pose.position.z, 2);
+    //gripper_distance = gripper_distance + pow(grasping_obs.gripper_pose.pose.position.z - grasping_obs_expected.gripper_pose.pose.position.z, 2);
     gripper_distance = pow(gripper_distance, 0.5);
+    if(RobotInterface::use_discrete_observation_in_update)
+    {
+        if(gripper_distance > 0.015)
+        {
+            gripper_distance = 2;
+        }
+        if(gripper_distance < 0.005)
+        {
+            gripper_distance = 0;
+        }
+    }
     
-    double gripper_quaternion_distance = 1 - pow(((grasping_obs.gripper_pose.pose.orientation.x*grasping_obs_expected.gripper_pose.pose.orientation.x)+
+    double gripper_quaternion_distance;
+    if(gripper_orientation_weight > 0)
+    {
+        double gripper_quaternion_distance = 1 - pow(((grasping_obs.gripper_pose.pose.orientation.x*grasping_obs_expected.gripper_pose.pose.orientation.x)+
                                                   (grasping_obs.gripper_pose.pose.orientation.y*grasping_obs_expected.gripper_pose.pose.orientation.y)+
                                                   (grasping_obs.gripper_pose.pose.orientation.z*grasping_obs_expected.gripper_pose.pose.orientation.z)+
                                                   (grasping_obs.gripper_pose.pose.orientation.w*grasping_obs_expected.gripper_pose.pose.orientation.w)), 2);
-    
+    }
     total_distance = (finger_distance*finger_weight) + 
                      (sensor_distance*sensor_weight) + 
                      (gripper_distance*gripper_position_weight) + 
@@ -1120,6 +1165,23 @@ int RobotInterface::GetWeightedObservationSize() const{
     }
     return weighted_obs_size;
         
+}
+
+void RobotInterface::SyncParticleState(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs) {
+    //grasping_state.gripper_pose.pose.orientation.x = grasping_obs.gripper_pose.pose.orientation.x;
+    //grasping_state.gripper_pose.pose.orientation.y = grasping_obs.gripper_pose.pose.orientation.y;
+    //grasping_state.gripper_pose.pose.orientation.z = grasping_obs.gripper_pose.pose.orientation.z;
+    //grasping_state.gripper_pose.pose.orientation.w = grasping_obs.gripper_pose.pose.orientation.w;
+    
+    //grasping_state.gripper_pose.pose.position.x = grasping_obs.gripper_pose.pose.position.x;
+    //grasping_state.gripper_pose.pose.position.y = grasping_obs.gripper_pose.pose.position.y;
+    //grasping_state.gripper_pose.pose.position.z = grasping_obs.gripper_pose.pose.position.z;
+    /*
+    for(int i = 0; i < 4; i++)
+    {
+        grasping_state.finger_joint_state[i] = grasping_obs.finger_joint_state[i];
+    }*/
+    
 }
 
 
@@ -1432,17 +1494,21 @@ void RobotInterface::GetObsFromData(GraspingStateRealArm current_grasping_state,
 //Return value 1 if closed without object inside it
 //Return value 2 if closed with object inside it
 int RobotInterface::GetGripperStatus(GraspingStateRealArm grasping_state) const {
+    return GetGripperStatus(grasping_state.finger_joint_state, grasping_state.closeCalled);
+}
+
+int RobotInterface::GetGripperStatus(double finger_joint_state[], bool closeCalled) const {
     double degree_readings[4];
     for(int i = 0; i < 4; i++)
     {
-        degree_readings[i] = grasping_state.finger_joint_state[i]*180/3.14;
+        degree_readings[i] = finger_joint_state[i]*180/3.14;
     }
     
     if(version5 || version6 || version7)
     {
-        if(grasping_state.closeCalled)
+        if(closeCalled)
         {
-            if(degree_readings[0] > 57 && degree_readings[2] > 57)
+            if(degree_readings[0] > 58.5 && degree_readings[2] > 58.5)
             {
                 return 1;
             }
@@ -1461,7 +1527,7 @@ int RobotInterface::GetGripperStatus(GraspingStateRealArm grasping_state) const 
     }
     else
     {
-        if(grasping_state.closeCalled)
+        if(closeCalled)
         {
         if(degree_readings[0] > 22 && //Changed from 20 to 22 looking at the data from 7cm cylinder object
            degree_readings[1] > 85 &&
@@ -1585,12 +1651,12 @@ void RobotInterface::GetNextStateAndObsFromDynamicModel(GraspingStateRealArm cur
         if(pick_success_prob >= random_num)
         {
             //pick success
-            GetDefaultPickState(next_grasping_state,1);
+            GetDefaultPickState(next_grasping_state,1.0,1);
         }
         else
         {
             //pick failure
-            GetDefaultPickState(next_grasping_state,0);
+            GetDefaultPickState(next_grasping_state,0.0,0);
         }
         
         
@@ -1612,6 +1678,171 @@ void RobotInterface::GetNextStateAndObsFromDynamicModel(GraspingStateRealArm cur
     
     
 }
+
+SimulationData RobotInterface::GetNextStateUsingNearestNeighbourSearch(std::vector<SimulationData> :: iterator xy_lower_bound,
+        std::vector<SimulationData> :: iterator xy_upper_bound, 
+        GraspingStateRealArm current_grasping_state, int action, bool debug) const
+{
+    SimulationData tempData;
+    //Get the closest gripper state
+        double min_distance = 100000;
+        
+        for(std::vector<SimulationData> :: iterator it = xy_lower_bound; it < xy_upper_bound; it++)
+        {
+            double temp_distance = 0;
+            if(action == A_PICK)
+            {
+                int inc = 1;
+                if (version5 || version6 || version7)
+                {
+                    inc = 2;
+                }
+                for(int i = 0; i < 4; i=i+inc)
+                {
+                    if(temp_distance < min_distance)
+                    {
+                        temp_distance = temp_distance + pow(((*it).current_finger_joint_state[i] - current_grasping_state.finger_joint_state[i]), 2);
+                    }
+                }
+            }
+            else{
+                //Match only current gripper pose as relative pose is already close for all the particles
+                //Matching relative pose because a difference of 1 cm in relative pose can make a differnce
+                //Should Match current pose to cater to boundary cases
+                double x1,x2;
+                if(action >= A_INCREASE_Y )
+                {
+                    x1 = (*it).current_gripper_pose.pose.position.x  - (*it).current_object_pose.pose.position.x;
+                    x2 = current_grasping_state.gripper_pose.pose.position.x  - current_grasping_state.object_pose.pose.position.x;
+                }
+                else
+                {
+                    //Match current gripper pose for movement in x to cater to boundary cases
+                   x1 = (*it).current_gripper_pose.pose.position.x ; // - (*it).current_object_pose.pose.position.x;
+                   x2 = current_grasping_state.gripper_pose.pose.position.x ; // - current_grasping_state.object_pose.pose.position.x;
+ 
+                }
+                temp_distance = temp_distance + pow(x1 - x2, 2);
+                if(temp_distance < min_distance)
+                {
+                    double y1,y2;
+                    if(action < A_INCREASE_Y || action >=A_CLOSE)
+                    {
+                     y1 = (*it).current_gripper_pose.pose.position.y - (*it).current_object_pose.pose.position.y;
+                     y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
+                    }
+                    else
+                    {
+                        //Match current gripper pose for movement in y to cater to boundary case
+                        y1 = (*it).current_gripper_pose.pose.position.y; //- (*it).current_object_pose.pose.position.y;
+                        y2 = current_grasping_state.gripper_pose.pose.position.y ; //- current_grasping_state.object_pose.pose.position.y;
+
+                    }
+                     temp_distance = temp_distance + pow(y1 - y2, 2);
+                }
+            }
+            //Not taking square root to save time
+            //temp_distance = pow(temp_distance, 0.5);
+            
+            if(temp_distance < min_distance)
+            {
+                min_distance = temp_distance;
+                tempData = (*it);
+            }
+        }
+        
+        return tempData;
+}
+
+
+
+
+int RobotInterface::GetNextStateProbabilistically(
+std::vector<SimulationData>::iterator xy_lower_bound, 
+        std::vector<SimulationData>::iterator xy_upper_bound, 
+        GraspingStateRealArm current_grasping_state, int action, double random_num, bool debug) const {
+    
+    //Get the closest gripper state
+        double total_weight = 0;
+        double temperature;
+        std::vector<double> weight_vector;
+        for(std::vector<SimulationData> :: iterator it = xy_lower_bound; it < xy_upper_bound; it++)
+        {
+            double temp_distance = 0;
+            double temp_weight;
+            if(action == A_PICK)
+            {
+                int inc = 1;
+                if (version5 || version6 || version7)
+                {
+                    inc = 2;
+                }
+                for(int i = 0; i < 4; i=i+inc)
+                {
+                   
+                        temp_distance = temp_distance + pow(((*it).current_finger_joint_state[i] - current_grasping_state.finger_joint_state[i]), 2);
+                    
+                }
+            }
+            else{
+                //Match only current gripper pose as relative pose is already close for all the particles
+                //Matching relative pose because a difference of 1 cm in relative pose can make a differnce
+                //Should Match current pose to cater to boundary cases
+                double x1,x2;
+                if(action >= A_INCREASE_Y )
+                {
+                    x1 = (*it).current_gripper_pose.pose.position.x  - (*it).current_object_pose.pose.position.x;
+                    x2 = current_grasping_state.gripper_pose.pose.position.x  - current_grasping_state.object_pose.pose.position.x;
+                }
+                else
+                {
+                    //Match current gripper pose for movement in x to cater to boundary cases
+                   x1 = (*it).current_gripper_pose.pose.position.x ; // - (*it).current_object_pose.pose.position.x;
+                   x2 = current_grasping_state.gripper_pose.pose.position.x ; // - current_grasping_state.object_pose.pose.position.x;
+ 
+                }
+                temp_distance = temp_distance + pow(x1 - x2, 2);
+                
+                double y1,y2;
+                if(action < A_INCREASE_Y || action >=A_CLOSE)
+                {
+                 y1 = (*it).current_gripper_pose.pose.position.y - (*it).current_object_pose.pose.position.y;
+                 y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
+                }
+                else
+                {
+                    //Match current gripper pose for movement in y to cater to boundary case
+                    y1 = (*it).current_gripper_pose.pose.position.y; //- (*it).current_object_pose.pose.position.y;
+                    y2 = current_grasping_state.gripper_pose.pose.position.y ; //- current_grasping_state.object_pose.pose.position.y;
+
+                }
+                 temp_distance = temp_distance + pow(y1 - y2, 2);
+                
+            }
+            
+            temp_distance = pow(temp_distance, 0.5);
+            temp_weight = pow(2,-1*temperature*temp_distance);
+            total_weight = total_weight + temp_weight;
+            weight_vector.push_back(temp_weight);
+            
+        }
+        double mass = 0;
+        double cur;
+        for(int i = 0; i < weight_vector.size(); i++)
+        {
+            cur = weight_vector[i]/total_weight;
+            if(random_num < (mass + cur))
+            {
+                return i;
+            }
+            else
+            {
+                mass = mass + cur;
+            }
+        }
+        
+}
+
 
 void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug) const {
     if(use_regression_models)
@@ -1689,125 +1920,20 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
     xy_lower_bound = tempDataVector.begin();
     xy_upper_bound = tempDataVector.end();
     // check if x and y exists in simulation data with object
-    if(std::distance(xy_lower_bound,xy_upper_bound) > 0)
+    if(std::distance(xy_lower_bound,xy_upper_bound) > 1)
     {   stateInObjectData = true;
     //std::cout << "No of objects : " << xy_upper_bound - xy_lower_bound << std::endl;
-        //Get the closest gripper state
-        double min_distance = 100000;
-        
-        for(std::vector<SimulationData> :: iterator it = xy_lower_bound; it < xy_upper_bound; it++)
+        if(!use_probabilistic_neighbour_step)
         {
-            double temp_distance = 0;
-            if(action == A_PICK)
-            {
-                int inc = 1;
-                if (version5 || version6 || version7)
-                {
-                    inc = 2;
-                }
-                for(int i = 0; i < 4; i=i+inc)
-                {
-                    if(temp_distance < min_distance)
-                    {
-                        temp_distance = temp_distance + pow(((*it).current_finger_joint_state[i] - current_grasping_state.finger_joint_state[i]), 2);
-                    }
-                }
-            }
-            else{
-                //Match only current gripper pose as relative pose is already close for all the particles
-                //Matching relative pose because a difference of 1 cm in relative pose can make a differnce
-                //Should Match current pose to cater to boundary cases
-                double x1,x2;
-                if(action >= A_INCREASE_Y )
-                {
-                    x1 = (*it).current_gripper_pose.pose.position.x  - (*it).current_object_pose.pose.position.x;
-                    x2 = current_grasping_state.gripper_pose.pose.position.x  - current_grasping_state.object_pose.pose.position.x;
-                }
-                else
-                {
-                    //Match current gripper pose for movement in x to cater to boundary cases
-                   x1 = (*it).current_gripper_pose.pose.position.x ; // - (*it).current_object_pose.pose.position.x;
-                   x2 = current_grasping_state.gripper_pose.pose.position.x ; // - current_grasping_state.object_pose.pose.position.x;
- 
-                }
-                temp_distance = temp_distance + pow(x1 - x2, 2);
-                if(temp_distance < min_distance)
-                {
-                    double y1,y2;
-                    if(action < A_INCREASE_Y || action >=A_CLOSE)
-                    {
-                     y1 = (*it).current_gripper_pose.pose.position.y - (*it).current_object_pose.pose.position.y;
-                     y2 = current_grasping_state.gripper_pose.pose.position.y - current_grasping_state.object_pose.pose.position.y;
-                    }
-                    else
-                    {
-                        //Match current gripper pose for movement in y to cater to boundary case
-                        y1 = (*it).current_gripper_pose.pose.position.y; //- (*it).current_object_pose.pose.position.y;
-                        y2 = current_grasping_state.gripper_pose.pose.position.y ; //- current_grasping_state.object_pose.pose.position.y;
-
-                    }
-                     temp_distance = temp_distance + pow(y1 - y2, 2);
-                }
-            }
-            //Not taking square root to save time
-            //temp_distance = pow(temp_distance, 0.5);
-            
-            if(temp_distance < min_distance)
-            {
-                min_distance = temp_distance;
-                tempData = (*it);
-            }
+            tempData = GetNextStateUsingNearestNeighbourSearch(xy_lower_bound, xy_upper_bound, current_grasping_state, action, debug);
         }
-        
-            
+        else
+        {
+            int tempDataIndex = GetNextStateProbabilistically(xy_lower_bound, xy_upper_bound, current_grasping_state, action,random_num, debug);
+            tempData = tempDataVector[tempDataIndex];
+        }
     }
-    /*
-    else
-    {
-        
-        std::sort(simulationDataCollectionWithoutObject[action].begin(), simulationDataCollectionWithoutObject[action].end(), sort_by_gripper_pose_initial_state_x);
-        tempData.current_gripper_pose.pose.position.x = tempData.current_gripper_pose.pose.position.x - 0.005;
-        x_lower_bound = std::lower_bound(simulationDataCollectionWithoutObject[action].begin(), simulationDataCollectionWithoutObject[action].end(), tempData, sort_by_gripper_pose_initial_state_x);
-        tempData.current_gripper_pose.pose.position.x = tempData.current_gripper_pose.pose.position.x + 0.01;    
-        x_upper_bound = std::upper_bound(simulationDataCollectionWithoutObject[action].begin(), simulationDataCollectionWithoutObject[action].end(), tempData, sort_by_gripper_pose_initial_state_x);
     
-        std::sort(x_lower_bound, x_upper_bound, sort_by_gripper_pose_initial_state_x);
-        tempData.current_gripper_pose.pose.position.y = tempData.current_gripper_pose.pose.position.y - 0.005;
-        xy_lower_bound = std::lower_bound(x_lower_bound, x_upper_bound, tempData, sort_by_gripper_pose_initial_state_y);
-        tempData.current_gripper_pose.pose.position.y = tempData.current_gripper_pose.pose.position.y + 0.01;
-        xy_upper_bound = std::upper_bound(x_lower_bound, x_upper_bound, tempData, sort_by_gripper_pose_initial_state_y);
-    
-
-        // check if x and y exists in simulation data without object
-        if(std::distance(xy_lower_bound,xy_upper_bound) > 0)
-        {   stateInGripperData = true;
-            //Get the closest gripper state
-            double min_distance = 100000;
-        
-            for(std::vector<SimulationData> :: iterator it = xy_lower_bound; it < xy_upper_bound; it++)
-            {
-                double temp_distance = 0;
-                if(action < A_INCREASE_Y || action > A_CLOSE-1)
-                { // if move in x check distance between only x
-                    temp_distance = pow(((*it).current_gripper_pose.pose.position.x - current_grasping_state.gripper_pose.pose.position.x), 2);
-                }
-                if (action >= A_INCREASE_Y)
-                {
-                    // if move in y check distance between only y 
-                    temp_distance = temp_distance + pow(((*it).current_gripper_pose.pose.position.y - current_grasping_state.gripper_pose.pose.position.y), 2);
-                }
-            
-                temp_distance = pow(temp_distance, 0.5);
-                if(temp_distance < min_distance)
-                {
-                    min_distance = temp_distance;
-                    tempData = (*it);
-                }
-            }
-            
-        }
-    
-    }*/
     double step_start_t4 = despot::get_time_second();
     
     if(stateInObjectData || stateInGripperData)
@@ -1957,7 +2083,7 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
         {
             std::cout << "State being updated from default function" << std::endl;
         }
-        GetNextStateAndObsUsingDefaulFunction(grasping_state, grasping_obs, action);
+        GetNextStateAndObsUsingDefaulFunction(grasping_state, grasping_obs, action, random_num);
     }
     double step_start_t5 = despot::get_time_second();
     if(debug)
@@ -1968,7 +2094,7 @@ void RobotInterface::GetNextStateAndObsFromData(GraspingStateRealArm current_gra
     }
 }
 
-void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, int action, bool debug) const {
+void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& grasping_state, GraspingObservation& grasping_obs, int action,double random_num, bool debug) const {
  
     if(action < A_CLOSE)
     {
@@ -2022,7 +2148,7 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     }
     else if(action == A_PICK)
     {
-        GetDefaultPickState(grasping_state);
+        GetDefaultPickState(grasping_state, 0.0);
         
     }
     else
@@ -2113,10 +2239,10 @@ bool validState = IsValidState(grasping_state);
             int initial_gripper_status = GetGripperStatus(initial_grasping_state);
             if((initial_gripper_status == 0 && action == A_OPEN) || 
               (initial_gripper_status !=0 && action <= A_CLOSE)  ||
-              (initial_grasping_state.gripper_pose.pose.position.x <=min_x_i && (action >= A_DECREASE_X && action < A_INCREASE_Y)) ||
-              (initial_grasping_state.gripper_pose.pose.position.x >=max_x_i && (action >= A_INCREASE_X && action < A_DECREASE_X)) ||
-              (initial_grasping_state.gripper_pose.pose.position.y <=min_y_i && (action >= A_DECREASE_Y && action < A_CLOSE) )||
-              (initial_grasping_state.gripper_pose.pose.position.y >=max_y_i && (action >= A_INCREASE_Y && action < A_DECREASE_Y) )
+              (initial_grasping_state.gripper_pose.pose.position.x <(min_x_i + 0.005) && (action >= A_DECREASE_X && action < A_INCREASE_Y)) ||
+              (initial_grasping_state.gripper_pose.pose.position.x >(max_x_i - 0.005)&& (action >= A_INCREASE_X && action < A_DECREASE_X)) ||
+              (initial_grasping_state.gripper_pose.pose.position.y < (min_y_i + 0.005)&& (action >= A_DECREASE_Y && action < A_CLOSE) )||
+              (initial_grasping_state.gripper_pose.pose.position.y > (max_y_i - 0.005)&& (action >= A_INCREASE_Y && action < A_DECREASE_Y) )
                     
               )
             {//Disallow open action when gripper is open and move actions when gripper is close
@@ -2218,6 +2344,77 @@ bool RobotInterface::CheckTouch(double current_sensor_values[], int on_bits[], i
     return touchDetected;
 }
 
+void RobotInterface::PrintDicretizedObs(GraspingObservation& grasping_obs, int action, std::ostream& out) const {
+    double x = round(grasping_obs.gripper_pose.pose.position.x*1000.0)/1000.0;
+    double y = round(grasping_obs.gripper_pose.pose.position.y*1000.0)/1000.0;
+    out << x << " " << y << " ";
+    if(use_binary_touch || RobotInterface::use_discrete_observation_in_step)
+    {  
+        int on_bits2[2];
+        out << CheckTouch(grasping_obs.touch_sensor_reading, on_bits2);
+        out << on_bits2[0] << " " << on_bits2[1] << " ";
+    }
+    else
+    {
+        out << grasping_obs.touch_sensor_reading[0] << " "
+            << grasping_obs.touch_sensor_reading[1] << " ";
+    }
+    if(version7)
+    {
+        out << grasping_obs.vision_movement << " ";
+    }
+    bool closeCalled = action==A_CLOSE;
+    int gripper_status = GetGripperStatus(grasping_obs.finger_joint_state, closeCalled);
+    if(gripper_status == 0)
+    {
+        if(version5 || version6 || version7)
+        {
+            out << "0 0 ";
+            
+        }
+        else
+        {
+            out << "0 0 0 0 ";
+        }
+    }
+    if(gripper_status ==1)
+    {
+        
+
+        if(version5 || version6 || version7)
+        {
+            out << "1.07 1.07 ";
+            
+        }
+        else
+        {
+            out << "0.3925 1.57 0.3925 1.57 ";
+        }
+       
+    
+    }
+
+    if(gripper_status == 2)
+    {
+        int inc = 1;
+        if (version5 || version6 || version7)
+        {
+            inc = 2;
+        }
+        for(int i = 0; i < 4; i=i+inc)
+        {
+            //double f = round(grasping_obs.finger_joint_state[i]*100.0)/100.0;
+            //out << f << " ";
+            out << "0.5 " << " ";
+        }
+        
+    }
+        
+        
+    
+    
+    
+}
 
 
 

@@ -29,6 +29,7 @@ public:
     
     void PrintObs(const GraspingStateRealArm& state, GraspingObservation& obs, std::ostream& out = std::cout) const;
     void PrintObs(GraspingObservation& obs, std::ostream& out = std::cout) const;
+    void PrintDicretizedObs(GraspingObservation& obs, int action, std::ostream& out = std::cout) const;
     
     virtual void CreateStartState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const = 0;
     virtual std::pair <std::map<int,double>,std::vector<double> > GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
@@ -43,6 +44,7 @@ public:
     void GenerateUniformParticleFromState(GraspingStateRealArm& initial_state, std::string type = "DEFAULT") const;
     
     void GetDefaultStartState(GraspingStateRealArm& initial_state) const;
+    void SyncParticleState(GraspingStateRealArm& state, GraspingObservation grasping_obs);
     bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;
     static double abs(double x) {
         if (x < 0) 
@@ -143,6 +145,9 @@ public:
     static bool use_probabilistic_step; //Use gaussian distribution 0f 5mm in step function
     static bool use_binary_touch; //Use binary touch to update obs prob
     static bool use_wider_object_workspace;
+    static bool use_probabilistic_neighbour_step;
+    static bool use_discrete_observation_in_step;
+    static bool use_discrete_observation_in_update;
     double epsilon = 0.01; //Smallest step value //Reset during gathering data 
     //double epsilon_multiplier = 2; //for step increments in amazon shelf
     double epsilon_multiplier = 8; //for open table
@@ -180,11 +185,18 @@ public:
     void GetObsFromDynamicModel(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug = false) const; //state is the state reached after performing action
 
     int GetGripperStatus(GraspingStateRealArm grasping_state) const;
+    int GetGripperStatus(double finger_joint_state_readings[], bool closeCalled) const;
     void GetObsUsingDefaultFunction(GraspingStateRealArm grasping_state, GraspingObservation& grasping_obs, bool debug = false) const;
     void GetNextStateAndObsFromData(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs,double random_num, int action, bool debug = false) const;
     void GetNextStateAndObsFromDynamicModel(GraspingStateRealArm current_grasping_state, GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, double random_num, int action, bool debug = false) const;
+    SimulationData GetNextStateUsingNearestNeighbourSearch(std::vector<SimulationData> :: iterator xy_lower_bound,
+        std::vector<SimulationData> :: iterator xy_upper_bound, 
+        GraspingStateRealArm current_grasping_state, int action, bool debug) const;
+    int GetNextStateProbabilistically(std::vector<SimulationData> :: iterator xy_lower_bound,
+        std::vector<SimulationData> :: iterator xy_upper_bound, 
+        GraspingStateRealArm current_grasping_state, int action, double random_num, bool debug) const;
     
-    void GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, int action, bool debug = false) const;
+    void GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm& next_grasping_state, GraspingObservation& grasping_obs, int action, double random_num,bool debug = false) const;
     void GetReward(GraspingStateRealArm initial_grasping_state, GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, int action, double& reward) const;
     void ConvertObs48ToObs2(double current_sensor_values[], double on_bits[]) const;
     void UpdateNextStateValuesBasedAfterStep(GraspingStateRealArm& grasping_state, GraspingObservation grasping_obs, double reward, int action) const;
@@ -203,7 +215,7 @@ public:
     //virtual bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const = 0;
     virtual bool IsValidPick(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs) const = 0;
     virtual void CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const = 0;
-    virtual void GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type = 2) const = 0;
+    virtual void GetDefaultPickState(GraspingStateRealArm& grasping_state, double random_num, int pick_type = 2) const = 0;
 };
 
 

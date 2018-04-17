@@ -1,3 +1,6 @@
+#ifndef GRASPING_V4_PARTICLE_BELIEF_H
+#define	GRASPING_V4_PARTICLE_BELIEF_H
+
 #include <despot/core/belief.h>
 
 using namespace despot;
@@ -51,3 +54,4 @@ public:
 	return oss.str();
 }
 };
+#endif	/* GRASPING_V4_PARTICLE_BELIEF_H */

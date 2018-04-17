@@ -28,7 +28,7 @@ public:
         return RobotInterface::GetBeliefObjectProbability(belief_object_ids);
     }
 
-    void GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type = 2) const;
+    void GetDefaultPickState(GraspingStateRealArm& grasping_state, double rand_num,int pick_type = 2) const;
     
 
     void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const;
