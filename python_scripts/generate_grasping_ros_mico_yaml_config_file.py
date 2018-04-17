@@ -524,7 +524,15 @@ class ConfigFileGenerator():
         self.check_touch = True
         self.use_binary_touch = False
         self.use_wider_workspace = False
+        self.use_probabilistic_neighbour_step = False
+        self.use_discrete_observation_in_update = False
+        self.use_discrete_observation_in_step = False
+
         self.filetypes = [''] #Con contain learning and combined policy dir paths
+        if('towelstand_train1_version7' in type):
+            self.belief_name = 'towelstand_train1'
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
+            self.filetypes = ['']
         if('g3db_instances_train2' in type):
             self.belief_name = 'g3db_instances_train2'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -548,7 +556,7 @@ class ConfigFileGenerator():
             self.use_pruned_data = True
         if('discretize' in type):
             self.use_discretized_data = True
-        if('probabilistic' in type):
+        if('probabilistic_step' in type):
             self.use_probabilistic_step = True
         if('weighted' in type):
             self.use_weighted_belief = True
@@ -570,6 +578,12 @@ class ConfigFileGenerator():
             self.use_binary_touch = True
         if('wider_workspace' in type):
             self.use_wider_workspace = True
+        if('probabilistic_neighbour_step' in type):
+            self.use_probabilistic_neighbour_step = True
+        if('discrete_observation_in_update' in type):
+            self.use_discrete_observation_in_update = True
+        if('discrete_observation_in_step' in type):
+            self.use_discrete_observation_in_step = True   
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -597,6 +611,12 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_binary_touch"
                     if(self.use_wider_workspace):
                         file_prefix = file_prefix + "/use_wider_workspace"
+                    if (self.use_probabilistic_neighbour_step):
+                        file_prefix = file_prefix + "/use_probabilistic_neighbour_step"
+                    if self.use_discrete_observation_in_update:
+                        file_prefix = file_prefix + "/use_discrete_observation_in_update"
+                    if self.use_discrete_observation_in_step:
+                        file_prefix = file_prefix + "/use_discrete_observation_in_step"
                     if(self.use_weighted_belief):
                         file_prefix = file_prefix + "/use_weighted_belief"
                     if(self.use_object_classifier):
@@ -652,9 +672,10 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
 #type = 'g3db_instances_train1_version7_discretize'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans'
-#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1_probabilistic'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1_probabilistic_step'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_2'
+#type = 'towelstand_train1_version7_discretize_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -689,6 +710,12 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans['use_binary_touch'] = True
         if(cfg.use_wider_workspace):
             ans['use_wider_workspace'] = True
+        if (cfg.use_probabilistic_neighbour_step):
+            ans["use_probabilistic_neighbour_step"] = True
+        if cfg.use_discrete_observation_in_update:
+            ans["use_discrete_observation_in_update"] = True
+        if cfg.use_discrete_observation_in_step:
+            ans["use_discrete_observation_in_step"] = True
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
@@ -705,7 +732,10 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
         if 'g3db_instances_train2' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
-        
+        if 'towelstand_train1' in filename:
+            ans["object_mapping"] = get_grasping_object_name_list('training_towelstand')
+            ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
+            
         if object_type not in ans["object_mapping"]:
             ans["object_mapping"].append(object_type)
         ans["test_object_id"] = ans["object_mapping"].index(object_type)

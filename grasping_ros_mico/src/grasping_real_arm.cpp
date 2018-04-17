@@ -283,6 +283,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
         RobotInterface::use_probabilistic_step = false;
     }
+    std::cout << "use probabilistic step is " << RobotInterface::use_probabilistic_step << std::endl;
     
     if(config["use_classifier_for_belief"])
     {
@@ -302,8 +303,9 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
         RobotInterface::check_touch = true;
     }
+    std::cout << "check touch is " << RobotInterface::check_touch << std::endl;
     
-     
+    
     if(config["use_binary_touch"])
     {
         RobotInterface::use_binary_touch = config["use_binary_touch"].as<bool>();
@@ -322,6 +324,7 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
     {
        RobotInterface::use_wider_object_workspace = false; 
     }
+    std::cout << "wider workspce is " << RobotInterface::use_wider_object_workspace << std::endl;
     
     if(config["use_probabilistic_neighbour_step"])
     {
