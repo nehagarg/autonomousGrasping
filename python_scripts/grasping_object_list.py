@@ -61,6 +61,9 @@ def get_grasping_object_name_list(type='used'):
         pattern_list2 = get_grasping_object_name_list('training_towelstand')
         for a in pattern_list2:
             pattern_list.remove(a)
+    elif type=='validation_headphones':
+        pattern_list = ['56_headphones_final-18-Dec-2015-12-49-27_instance0']
+        pattern_list.append('56_headphones_final-11-Nov-2015-14-14-02_instance0')
         
     else:
         pattern_list=[type]
