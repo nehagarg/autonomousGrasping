@@ -1160,7 +1160,7 @@ int RobotInterface::GetWeightedObservationSize() const{
         }
         if(classifier_string_name.find("label_3") != std::string::npos)
         {
-            weighted_obs_size = 6;
+            weighted_obs_size = 5;
         }
     }
     return weighted_obs_size;
@@ -1508,7 +1508,7 @@ int RobotInterface::GetGripperStatus(double finger_joint_state[], bool closeCall
     {
         if(closeCalled)
         {
-            if(degree_readings[0] > 58.5 && degree_readings[2] > 58.5)
+            if(degree_readings[0] > 59 && degree_readings[2] > 59)
             {
                 return 1;
             }
