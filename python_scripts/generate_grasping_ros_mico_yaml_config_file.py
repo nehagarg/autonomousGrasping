@@ -550,7 +550,8 @@ class ConfigFileGenerator():
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
             self.filetypes = ['', 'learning/version18/']#,'learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
         if('baseline' in type):
-            self.belief_name = type
+            baseline_no = type.split('_')[-1]
+            self.belief_name = 'baseline' + "_" + baseline_no
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
         if('pruned' in type):
             self.use_pruned_data = True
@@ -611,6 +612,8 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_probabilistic_step"
                     if(self.use_binary_touch):
                         file_prefix = file_prefix + "/use_binary_touch"
+                    if(not self.check_touch):
+                        file_prefix = file_prefix + "/no_touch"
                     if(self.use_wider_workspace):
                         file_prefix = file_prefix + "/use_wider_workspace"
                     if (self.use_probabilistic_neighbour_step):
@@ -668,7 +671,8 @@ def get_hand_defined_actions(type):
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
 #type = 'baseline_<no>'
-#type = 'baseline__no_touch_<no>'
+#type = 'baseline_no_touch_<no>'
+#type = 'baseline_no_touch_wider_workspace_<no>'
 #type = 'g3db_instances_train1_discretize_weighted'
 #type = 'g3db_instances_train1_discretize'
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
