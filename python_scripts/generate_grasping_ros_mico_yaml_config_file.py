@@ -569,6 +569,8 @@ class ConfigFileGenerator():
                 self.keras_model_name = "kmeans_label_1_20180223-105821"
             if "kmeans_label_2" in type:
                 self.keras_model_name = "kmeans-extra-data_label_2_20180410-212342"
+            if "kmeans_label_3" in type:
+                self.keras_model_name = "kmeans-extra-data_label_3_20180419-123116"
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
@@ -676,6 +678,8 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1'
 #type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_2'
 #type = 'towelstand_train1_version7_discretize_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_3_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -731,6 +735,8 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         if 'g3db_instances_train2' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2')
+            if ver == 'ver7':
+                ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2_version7')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         if 'towelstand_train1' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('training_towelstand')

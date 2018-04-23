@@ -767,4 +767,7 @@ if __name__ == '__main__':
 #tail -2 ~/1[0-9][0-9][0-9]_despot_* | grep -B 2 communicate | grep despot | cut -d'/' -f4 | cut -d' ' -f1 | awk '{print "grep "$1" running_nodes.txt"}' | bash
 #tail -n 2 ~/1[0-9][0-9][0-9]_despot_* | grep -B 2 communicate | grep despot | cut -d'/' -f4 | cut -d' ' -f1 | awk '{print "grep "$1" running_nodes.txt"}' | bash | sed -e 's/despot_without_display/roscore/g' | awk '{print "echo ssh "$1";grep "$2" main_command_file.txt | tail -n 1"}' | bash | paste -d'|' - - | awk -F'|' '{print $1" \"" $2" \""}'
 
-
+#Commands for getting joint angles of successfule pick
+#find -name '*closeAndPushAction.txt'| xargs -i grep -H '*20' {}
+# cat successfulPicks.txt | cut -d' ' -f15,17,1 | sed -e 's/|/: /g' | cut -d':' -f3,1 | awk '{print $2" "$3" "$1}' | sort -n | more
+#cat successfulPicks.txt | cut -d' ' -f15,17,1 | sed -e 's/|/: /g' | cut -d':' -f3,1 | awk '{print $2" "$3" "$1}' | sort -n | awk '$1>1.02 && $2>1.02{print $3" "$1" "$2}' |  sort | cut -d'/' -f2 | uniq -c

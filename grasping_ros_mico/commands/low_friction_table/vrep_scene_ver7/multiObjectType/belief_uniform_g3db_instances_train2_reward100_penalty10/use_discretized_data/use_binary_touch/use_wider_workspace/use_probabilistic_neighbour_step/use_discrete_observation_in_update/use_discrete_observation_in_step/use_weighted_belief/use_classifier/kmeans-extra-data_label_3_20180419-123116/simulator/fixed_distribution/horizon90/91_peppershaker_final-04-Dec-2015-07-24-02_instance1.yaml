@@ -1,0 +1,5 @@
+{additional_params: -l CAP --number=, begin_index: 0, belief_type: UNIFORM_WITH_STATE_IN,
+  config_file: config_files/low_friction_table/vrep_scene_ver7/multiObjectType/g3db_instances_train2_reward100_penalty10/use_discretized_data/use_binary_touch/use_wider_workspace/use_probabilistic_neighbour_step/use_discrete_observation_in_update/use_discrete_observation_in_step/use_weighted_belief/use_classifier/kmeans-extra-data_label_3_20180419-123116/simulator/91_peppershaker_final-04-Dec-2015-07-24-02_instance1.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_91_peppershaker_final-04-Dec-2015-07-24-02_instance1,
+  horizon: 90, number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/vrep_scene_ver7/multiObjectType/belief_uniform_g3db_instances_train2_reward100_penalty10/use_discretized_data/use_binary_touch/use_wider_workspace/use_probabilistic_neighbour_step/use_discrete_observation_in_update/use_discrete_observation_in_step/use_weighted_belief/use_classifier/kmeans-extra-data_label_3_20180419-123116/simulator/fixed_distribution/horizon90,
+  planning_time: 1, solver: DESPOT}
