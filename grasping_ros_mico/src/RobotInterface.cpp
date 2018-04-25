@@ -596,7 +596,7 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
     {
       std::cout << "(" << j << "," << graspObjects[object_id]->simulationDataCollectionWithObject[j].size() << ")";  
     }*/
-    std::cout << std::endl;
+    //std::cout << std::endl;
     simulationDataFile.close();
     myfile.close();
     return ans;
