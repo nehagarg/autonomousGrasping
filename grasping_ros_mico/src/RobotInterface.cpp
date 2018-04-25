@@ -592,10 +592,10 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
         } 
         i++;
     }
-    for(int j = 0; j < A_PICK + 1; j++)
+    /*for(int j = 0; j < A_PICK + 1; j++)
     {
       std::cout << "(" << j << "," << graspObjects[object_id]->simulationDataCollectionWithObject[j].size() << ")";  
-    }
+    }*/
     std::cout << std::endl;
     simulationDataFile.close();
     myfile.close();
@@ -653,6 +653,10 @@ std::map<std::string, std::vector<int> > RobotInterface::getSimulationData(int o
         ans[simulationFileName] = getSimulationDataFromFile(object_id, simulationFileName, 2, false);
         //simulationDataFile.open("data/simulationData_1_openAction.txt");
          */ 
+    }
+    for(int j = 0; j < A_PICK + 1; j++)
+    {
+      std::cout << "(" << j << "," << graspObjects[object_id]->simulationDataCollectionWithObject[j].size() << ")";  
     }
     return ans;
     
