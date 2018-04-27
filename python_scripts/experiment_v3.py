@@ -43,6 +43,19 @@ def get_gather_data_number(pattern, t):
         return (int(filter(str.isdigit, pattern))*10) + int(t)
     
 def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
+    if(problem_type.startswith('despot_bt')):
+        command = "./" + command_prefix + " -v 3 "
+        command = command + "--solver=" + pattern + " "
+        if (t != 'None'):
+            command = command + "-t " + t + " "
+        if (n != 'None'):
+            command = command + "-n " + n + " "
+        command = command + " > ../../../../examples/cpp_models/" + problem_type.split('_')[-1]
+        command = command + "/results/" + command_prefix +  "/t" + t + "n" + n + "/" 
+        command = command + pattern + "_trial_"  + repr(begin_index) + ".log 2>&1"
+        return command
+    
+    
     if(command_prefix == 'label_g3db_objects'):
         # python label_g3db_objects.py -o ../grasping_ros_mico/g3db_object_labels/ ../../../vrep/G3DB_object_dataset/obj_files/
         #python label_g3db_objects.py -o ../grasping_ros_mico/pure_shape_labels all_cylinders
@@ -124,6 +137,9 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     problem_dir = work_folder_dir + "/neha_github/autonomousGrasping/" + problem_type
     if problem_type == 'despot_without_display':
         problem_dir = work_folder_dir + "/neha_github/autonomousGrasping/" + "/grasping_ros_mico"
+    if problem_type.startswith('despot_bt'):
+        problem_dir = work_folder_dir + "/neha_github/despot_bt/build/examples/cpp_models/" 
+        problem_dir = problem_dir + problem_type.split('_')[-1]
     
     if command_list_file is not None:
         with open(command_list_file, 'r') as ff:
@@ -759,6 +775,8 @@ if __name__ == '__main__':
 
 #Periodically clean roscore
 #until false; do rosclean purge -y; sleep 600; done;
+#until false; do python delete_old_files.py -r -d ~/.ros/log -t 0.05; sleep 3600; done;
+#python delete_old_files.py -r -d ~/WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/low_friction_table/ -t 0.25
 
 #check process memory
 #pmap -x pid
@@ -771,3 +789,9 @@ if __name__ == '__main__':
 #find -name '*closeAndPushAction.txt'| xargs -i grep -H '*20' {}
 # cat successfulPicks.txt | cut -d' ' -f15,17,1 | sed -e 's/|/: /g' | cut -d':' -f3,1 | awk '{print $2" "$3" "$1}' | sort -n | more
 #cat successfulPicks.txt | cut -d' ' -f15,17,1 | sed -e 's/|/: /g' | cut -d':' -f3,1 | awk '{print $2" "$3" "$1}' | sort -n | awk '$1>1.02 && $2>1.02{print $3" "$1" "$2}' |  sort | cut -d'/' -f2 | uniq -c
+
+#Move data
+#rsync -avz ngarg211@users.ncl.sg:/big/public_share/ngarg211/WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico/results ./WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico/ > rsync.log
+
+#ncl node script
+#tb-set-node-startcmd $n0 "/users/ngarg211/WORK_FOLDER/mystart.sh >& /tmp/mystart.log"

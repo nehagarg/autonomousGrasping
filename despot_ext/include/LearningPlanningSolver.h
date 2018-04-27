@@ -41,6 +41,7 @@ public:
         //std::cout << "Sampled belief\n";
 	//int action = Action(particles, streams, history_);
 	//double dummy_value = Globals::NEG_INFTY;
+        //TODO: make it compatible with belief tracking solver
         ValuedAction ans = Value(particles,streams,*(learnedSolver->get_history()));
 
 	for (int i = 0; i < particles.size(); i++)
