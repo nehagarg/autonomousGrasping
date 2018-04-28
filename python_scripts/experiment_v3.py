@@ -51,7 +51,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         if (n != 'None'):
             command = command + "-n " + n + " "
         command = command + " > ../../../../examples/cpp_models/" + problem_type.split('_')[-1]
-        command = command + "/results/" + command_prefix +  "/t" + t + "n" + n + "/" 
+        command = command + "/results/" + command_prefix +  "/t" + t + "_n" + n + "/" 
         command = command + pattern + "_trial_"  + repr(begin_index) + ".log 2>&1"
         return command
     
@@ -261,6 +261,9 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + tensorflow_command + " ^M'\n")
                             
                         f.write("screen -S " + despot_screen_name + " -X stuff '" + actual_command +  " ^M^D' \n")
+                        if problem_type.startswith('despot_bt'):
+                            f.write("sleep 1 \n") #Required because sometimes same seeds are generated
+                            
                         starting_screen_counter = starting_screen_counter + 1
     return starting_screen_counter
 
