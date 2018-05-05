@@ -401,7 +401,8 @@ def cluster_labels(num_clusters=3):
     return kmeans
     
 def main():
-    train(use_kmeans = True, kmeans_label = '_4', use_extra = True)
+    test('kmeans-extra-data_label_4_20180504-200455', use_kmeans = True, kmeans_label = '_4')
+    #train(use_kmeans = True, kmeans_label = '_4', use_extra = True)
     #test('kmeans-extra-data_label_3_20180419-123116', use_kmeans = True, kmeans_label = '_3')
     #train(use_kmeans = True, kmeans_label = '_3', use_extra = True)
     #test('kmeans-extra-data_label_2_20180410-212342', use_kmeans = True, kmeans_label = '_2')
