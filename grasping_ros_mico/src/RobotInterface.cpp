@@ -1166,6 +1166,11 @@ int RobotInterface::GetWeightedObservationSize() const{
         {
             weighted_obs_size = 5;
         }
+        if(classifier_string_name.find("label_4") != std::string::npos)
+        {
+            weighted_obs_size = 4;
+        }
+        
     }
     return weighted_obs_size;
         
