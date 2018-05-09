@@ -192,6 +192,25 @@ def parse(fileName, belief_type = '', isTraining = False):
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
     
+    elif fileName in ['vrep/version22']:
+        object_list = get_grasping_object_name_list('g3db_instances_train2_version7')
+        for i in range(0,500):
+            for t in ['5']:
+                for scenario in ['160']:
+                   for object in object_list:
+                        logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
+                        logfileName = logfileName + 'vrep_scene_ver7/multiObjectType/'
+                        logfileName = logfileName + 'belief_uniform_g3db_instances_train2_reward100_penalty10/'
+                        logfileName = logfileName + 'use_discretized_data/use_binary_touch'
+                        logfileName = logfileName + '/use_wider_workspace/use_probabilistic_neighbour_step'
+                        logfileName = logfileName + '/use_discrete_observation_in_update/'
+                        logfileName = logfileName + 'use_discrete_observation_in_step/'
+                        logfileName = logfileName + 'use_weighted_belief/'
+                        logfileName = logfileName + 'use_classifier/kmeans-extra-data_label_4_20180504-200455/horizon90/t' 
+                        logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                        #print i
+                        seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver7/weighted_4') 
+
     elif fileName in ['vrep/version21']:
         object_list = get_grasping_object_name_list('g3db_instances_train2_version7')
         for i in range(0,500):
