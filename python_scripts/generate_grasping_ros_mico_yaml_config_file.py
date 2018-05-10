@@ -690,6 +690,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_3_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_4_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type = 'cylinder_discretize_binary_touch_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'baseline_wider_workspace_<no>'
 
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
