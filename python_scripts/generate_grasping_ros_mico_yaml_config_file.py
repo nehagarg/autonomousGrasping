@@ -548,7 +548,7 @@ class ConfigFileGenerator():
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['', 'learning/version18/']#,'learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']#, 'learning/version18/']#,'learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
         if('baseline' in type):
             baseline_no = type.split('_')[-1]
             self.belief_name = 'baseline' + "_" + baseline_no
@@ -689,6 +689,7 @@ def get_hand_defined_actions(type):
 #type = 'towelstand_train1_version7_discretize_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_3_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_4_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'cylinder_discretize_binary_touch_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
