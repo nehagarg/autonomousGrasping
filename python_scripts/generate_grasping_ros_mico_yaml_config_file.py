@@ -536,7 +536,7 @@ class ConfigFileGenerator():
         if('g3db_instances_train2' in type):
             self.belief_name = 'g3db_instances_train2'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['', 'learning/version21/']
+            self.filetypes = ['', 'learning/version22/']# 'learning/version21/']
         if('g3db_instances_train1' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -644,6 +644,8 @@ def get_keras_classifier_model_from_version(version_name):
     pass
 
 def get_learning_model_from_version(version_name):
+    if version_name == 'vrep/version22':
+        return 'model.ckpt-847'
     if version_name == 'vrep/version21':
         return 'model.ckpt-812'
     if version_name == 'vrep/version20':
