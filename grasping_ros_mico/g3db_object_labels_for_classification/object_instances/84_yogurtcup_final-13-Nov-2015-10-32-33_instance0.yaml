@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xyz_z: 0.1411583094118811}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 84_yogurtcup_final-13-Nov-2015-10-32-33.obj
+duplicate_mesh_size: !!python/tuple [0.15275999903678894, 0.1540600061416626, 0.17671999335289001]
+mesh_name: 84_yogurtcup_final-13-Nov-2015-10-32-33.obj
+object_use_label: S
+signal_name: mesh_location

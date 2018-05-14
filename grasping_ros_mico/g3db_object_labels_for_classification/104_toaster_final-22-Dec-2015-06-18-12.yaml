@@ -1,0 +1,13 @@
+actions:
+- {rotate_z: 90}
+- reorient_bounding_box
+- {set_size_abs_x: 0.15728}
+- {set_size_abs_y: 0.06-0.085}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 104_toaster_final-22-Dec-2015-06-18-12.obj
+duplicate_mesh_size: !!python/tuple [0.18439999222755432, 0.40863001346588135, 0.11931000649929047]
+mesh_name: 104_toaster_final-22-Dec-2015-06-18-12.obj
+object_use_label: S
+signal_name: mesh_location

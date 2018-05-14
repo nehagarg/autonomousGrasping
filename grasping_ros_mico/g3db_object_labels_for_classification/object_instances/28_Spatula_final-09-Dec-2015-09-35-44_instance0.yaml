@@ -1,0 +1,7 @@
+actions: []
+duplicate_mesh_index: 0
+duplicate_mesh_name: 28_Spatula_final-09-Dec-2015-09-35-44.obj
+duplicate_mesh_size: !!python/tuple [0.2256300002336502, 0.07670000195503235, 0.028230000287294388]
+mesh_name: 28_Spatula_final-09-Dec-2015-09-35-44.obj
+object_use_label: S
+signal_name: mesh_location

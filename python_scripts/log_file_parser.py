@@ -70,7 +70,7 @@ class VrepGripperState:
         self.o_w = float(values[13])
         
     def get_obs(self):
-        o = VrepGripperObs([0.0]*20)
+        o = VrepGripperObs([0.0]*21)
         o.g_x = self.g_x
         o.g_y = self.g_y
         o.g_z = self.g_z

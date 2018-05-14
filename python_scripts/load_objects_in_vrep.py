@@ -11,8 +11,10 @@ import math
 
 def get_pruned_saso_files(object_name, data_dir):
     files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if 'SASOData_' + object_name in f and f.endswith('.txt') and '_24_' in f]
-    files_prefix = list(set(["_".join(x.split('_')[0:-1]) + "_" for x in files]))
-    return files_prefix;
+    #files_prefix = list(set(["_".join(x.split('_')[0:-1]) + "_" for x in files]))
+    #return files_prefix;
+    #print files
+    return files
 
 def get_object_properties(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
     object_properties_filename = (object_property_dir + "/" + object_id )
@@ -78,6 +80,10 @@ def update_size_action(action, action_value):
         action_ans = 'rotate'
         action_value_ans = [0.0,0.0,0.0]
         action_value_ans[j] = action_value*3.14/180.0 #Api takes radians
+    elif('set_size_min_' in action):
+        if action_value > object_size[j]:
+           val = action_value/object_size[j]
+           action_value_ans[j] = val 
     else:
         action_ans = action
         action_value_ans = action_value

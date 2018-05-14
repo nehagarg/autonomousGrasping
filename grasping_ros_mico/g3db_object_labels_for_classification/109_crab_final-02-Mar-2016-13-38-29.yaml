@@ -1,0 +1,12 @@
+actions:
+- {set_size_abs_z: 0.07-0.09}
+- {set_size_abs_x: 0.18-0.20}
+- {set_size_abs_y: 0.16-0.18}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 109_crab_final-02-Mar-2016-13-38-29.obj
+duplicate_mesh_size: !!python/tuple [0.1942099928855896, 0.17093999683856964, 0.08037000149488449]
+mesh_name: 109_crab_final-02-Mar-2016-13-38-29.obj
+object_use_label: S
+signal_name: mesh_location

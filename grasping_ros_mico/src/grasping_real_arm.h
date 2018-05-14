@@ -24,13 +24,22 @@
 #include "GraspingStateRealArm.h"
 #include "GraspingObservation.h"
 #include "VrepLogFileInterface.h"
+#include "grasping_v4_particle_belief.h"
 
 
 
 
+class GraspingRealArm;
 
-
-
+class GraspingMicoParticleBelief : public GraspingParticleBelief {
+public:   
+    GraspingMicoParticleBelief(std::vector<State*> particles, const DSPOMDP* model,
+	Belief* prior, bool split);
+   void Update(int action, OBS_TYPE obs);
+   
+   const GraspingRealArm* grasping_model_;
+            
+};
 
 
 class GraspingRealArm : public LearningModel {
@@ -138,7 +147,7 @@ public:
     void DisplayBeliefs(ParticleBelief* belief, std::ostream& ostr) const;
     void DisplayState(const State& state, std::ostream& ostr) const;
     void InitializeRobotInterface(int interface_type) ;
-    
+    void SyncParticleState(State& state, OBS_TYPE obs) const;
     int  num_sampled_objects = 27;
     std::string learning_data_file_name;
 

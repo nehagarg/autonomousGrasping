@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xyz_y: 0.0799552102753004}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 94_weight_final-27-Feb-2016-14-41-07.obj
+duplicate_mesh_size: !!python/tuple [0.22364000976085663, 0.22363999485969543, 0.44085001945495605]
+mesh_name: 94_weight_final-27-Feb-2016-14-41-07.obj
+object_use_label: S
+signal_name: mesh_location

@@ -1,0 +1,20 @@
+actions:
+- {set_size_abs_xy_y: 0.07088968634031018}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 30_fruit_juicer_final-11-Nov-2015-15-04-20.obj
+duplicate_mesh_size: !!python/tuple [0.05502999946475029, 0.05502999946475029, 0.170089989900589]
+mesh_name: 30_fruit_juicer_final-11-Nov-2015-15-04-20.obj
+object_initial_pose_z: 1.1350789070129395
+object_min_z: 1.1302789070129395
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1350789070129395,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4610107536669517, 0.15656552946349805, 1.0792257324411045]
+remarks: need to check which pose is stable
+signal_name: mesh_location

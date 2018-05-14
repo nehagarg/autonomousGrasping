@@ -19,7 +19,7 @@ public:
     mutable int start_state_index;
     void CheckAndUpdateGripperBounds(GraspingStateRealArm& grasping_state, int action) const;
 
-    bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;
+    //bool CheckTouch(double current_sensor_values[], int on_bits[], int size = 2) const;
     
 
     virtual void CreateStartState(GraspingStateRealArm& initial_state, std::string type) const;
@@ -28,7 +28,7 @@ public:
         return RobotInterface::GetBeliefObjectProbability(belief_object_ids);
     }
 
-    void GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type = 2) const;
+    void GetDefaultPickState(GraspingStateRealArm& grasping_state, double rand_num,int pick_type = 2) const;
     
 
     void GetRewardBasedOnGraspStability(GraspingStateRealArm grasping_state, GraspingObservation grasping_obs, double& reward) const;

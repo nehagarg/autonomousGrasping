@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xy_y: 0.08712608502894965}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 91_peppershaker_final-05-Dec-2015-05-50-49.obj
+duplicate_mesh_size: !!python/tuple [0.07533000409603119, 0.07533000409603119, 0.16540999710559845]
+mesh_name: 91_peppershaker_final-05-Dec-2015-05-50-49.obj
+object_use_label: S
+signal_name: mesh_location

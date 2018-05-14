@@ -1,0 +1,14 @@
+auto_load_object: true
+belief_object_ids: []
+hand_defined_actions: 1 1 8 10
+interface_type: 0
+invalid_state_penalty: -10
+low_friction_table: true
+num_belief_particles: 1000
+object_mapping: [6_jar_final-19-Jan-2016-09-02-28_instance0]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+test_object_id: 0
+use_wider_workspace: true
+version7: true

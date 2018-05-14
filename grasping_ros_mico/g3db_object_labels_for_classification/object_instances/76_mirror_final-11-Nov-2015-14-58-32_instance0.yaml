@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_z: 0.323151330798548}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 76_mirror_final-11-Nov-2015-14-58-32.obj
+duplicate_mesh_size: !!python/tuple [0.21542000770568848, 0.13527999818325043, 0.32594001293182373]
+mesh_name: 76_mirror_final-11-Nov-2015-14-58-32.obj
+object_use_label: S
+signal_name: mesh_location

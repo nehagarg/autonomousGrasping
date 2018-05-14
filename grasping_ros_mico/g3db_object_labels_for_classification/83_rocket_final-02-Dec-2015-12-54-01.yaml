@@ -1,0 +1,7 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 83_rocket_final-02-Dec-2015-12-54-01.obj
+duplicate_mesh_size: !!python/tuple [0.11504000425338745, 0.10786999762058258, 0.35541000962257385]
+mesh_name: 83_rocket_final-02-Dec-2015-12-54-01.obj
+object_use_label: D
+remarks: object unstable
+signal_name: mesh_location

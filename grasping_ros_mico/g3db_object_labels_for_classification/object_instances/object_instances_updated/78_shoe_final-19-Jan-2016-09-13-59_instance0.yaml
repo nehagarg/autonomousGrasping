@@ -1,0 +1,21 @@
+actions:
+- {rotate_z: 15}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.08804104036648745}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 78_shoe_final-19-Jan-2016-09-13-59.obj
+duplicate_mesh_size: !!python/tuple [0.44815000891685486, 0.23800000548362732, 0.4456000030040741]
+mesh_name: 78_shoe_final-19-Jan-2016-09-13-59.obj
+object_initial_pose_z: 1.1697790622711182
+object_min_z: 1.1649790622711182
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1697790622711182,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: false
+object_use_label: S
+pick_point: [0.38280660661164834, 0.1691586373612708, 1.0882210334416178]
+signal_name: mesh_location

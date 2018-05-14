@@ -1,0 +1,12 @@
+actions:
+- {rotate_z: 180}
+- reorient_bounding_box
+- {set_size_abs_xyz_z: 0.12-0.15}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 56_headphones_final-11-Nov-2015-14-14-02.obj
+duplicate_mesh_size: !!python/tuple [0.2126999944448471, 0.2006700038909912, 0.15795999765396118]
+mesh_name: 56_headphones_final-11-Nov-2015-14-14-02.obj
+object_use_label: S
+signal_name: mesh_location

@@ -58,22 +58,7 @@ void VrepDataInterface::CheckAndUpdateGripperBounds(GraspingStateRealArm& graspi
     }
 }
 
-bool VrepDataInterface::CheckTouch(double current_sensor_values[], int on_bits[], int size) const {
-//return false;
-    bool touchDetected = false;
-    for(int i = 0; i < size; i++)
-    {
-        on_bits[i] = 0;
-        //if(current_sensor_values[i] > (touch_sensor_mean[i] + (3*touch_sensor_std[i])))
-        if(current_sensor_values[i] > vrep_touch_threshold)
-        {
-            touchDetected = true;
-            on_bits[i] = 1;
-        }
-    }
-    
-    return touchDetected;
-}
+
 
 void VrepDataInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
     
@@ -236,7 +221,7 @@ std::vector<GraspingStateRealArm> VrepDataInterface::InitialStartStateParticles(
 //pick_type == 0 grasp failure
 //pick_type == 1 grap_success
 //pick_type == 2 determine from gripper_status
-void VrepDataInterface::GetDefaultPickState(GraspingStateRealArm& grasping_state, int pick_type) const {
+void VrepDataInterface::GetDefaultPickState(GraspingStateRealArm& grasping_state, double rand_num, int pick_type) const {
 grasping_state.gripper_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + pick_z_diff;
         grasping_state.gripper_pose.pose.position.x =  pick_x_val; 
         grasping_state.gripper_pose.pose.position.y =  pick_y_val;
@@ -247,13 +232,16 @@ grasping_state.gripper_pose.pose.position.z = grasping_state.gripper_pose.pose.p
         }
         if(gripper_status == 2) //Object is inside gripper and gripper is closed
         {
-            double z_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_pose_z - graspObjects[grasping_state.object_id]->default_initial_object_pose_z;
-             double x_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_x - graspObjects[grasping_state.object_id]->default_initial_object_pose_x;
-            double y_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_y - graspObjects[grasping_state.object_id]->default_initial_object_pose_y;
+            if(rand_num > 0.5)//Pick successfully with 0.5 probability
+            {
+                double z_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_pose_z - graspObjects[grasping_state.object_id]->default_initial_object_pose_z;
+                 double x_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_x - graspObjects[grasping_state.object_id]->default_initial_object_pose_x;
+                double y_diff_from_cylinder = graspObjects[grasping_state.object_id]->initial_object_y - graspObjects[grasping_state.object_id]->default_initial_object_pose_y;
 
-            grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + x_diff_from_cylinder + 0.03;
-            grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + y_diff_from_cylinder;
-            grasping_state.object_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + z_diff_from_cylinder;
+                grasping_state.object_pose.pose.position.x = grasping_state.gripper_pose.pose.position.x + x_diff_from_cylinder + 0.03;
+                grasping_state.object_pose.pose.position.y = grasping_state.gripper_pose.pose.position.y + y_diff_from_cylinder;
+                grasping_state.object_pose.pose.position.z = grasping_state.gripper_pose.pose.position.z + z_diff_from_cylinder;
+            }
         }
 }
 

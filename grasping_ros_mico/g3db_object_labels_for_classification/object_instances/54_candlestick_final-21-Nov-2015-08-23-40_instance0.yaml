@@ -1,0 +1,10 @@
+actions:
+- {set_size_abs_xy_y: 0.08535810374368717}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 54_candlestick_final-21-Nov-2015-08-23-40.obj
+duplicate_mesh_size: !!python/tuple [0.07958000898361206, 0.0785600021481514, 0.4182400107383728]
+mesh_name: 54_candlestick_final-21-Nov-2015-08-23-40.obj
+object_use_label: S
+signal_name: mesh_location

@@ -519,12 +519,24 @@ class ConfigFileGenerator():
         self.use_discretized_data = False
         self.use_weighted_belief = False
         self.use_object_classifier = False
+        self.use_probabilistic_step = False
         self.clip_objects = False
+        self.check_touch = True
+        self.use_binary_touch = False
+        self.use_wider_workspace = False
+        self.use_probabilistic_neighbour_step = False
+        self.use_discrete_observation_in_update = False
+        self.use_discrete_observation_in_step = False
+
         self.filetypes = [''] #Con contain learning and combined policy dir paths
+        if('towelstand_train1_version7' in type):
+            self.belief_name = 'towelstand_train1'
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
+            self.filetypes = ['']
         if('g3db_instances_train2' in type):
             self.belief_name = 'g3db_instances_train2'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['']
+            self.filetypes = ['', 'learning/version22/']# 'learning/version21/']
         if('g3db_instances_train1' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
@@ -532,26 +544,52 @@ class ConfigFileGenerator():
         if('g3db_instances_train1_version7' in type):
             self.belief_name = 'g3db_instances_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
-            self.filetypes = ['', 'learning/version19/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']#, 'learning/version20/'] #Con contain learning and combined policy dir paths
         if('cylinder' in type):
             self.belief_name = 'cylinder_7_8_9'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
-            self.filetypes = ['', 'learning/version18/']#,'learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
+            self.filetypes = ['']#, 'learning/version18/']#,'learning/version14/', 'learning/version15/'] #Con contain learning and combined policy dir paths
         if('baseline' in type):
-            self.belief_name = type
+            baseline_no = type.split('_')[-1]
+            self.belief_name = 'baseline' + "_" + baseline_no
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
         if('pruned' in type):
             self.use_pruned_data = True
         if('discretize' in type):
             self.use_discretized_data = True
+        if('probabilistic_step' in type):
+            self.use_probabilistic_step = True
         if('weighted' in type):
             self.use_weighted_belief = True
         if('classifier' in type):
             self.use_object_classifier = True
             self.keras_model_name = "20180123-085411"
+            if "kmeans" in type:
+                self.keras_model_name = "kmeans_20180215-115011"
+            if "kmeans_label_1" in type:
+                self.keras_model_name = "kmeans_label_1_20180223-105821"
+            if "kmeans_label_2" in type:
+                self.keras_model_name = "kmeans-extra-data_label_2_20180410-212342"
+            if "kmeans_label_3" in type:
+                self.keras_model_name = "kmeans-extra-data_label_3_20180419-123116"
+            if "kmeans_label_4" in type:
+                self.keras_model_name = "kmeans-extra-data_label_4_20180504-200455"
+                
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
+        if('no_touch' in type):
+            self.check_touch = False
+        if('binary_touch' in type):
+            self.use_binary_touch = True
+        if('wider_workspace' in type):
+            self.use_wider_workspace = True
+        if('probabilistic_neighbour_step' in type):
+            self.use_probabilistic_neighbour_step = True
+        if('discrete_observation_in_update' in type):
+            self.use_discrete_observation_in_update = True
+        if('discrete_observation_in_step' in type):
+            self.use_discrete_observation_in_step = True   
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -573,6 +611,20 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_pruned_data"
                     if(self.use_discretized_data):
                         file_prefix = file_prefix + "/use_discretized_data"
+                    if(self.use_probabilistic_step):
+                        file_prefix = file_prefix + "/use_probabilistic_step"
+                    if(self.use_binary_touch):
+                        file_prefix = file_prefix + "/use_binary_touch"
+                    if(not self.check_touch):
+                        file_prefix = file_prefix + "/no_touch"
+                    if(self.use_wider_workspace):
+                        file_prefix = file_prefix + "/use_wider_workspace"
+                    if (self.use_probabilistic_neighbour_step):
+                        file_prefix = file_prefix + "/use_probabilistic_neighbour_step"
+                    if self.use_discrete_observation_in_update:
+                        file_prefix = file_prefix + "/use_discrete_observation_in_update"
+                    if self.use_discrete_observation_in_step:
+                        file_prefix = file_prefix + "/use_discrete_observation_in_step"
                     if(self.use_weighted_belief):
                         file_prefix = file_prefix + "/use_weighted_belief"
                     if(self.use_object_classifier):
@@ -592,6 +644,12 @@ def get_keras_classifier_model_from_version(version_name):
     pass
 
 def get_learning_model_from_version(version_name):
+    if version_name == 'vrep/version22':
+        return 'model.ckpt-847'
+    if version_name == 'vrep/version21':
+        return 'model.ckpt-812'
+    if version_name == 'vrep/version20':
+        return 'model.ckpt-800'
     if version_name == 'vrep/version19':
         return 'model.ckpt-923'
     if version_name == 'vrep/version18':
@@ -620,10 +678,22 @@ def get_hand_defined_actions(type):
 #type = 'cylinder_pruned'
 #type = 'cylinder_discretize'
 #type = 'baseline_<no>'
+#type = 'baseline_no_touch_<no>'
+#type = 'baseline_no_touch_wider_workspace_<no>'
 #type = 'g3db_instances_train1_discretize_weighted'
 #type = 'g3db_instances_train1_discretize'
 #type = 'g3db_instances_train2_discretize_weighted_classifier_clip-3'
 #type = 'g3db_instances_train1_version7_discretize'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1_probabilistic_step'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_1'
+#type = 'g3db_instances_train1_version7_discretize_weighted_classifier_kmeans_label_2'
+#type = 'towelstand_train1_version7_discretize_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_3_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_4_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'cylinder_discretize_binary_touch_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
+#type = 'baseline_wider_workspace_<no>'
+
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -634,7 +704,7 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
         if(cfg.use_pruned_data):
             ans["use_pruned_data"] = True
         if(cfg.use_discretized_data):
-            ans["use_discretized_data"] = True      
+            ans["use_discretized_data"] = True
         ans["interface_type"] = 1
         if interface_type == 'simulator/':
             ans["interface_type"] = 0
@@ -650,7 +720,20 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["object_classifier_string_name"] = cfg.keras_model_name
         if(cfg.clip_objects):
             ans["clip_number_of_objects"] = int(cfg.num_clip)
-            
+        if(not cfg.check_touch):
+            ans['check_touch'] = False
+        if(cfg.use_probabilistic_step):
+            ans['use_probabilistic_step'] = True
+        if(cfg.use_binary_touch):
+            ans['use_binary_touch'] = True
+        if(cfg.use_wider_workspace):
+            ans['use_wider_workspace'] = True
+        if (cfg.use_probabilistic_neighbour_step):
+            ans["use_probabilistic_neighbour_step"] = True
+        if cfg.use_discrete_observation_in_update:
+            ans["use_discrete_observation_in_update"] = True
+        if cfg.use_discrete_observation_in_step:
+            ans["use_discrete_observation_in_step"] = True
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
@@ -666,8 +749,13 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         if 'g3db_instances_train2' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2')
+            if ver == 'ver7':
+                ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2_version7')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
-        
+        if 'towelstand_train1' in filename:
+            ans["object_mapping"] = get_grasping_object_name_list('training_towelstand')
+            ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
+            
         if object_type not in ans["object_mapping"]:
             ans["object_mapping"].append(object_type)
         ans["test_object_id"] = ans["object_mapping"].index(object_type)

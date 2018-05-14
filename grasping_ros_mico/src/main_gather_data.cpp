@@ -36,6 +36,8 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
     RobotInterface::version5 = false;
     RobotInterface::use_data_step = false;
     RobotInterface::get_object_belief = false;
+    RobotInterface::check_touch = true;
+    RobotInterface::use_wider_object_workspace = true;
     int start_index = -10;
     if(epsi==0.005)
     {

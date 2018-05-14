@@ -49,7 +49,22 @@ def get_grasping_object_name_list(type='used'):
 	pattern_list.append('62_mouse_final-21-Nov-2015-06-46-41_instance0') 
 	pattern_list.append('6_jar_final-14-Nov-2015-19-14-33_instance0')
         pattern_list.append('6_jar_final-20-Dec-2015-09-26-23_instance0')
-
+    elif type=='training_towelstand':
+        pattern_list = ['44_towelstand_final-16-Mar-2016-13-30-01_instance0']
+        pattern_list.append('44_towelstand_final-15-Mar-2016-15-53-08_instance0')
+        pattern_list.append('44_towelstand_final-15-Mar-2016-15-37-58_instance0')
+    elif type=='all_towelstands_version7':
+        g3db_objects = get_grasping_object_name_list('g3db_instances_version7')
+        pattern_list = [x for x in g3db_objects if x.startswith('44_towelstand')]
+    elif type=='g3db_train1_version7_without_towel':
+        pattern_list = get_grasping_object_name_list('g3db_instances_train1_version7')
+        pattern_list2 = get_grasping_object_name_list('training_towelstand')
+        for a in pattern_list2:
+            pattern_list.remove(a)
+    elif type=='validation_headphones':
+        pattern_list = ['56_headphones_final-18-Dec-2015-12-49-27_instance0']
+        pattern_list.append('56_headphones_final-11-Nov-2015-14-14-02_instance0')
+        
     else:
         pattern_list=[type]
         
@@ -73,6 +88,8 @@ def get_g3db_instances(type = 'all'):
     g3db_object_list_file = get_g3db_txt_file_path()
     if(type == 'all'):
        g3db_object_list_file = g3db_object_list_file +  "object_instance_names.txt"
+    elif(type == 'for_classification'):
+       g3db_object_list_file = g3db_object_list_file.replace('g3db_object_labels', 'g3db_object_labels_for_classification') +  "object_instance_names.txt" 
     else:
         g3db_object_list_file = g3db_object_list_file +  "object_instance_names_" + type + ".txt"
     

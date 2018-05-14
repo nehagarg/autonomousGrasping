@@ -1,0 +1,12 @@
+actions:
+- {rotate_z: 15}
+- reorient_bounding_box
+- {set_size_abs_xyz_y: 0.08804104036648745}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 78_shoe_final-19-Jan-2016-09-13-59.obj
+duplicate_mesh_size: !!python/tuple [0.44815000891685486, 0.23800000548362732, 0.4456000030040741]
+mesh_name: 78_shoe_final-19-Jan-2016-09-13-59.obj
+object_use_label: S
+signal_name: mesh_location

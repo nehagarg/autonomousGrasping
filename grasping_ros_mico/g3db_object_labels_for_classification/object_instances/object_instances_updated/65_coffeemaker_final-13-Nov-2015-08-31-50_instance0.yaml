@@ -1,0 +1,19 @@
+actions:
+- {set_size_abs_xyz_y: 0.08398840731342505}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 65_coffeemaker_final-13-Nov-2015-08-31-50.obj
+duplicate_mesh_size: !!python/tuple [0.19348999857902527, 0.14781999588012695, 0.2572300136089325]
+mesh_name: 65_coffeemaker_final-13-Nov-2015-08-31-50.obj
+object_initial_pose_z: 1.1231104135513306
+object_min_z: 1.1183104135513307
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1231104135513306,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.4648009570790535, 0.15027655749693414, 1.079785530142062]
+signal_name: mesh_location

@@ -1,0 +1,11 @@
+actions:
+- {set_size_abs_xyz_y: 0.06-0.09}
+- set_size_min_z: 0.1
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 80_tincan_final-05-Dec-2015-05-23-17.obj
+duplicate_mesh_size: !!python/tuple [0.13826000690460205, 0.13758999109268188, 0.09422999620437622]
+mesh_name: 80_tincan_final-05-Dec-2015-05-23-17.obj
+object_use_label: S
+signal_name: mesh_location

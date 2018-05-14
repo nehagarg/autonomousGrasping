@@ -1,0 +1,11 @@
+actions:
+- {set_size_abs_xy_y: 0.07088968634031018}
+- set_mass
+- move_to_table
+duplicate_mesh_index: 0
+duplicate_mesh_name: 30_fruit_juicer_final-11-Nov-2015-15-04-20.obj
+duplicate_mesh_size: !!python/tuple [0.05502999946475029, 0.05502999946475029, 0.170089989900589]
+mesh_name: 30_fruit_juicer_final-11-Nov-2015-15-04-20.obj
+object_use_label: S
+remarks: need to check which pose is stable
+signal_name: mesh_location

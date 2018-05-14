@@ -109,6 +109,7 @@ bool VrepLogFileInterface::StepActual(GraspingStateRealArm& state, double random
     obs.mico_target_pose = obs.gripper_pose;
     inputString >> obs.touch_sensor_reading[0];
     inputString >> obs.touch_sensor_reading[1];
+    inputString >> obs.vision_movement;
     int dummy_action;
     inputString >> dummy_action;
     
@@ -155,7 +156,7 @@ ValuedAction VrepLogFileInterface::NextAction(History h) {
     std::istringstream value_stream(next_step_values);
     std::cout << next_step_values << std::endl;
     double x;
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < 17; i++)
     {
         value_stream >> x;
     }

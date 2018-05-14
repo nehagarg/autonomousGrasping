@@ -1,0 +1,8 @@
+duplicate_mesh_index: 0
+duplicate_mesh_name: 72_hat_final-16-Nov-2015-03-24-41.obj
+duplicate_mesh_size: !!python/tuple [0.27869004011154175, 0.31112000346183777, 0.15324999392032623]
+mesh_name: 72_hat_final-16-Nov-2015-03-24-41.obj
+object_use_label: D
+remarks: need to adjust the z-axis of gripper so that it does nto collide with the
+  hat
+signal_name: mesh_location

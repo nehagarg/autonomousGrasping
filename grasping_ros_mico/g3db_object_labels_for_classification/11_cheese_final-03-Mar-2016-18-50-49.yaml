@@ -1,0 +1,8 @@
+actions:
+- {rotate_x: 180}
+- reorient_bounding_box
+- set_mass
+- move_to_table
+mesh_name: 11_cheese_final-03-Mar-2016-18-50-49.obj
+object_use_label: S
+signal_name: mesh_location

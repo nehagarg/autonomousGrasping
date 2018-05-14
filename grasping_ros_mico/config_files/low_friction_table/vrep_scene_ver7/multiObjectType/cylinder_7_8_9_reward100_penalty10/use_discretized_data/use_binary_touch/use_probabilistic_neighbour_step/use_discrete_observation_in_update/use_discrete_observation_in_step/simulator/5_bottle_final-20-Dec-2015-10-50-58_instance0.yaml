@@ -1,0 +1,17 @@
+auto_load_object: true
+belief_object_ids: [0, 1, 2]
+interface_type: 0
+invalid_state_penalty: -10
+low_friction_table: true
+num_belief_particles: 1000
+object_mapping: [Cylinder_9, Cylinder_8, Cylinder_7, 5_bottle_final-20-Dec-2015-10-50-58_instance0]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+test_object_id: 3
+use_binary_touch: true
+use_discrete_observation_in_step: true
+use_discrete_observation_in_update: true
+use_discretized_data: true
+use_probabilistic_neighbour_step: true
+version7: true

@@ -9,6 +9,7 @@
 #include <iosfwd>
 #include "math.h"
 #include "GraspObject.h"
+#include "RobotInterface.h"
 
 std::string GraspObject::g3db_object_property_dir = "g3db_object_labels/object_instances/object_instances_updated";
 std::string GraspObject::pure_object_property_dir = "pure_shape_labels";
@@ -107,6 +108,13 @@ GraspObject::GraspObject(std::string object_name_, std::string data_dir_name_, b
         min_y_o = min_y_o + y_diff;
         max_y_o = max_y_o + y_diff;
         std::cout << "X_diff:" << x_diff << " Y_diff:" << y_diff << std::endl;
+    }
+    
+    if(RobotInterface::use_wider_object_workspace)
+    {
+        min_y_o = min_y_o - 0.05;
+        max_y_o = max_y_o + 0.05;
+        max_x_o = max_x_o + 0.05;
     }
     std::cout << "Min,max x_0:" << min_x_o << "," << max_x_o 
             << " min,max y_o" << min_y_o << "," << max_y_o << std::endl;

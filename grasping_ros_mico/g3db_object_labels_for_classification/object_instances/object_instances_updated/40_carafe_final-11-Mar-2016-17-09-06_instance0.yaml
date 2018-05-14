@@ -1,0 +1,20 @@
+actions:
+- {set_size_abs_z: 0.14421}
+- {set_size_abs_xy_y: 0.07948400849936632}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 40_carafe_final-11-Mar-2016-17-09-06.obj
+duplicate_mesh_size: !!python/tuple [0.22562000155448914, 0.22504998743534088, 0.36059999465942383]
+mesh_name: 40_carafe_final-11-Mar-2016-17-09-06.obj
+object_initial_pose_z: 1.1221389770507812
+object_min_z: 1.1173389770507813
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1221389770507812,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.46720387512508516, 0.1552038097108417, 1.078754084760308]
+signal_name: mesh_location

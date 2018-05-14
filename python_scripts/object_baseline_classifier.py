@@ -5,6 +5,7 @@ from combine_csvs import get_grasping_ros_mico_path
 import perception as perception
 import os
 import time
+from grasping_object_list import get_grasping_object_name_list
 
 def reshape_keras_input(X_train):
     from keras import backend as K
@@ -34,7 +35,7 @@ def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
     batch_size = 128
     nb_classes = 7
     if use_kmeans:
-        nb_classes = 3
+        nb_classes = (np.unique(Y_train)).size
     nb_epoch = 30
 
     
@@ -162,16 +163,17 @@ def get_dir_list():
     dir_list.append('belief_uniform_g3db_instances_train1_reward100_penalty10/use_discretized_data/use_weighted_belief/simulator/fixed_distribution/horizon90/')
     return dir_list
 
-def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6',use_kmeans=False):
+def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6',use_kmeans=False , kmeans_label = '', object_type = 'g3db_instances'):
     grasping_ros_mico_path = get_grasping_ros_mico_path()
     baseline_result_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/"
     if(use_kmeans):
-        baseline_result_file_name = baseline_result_file_name + "kmeans_object_labels_g3db_instances.csv"
+        baseline_result_file_name = baseline_result_file_name + "kmeans_object_labels_" +object_type +  kmeans_label + ".csv"
     else:
         baseline_result_file_name = baseline_result_file_name + "a_success_cases_g3db_instances.csv"
     object_labels = {}
     with open(baseline_result_file_name) as f:
-        line = f.readline().rstrip('\n').split(",")
+        if not use_kmeans:
+            line = f.readline().rstrip('\n').split(",")
         for line in f:
             data = line.rstrip('\n').split(",")
             if use_kmeans:
@@ -181,18 +183,25 @@ def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6'
             
     return object_labels
                 
+def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_test = False): 
+    object_labels = get_baseline_labels(use_kmeans = use_kmeans, kmeans_label=kmeans_label, object_type = object_type)
     
-def get_data(use_kmeans=False):   
-    object_labels = get_baseline_labels(use_kmeans = use_kmeans)
+    if object_type == 'g3db_instances':
+        object_name = 'g3db_instances_non_test_version7'
+        if for_test:
+            object_name = 'g3db_instances_version7'
+        #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
+        #object_name = '1_Coffeecup_final-10-Dec-2015-06-58-01_instance0'
+        #object_name = 'Cylinder_7'
+        #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
+        object_file_dir = '../grasping_ros_mico/point_clouds_for_classification'
+    if object_type == 'g3db_instances_for_classification':
+        object_name = 'g3db_instances_for_classification'
+        #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
+        object_file_dir = '../grasping_ros_mico/point_clouds_for_classification/additional_g3db_objects_for_classification'
     
-    object_name = 'g3db_instances_non_test'
-    #object_name = '1_Coffeecup_final-10-Dec-2015-06-58-01_instance0'
-    #object_name = 'Cylinder_7'
-    #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
-    object_file_dir = '../grasping_ros_mico/point_clouds_for_classification'
-    model_dir = object_file_dir + '/keras_model/'
     object_file_names = giob.get_object_filenames(object_name, object_file_dir)
-    
+
     X = []
     Y = []
     object_names = []
@@ -206,7 +215,13 @@ def get_data(use_kmeans=False):
         object_instance_name = object_file_name_.replace('.yaml','').split('/')[-1]
         
         for i in range(0,81):
-            Y.append(object_labels[object_instance_name])
+            if for_test:
+                if object_instance_name in object_labels.keys():
+                    Y.append(object_labels[object_instance_name])
+                else:
+                    Y.append(1000)
+            else:
+                Y.append(object_labels[object_instance_name])
             object_names.append(object_instance_name+ "/" + repr(i))
             object_file_name = object_file_name_.replace('.yaml','') + "/" + repr(i)
             thumbnail_object_file_name = object_file_name + "_thumbnail.npy"
@@ -219,6 +234,7 @@ def get_data(use_kmeans=False):
                     vis.imshow(depth_im_cropped)
                     vis.show()
             else:
+                print "Creating " + thumbnail_object_file_name
                 object_list = giob.load_object_file([object_file_name])
                 (depth_im_cropped,clipped) = get_depth_image_thumbmail(object_list[0][0], 200,160,False)
                 depth_im_cropped.save(thumbnail_object_file_name)
@@ -232,6 +248,16 @@ def get_data(use_kmeans=False):
             f.write("\n".join(sorted(clipped_objects)))  
             f.write("\n")
     assert len(X) == len(Y)
+    return (X,Y,object_names)
+    
+def get_data(use_kmeans=False,kmeans_label = '', for_test = False, use_extra = False):   
+    (X,Y,object_names) = get_data_from_source('g3db_instances', use_kmeans, kmeans_label, for_test)
+    if use_extra:
+        (X2,Y2,object_names_2) = get_data_from_source('g3db_instances_for_classification', use_kmeans, kmeans_label, for_test)
+        X = X+X2
+        Y = Y + Y2
+        object_names = object_names + object_names_2
+    
     num_samples = len(X)
     print num_samples
     X = np.array(X)
@@ -248,12 +274,18 @@ def get_data(use_kmeans=False):
     X_shuf = X[arr[0:num_samples]]
     Y_shuf = Y[arr[0:num_samples]]
     #object_names_shuf = object_names[arr[0:num_samples]]
+    model_dir =  '../grasping_ros_mico/point_clouds_for_classification'+ '/keras_model/'
     return (X_shuf,Y_shuf, object_names ,arr,model_dir)
     
-def train(use_kmeans = False):
-        
-        
-    (X_shuf,Y_shuf, object_names, arr,model_dir) = get_data(use_kmeans)
+def train(use_kmeans = False, kmeans_label = '',use_extra = False):
+    
+    model_name_prefix = "kmeans"
+    if use_extra:
+        model_name_prefix = model_name_prefix + "-extra-data"
+    label_tag = ''
+    if kmeans_label !='':
+        label_tag = "label" + kmeans_label + "_"
+    (X_shuf,Y_shuf, object_names, arr,model_dir) = get_data(use_kmeans,kmeans_label, False,use_extra)
     (model,train_predicted) = get_keras_cnn_model(X_shuf,Y_shuf,use_kmeans)
     print train_predicted[0]
     print Y_shuf[0]
@@ -262,14 +294,24 @@ def train(use_kmeans = False):
     timestr = time.strftime("%Y%m%d-%H%M%S")
     model_file_name = model_dir + timestr + '.h5'
     if use_kmeans:
-        model_file_name = model_dir + "kmeans_" + timestr + '.h5'
+        model_file_name = model_dir + model_name_prefix + "_" +label_tag + timestr + '.h5'
     model.save(model_file_name)
     return (X_shuf,Y_shuf, model_dir,timestr)
     
-def test(model_name):
+def test(model_name, use_kmeans = False, kmeans_label = '', use_extra = False ):
     from keras.models import load_model
-    (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data()
-    model = load_model(model_dir + model_name + '.h5')
+    (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data(use_kmeans,kmeans_label, True, use_extra)
+    #if model_name is None:
+    model_name = model_dir + model_name + '.h5'
+    model = load_model(model_name)
+    ans = model_prediction(model,X_shuf)
+    model_prediction_filename = model_name.replace('.h5','.pred')
+    with open(model_prediction_filename,'w') as f:
+        for i in range(0,len(ans)):
+            f.write(object_names[arr[i]] + " " + repr(list(ans[i])) + " " + 
+            repr(np.argmax(ans[i])) + " " + repr(Y_shuf[i]) + "\n")
+        
+    #model = load_model(model_dir + model_name + '.h5')
     #y_predicted = model.predict(X_test)
     
 def get_object_represention_and_weighted_belief(depth_im, 
@@ -282,9 +324,12 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
     model = load_model(model_name)
     ans = model_prediction(model,np.array(X))[0]
     use_kmeans = False
+    kmeans_label = ''
     if 'kmeans' in keras_model_name:
         use_kmeans = True
-    object_labels = get_baseline_labels(baseline_results_dir,use_kmeans)
+        if 'label' in keras_model_name:
+            kmeans_label = "_" + keras_model_name.split('_')[2]
+    object_labels = get_baseline_labels(baseline_results_dir,use_kmeans, kmeans_label)
     object_list = giob.get_object_filenames(object_group_name, "")
     object_list = [x.replace('.yaml',"").replace("/","") for x in object_list]
     if use_kmeans:
@@ -328,35 +373,46 @@ def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1
         return object_beliefs
 """
 
-def cluster_labels():
+def cluster_labels(num_clusters=3):
     from sklearn.cluster import KMeans
     object_labels = get_baseline_labels()
     object_key_to_array_index = {}
     X = []
-    for object_name in object_labels.keys():
+    object_group_name = 'g3db_instances_non_test_version7'
+    for object_name in get_grasping_object_name_list(object_group_name):
         sum_value = sum(object_labels[object_name])
         object_labels[object_name] = [x/sum_value for x in object_labels[object_name]]
         object_key_to_array_index[object_name] = len(X)
         X.append(object_labels[object_name])
-    kmeans = KMeans(n_clusters=3, random_state=0).fit(X)  
+    kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(X)  
     transormed_X = kmeans.transform(X)
     
     
-    for object_name in object_labels.keys():
+    for object_name in get_grasping_object_name_list(object_group_name):
         print repr(kmeans.labels_[object_key_to_array_index[object_name]])+':' + object_name + ':'  + repr(transormed_X[object_key_to_array_index[object_name]])
     
     baseline_result_dir = 'data_low_friction_table_exp_ver6'
     grasping_ros_mico_path = get_grasping_ros_mico_path()
-    label_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/kmeans_object_labels_g3db_instances.csv"
+    label_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/kmeans_object_labels_g3db_instances_trial.csv"
 
     with open(label_file_name,'w') as f:
-        for object_name in object_labels.keys():
+        for object_name in get_grasping_object_name_list(object_group_name):
             f.write(object_name+"," +repr(kmeans.labels_[object_key_to_array_index[object_name]]) + '\n' )
     return kmeans
     
 def main():
-    train(use_kmeans = True)
-    #cluster_labels()
+    test('kmeans-extra-data_label_4_20180504-200455', use_kmeans = True, kmeans_label = '_4')
+    #train(use_kmeans = True, kmeans_label = '_4', use_extra = True)
+    #test('kmeans-extra-data_label_3_20180419-123116', use_kmeans = True, kmeans_label = '_3')
+    #train(use_kmeans = True, kmeans_label = '_3', use_extra = True)
+    #test('kmeans-extra-data_label_2_20180410-212342', use_kmeans = True, kmeans_label = '_2')
+    #train(use_kmeans = True, kmeans_label = '_2', use_extra = True)
+    #test('kmeans_label_2_20180401-014151', use_kmeans = True, kmeans_label = '_2' )
+    #train(use_kmeans = True, kmeans_label = '_2')
+    #test('kmeans_20180215-115011', use_kmeans = True )
+    #test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
+    #train(use_kmeans = True, kmeans_label = '_1')
+    #cluster_labels(3)
     
 if __name__ == '__main__':
     main()    

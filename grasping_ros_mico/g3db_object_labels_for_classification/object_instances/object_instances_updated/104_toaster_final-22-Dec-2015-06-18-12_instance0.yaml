@@ -1,0 +1,22 @@
+actions:
+- {rotate_z: 90}
+- reorient_bounding_box
+- {set_size_abs_x: 0.15728}
+- {set_size_abs_y: 0.07159760169514161}
+- set_mass
+- move_to_table
+colliding_with_gripper: false
+collisions: 0
+duplicate_mesh_index: 0
+duplicate_mesh_name: 104_toaster_final-22-Dec-2015-06-18-12.obj
+duplicate_mesh_size: !!python/tuple [0.18439999222755432, 0.40863001346588135, 0.11931000649929047]
+mesh_name: 104_toaster_final-22-Dec-2015-06-18-12.obj
+object_initial_pose_z: 1.1096889972686768
+object_min_z: 1.1048889972686768
+object_pickable: true
+object_pose: !!python/tuple [0.4918999969959259, 0.15620000660419464, 1.1096889972686768,
+  0.0, 0.0, 0.0, 1.0]
+object_stable: true
+object_use_label: S
+pick_point: [0.41240160680826243, 0.1532101665756191, 1.083381034915908]
+signal_name: mesh_location
