@@ -22,6 +22,21 @@ PRE_GRASP_TRANS = PoseStamped()
 WALLET_PRE_GRASP = PoseStamped()
 PRE_GRASP_2 = PoseStamped()
 TOP_OF_BOOKS = PoseStamped()
+RLS_PRE_GRASP_2 = PoseStamped()
+
+RLS_PRE_GRASP_2.header.frame_id = 'm1n6s200_link_base'
+RLS_PRE_GRASP_2.pose.position.x= -0.0585744976997
+RLS_PRE_GRASP_2.pose.position.y= -0.298175355196
+RLS_PRE_GRASP_2.pose.position.z= 0.103789567947
+RLS_PRE_GRASP_2.pose.orientation.x= 0.722
+RLS_PRE_GRASP_2.pose.orientation.y= 0.012
+RLS_PRE_GRASP_2.pose.orientation.z= -0.016
+RLS_PRE_GRASP_2.pose.orientation.w= 0.692
+#RLS_PRE_GRASP_2.pose.orientation.x= -0.489324437899
+#RLS_PRE_GRASP_2.pose.orientation.y= -0.521763124658
+#RLS_PRE_GRASP_2.pose.orientation.z= -0.513538916863
+#RLS_PRE_GRASP_2.pose.orientation.w= -0.473922585545
+
 
 PRE_GRASP_2.header.frame_id = 'm1n6s200_link_base'
 PRE_GRASP_2.pose.position.x= 0.337906807661

@@ -52,7 +52,8 @@ class KinovaExecutor(object):
                 'pre_push_trans':PRE_PUSH_TRANS, 'pre_grasp_trans1':\
                 PRE_GRASP_TRANS1, 'pre_grasp_trans': PRE_GRASP_TRANS,\
                 'top_of_books': TOP_OF_BOOKS, 'tra_pose': tra_pose, 'table_pre_grasp2':
-                PRE_GRASP_2, 'wallet_pre_grasp': WALLET_PRE_GRASP}
+                PRE_GRASP_2, 'wallet_pre_grasp': WALLET_PRE_GRASP,
+                'rls_table_pre_grasp2' : RLS_PRE_GRASP_2}
         print "Kinova Motion Controller Ready!"
 
     def __QuaternionNorm(self, Q_raw):

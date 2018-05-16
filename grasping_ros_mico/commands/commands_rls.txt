@@ -1,0 +1,21 @@
+screen -S roscore -d -m
+screen -S roscore -X stuff 'roscore ^M' 
+screen -S mico_server -d -m
+screen -S mico_server -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=m1n6s200 use_urdf:=true ^M'
+screen -S kinect_server -d -m
+screen -S kinect_server -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch kinect2_bridge kinect2_bridge.launch ^M'
+screen -S numatac_server -d -m
+screen -S numatac_server -X stuff 'until rostopic list ; do sleep 1; done ; sudo ip link set can0 type can bitrate 1000000 ; sudo ifconfig can0 up; roslaunch numatac_can_driver numatac_can_driver.launch ^M'
+screen -S numatac_client -d -m
+screen -S numatac_client -X stuff 'until rostopic list ; do sleep 1; done ; roscd numatac_can_driver; python detect_touch_on_each_finger.py ^M'
+screen -S detect_marker -d -m
+screen -S detect_marker -X stuff 'until rostopic list ; do sleep 1; done ; roscd grasping_ros_mico; cd launch/rls_launch_files; roslaunch mico_double_calib_kinect2.launch publish_tf:=true^M'
+screen -S static_transform -d -m
+screen -S static_transform -X stuff 'until rostopic list ; do sleep 1; done ; roscd grasping_ros_mico; cd launch/rls_launch_files; roslaunch static_transform_publisher_refexp_kinect2_back.launch ^M'
+#screen -S voxel_filtering -d -m
+#screen -S voxel_filtering -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch grasping_ros_mico voxel_grid_filtering.launch ^M'
+screen -S mico_client -d -m
+screen -S mico_client -X stuff 'until rostopic list ; do sleep 1; done ; roscd grasping_ros_mico; cd scripts; python mico_action_feedback_node.py ^M'
+screen -S mico_moveit -d -m
+screen -S mico_moveit -X stuff 'until rostopic list ; do sleep 1; done ; roslaunch m1n6s200_moveit_config m1n6s200_demo.launch ^M'
+gnome-terminal --tab -e 'bash -c "screen -r roscore; bash"' -t "roscore" --tab -e 'bash -c "screen -r mico_server; bash"' -t "mico_server"  --tab -e 'bash -c "screen -r numatac_server; bash"' -t "touch_server"  --tab -e 'bash -c "screen -r numatac_client; bash"' -t "touch_client" --tab -e 'bash -c "screen -r kinect_server; bash"' -t "kinect_server" --tab -e 'bash -c "screen -r detect_marker; bash"' -t "marker_detector" --tab -e 'bash -c "screen -r static_transform; bash"' -t "static transform" --tab -e 'bash -c "screen -r mico_client; bash"' -t "mico_client" --tab -e 'bash -c "screen -r mico_moveit; bash"' -t "mico_moveit"

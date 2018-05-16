@@ -1,0 +1,18 @@
+<launch>
+<!-- launch marker tf publisher first-->
+<!--<include file="$(find aruco_ros)/launch/mico_double_calib_kinect2.launch" />-->
+
+
+
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="
+  -0.45 -0.49 -0.00 0. 0. 0.70710678,  0.70710678
+  table_frame odom_combined 50 "/>
+
+
+
+  <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="
+  0 0 0 0 0 0 1
+  odom_combined world 50 "/>
+ 
+
+   </launch>

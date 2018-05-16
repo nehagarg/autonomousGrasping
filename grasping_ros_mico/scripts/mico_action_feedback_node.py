@@ -24,7 +24,7 @@ import copy
 
 kinova_motion_executor_with_touch.THRES_TOUCH_GRASPED = 650.0
 kinova_motion_executor_with_touch.THRES_TOUCH = 75.0
-
+RLS_LAB = True
 #from stop_when_touch import lift
 #import task_planner.apc_util
 #from task_planner.slip_classifier import slip_classifier
@@ -69,6 +69,7 @@ class MicoActionRequestHandler():
             #    self.vision_movement_publisher.publish(Int8(a_send))
 
         if req.action == req.ACTION_MOVE:
+            print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (req.move_x, req.move_y, req.move_z)
             start_time = time.time()
             p_o_array = []
             (position_,orientation_) = self.myKinovaMotionExecutor.get_cartesian_goal_from_relative_pose(
@@ -82,7 +83,11 @@ class MicoActionRequestHandler():
                 for i in range(1,8):                 
                     pos_interim = position_[:]
                     pos_interim[pos_index] = pos_interim[pos_index] - move_value + (i*0.01*abs(move_value)/move_value)
-                    p_o_array.append((pos_interim,orientation_))
+                    if((pos_interim[pos_index]> position_[pos_index] and move_value > 0)
+                      or(pos_interim[pos_index]< position_[pos_index] and move_value < 0)):
+                          break
+                    else:
+                        p_o_array.append((pos_interim,orientation_))
             
             p_o_array.append((position_,orientation_))
             for (pos,ori) in p_o_array:
@@ -90,12 +95,14 @@ class MicoActionRequestHandler():
 
                 if self.myKinovaMotionExecutor.cancelled_execution == 1:
                     break
-                self.visionMovementDetector.checked_movement = 0
-                while self.visionMovementDetector.checked_movement != 1:
-                    rospy.sleep(0.5)    
-                rospy.sleep(1)
-                if self.visionMovementDetector.object_moved_final == 1:
-                    break
+                #self.visionMovementDetector.checked_movement = 0
+                #while self.visionMovementDetector.checked_movement != 1:
+                #    rospy.sleep(0.5)    
+                #rospy.sleep(1)
+                if req.check_vision_movement:
+                    self.visionMovementDetector.has_object_moved(self.visionMovementDetector.get_current_point_cloud())
+                    if self.visionMovementDetector.object_moved_final == 1:
+                        break
             
             #self.myKinovaMotionExecutor.goto_relative_pose_until_touch(req.move_x, req.move_y, req.move_z, 
             #check_touch=req.check_touch, check_vision_movement = req.check_vision_movement)
@@ -104,16 +111,21 @@ class MicoActionRequestHandler():
         if req.action == req.ACTION_CLOSE:
             print "close action"
             self.myKinovaMotionExecutor.max_pressure = [-1000, -1000]
-            myKinovaMotionExecutor.set_gripper_state('close')
+            self.myKinovaMotionExecutor.set_gripper_state('close')
+            rospy.sleep(2) #to let the gripper fully close
         if req.action == req.ACTION_OPEN:
             print "open action"
             self.myKinovaMotionExecutor.max_pressure = [-1000, -1000]
             self.myKinovaMotionExecutor.set_gripper_state('open')
+            rospy.sleep(2) #to let the gripper fully open
         if req.action == req.ACTION_PICK:
             print "pick action"
-            self.myKinovaMotionExecutor.max_pressure = [-1000, -1000]
-            #myKinovaMotionExecutor.goto('top_of_books')
-            self.myKinovaMotionExecutor.goto('home_t')
+            if True:
+                self.myKinovaMotionExecutor.max_pressure = [-1000, -1000]
+                #myKinovaMotionExecutor.goto('top_of_books')
+                #self.myKinovaMotionExecutor.set_gripper_state('close') 
+                #myKinovaMotionExecutor.goto_relative_pose(dz=0.02)
+                self.myKinovaMotionExecutor.goto('home_t')
         if req.action ==req.GET_TOUCH_THRESHOLD:
             print "Getting threshold"
             res = MicoActionFeedbackResponse()
@@ -121,19 +133,29 @@ class MicoActionRequestHandler():
             #print myKinovaMotionExecutor.initial_pressure
             return res
         if req.action == req.INIT_POS:
-            self.myKinovaMotionExecutor.goto('table_pre_grasp2')
-            myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
-            self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
-            self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+            
+            self.myKinovaMotionExecutor.set_gripper_state('open')
+            if(RLS_LAB):
+                self.myKinovaMotionExecutor.goto('rls_table_pre_grasp2')
+                self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
+                self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
+                self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
+            else:
+                self.myKinovaMotionExecutor.goto('table_pre_grasp2')
+                self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
+                self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+                self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
 
         if req.action == req.MOVE_AWAY_POS:
             self.myKinovaMotionExecutor.goto('top_of_books')
-
-
+        
+        if req.check_vision_movement:
+            if(req.action == req.ACTION_OPEN or req.action == req.ACTION_CLOSE):
+                self.visionMovementDetector.has_object_moved(self.visionMovementDetector.get_current_point_cloud())
         res = MicoActionFeedbackResponse()
         res.gripper_pose = self.myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
         res.touch_sensor_reading =  self.myKinovaMotionExecutor.max_pressure
-        res.vision_movement = self.myKinovaMotionExecutor.vision_movement
+        res.vision_movement = self.visionMovementDetector.object_moved_final #self.myKinovaMotionExecutor.vision_movement
         #print myKinovaMotionExecutor.initial_pressure
         print res.touch_sensor_reading
         print res.vision_movement
@@ -145,14 +167,15 @@ class MicoActionRequestHandler():
             rospy.sleep(5)
             print "Waiting for joint state"
         res.finger_joint_state = self.finger
-
+        
+        """
         if req.check_vision_movement:
             self.visionMovementDetector.checked_movement = 0
             while self.visionMovementDetector.checked_movement != 1:
                 rospy.sleep(0.5)
             rospy.sleep(1)
             self.visionMovementDetector.start = -1
-            """
+            
             a_send =-1
             self.vision_movement_publisher.publish(Int8(a_send))
             #dummy = -1
@@ -222,7 +245,7 @@ class VisionMovementDetector(object):
         self.point_cloud_topic = self.pointCloudProcessor.config['kinect_sensor_cfg']['cam_point_cloud']
         self.point_cloud_1 = self.update_initial_point_cloud()
         #rospy.Subscriber(self.depth_image_topic, Image, self.p_callback)
-        rospy.Subscriber(self.point_cloud_topic, PointCloud2, self.p_callback)
+        #rospy.Subscriber(self.point_cloud_topic, PointCloud2, self.p_callback)
         
     def get_current_point_cloud_from_image(self,depth_im = None):
         (self.cam_intrinsic,point_cloud_world,self.T_cam_world) = self.pointCloudProcessor.get_world_point_cloud(depth_im,self.cam_intrinsic,self.T_cam_world)
@@ -253,10 +276,10 @@ class VisionMovementDetector(object):
         cfg = copy.deepcopy(self.pointCloudProcessor.detector_cfg )
         cfg['min_pt'][2] = cfg['min_z_for_movement']
         if min_z is not None:
-            cfg['min_pt'][2] = min_z + 0.01
+            cfg['min_pt'][2] = min_z +0.02 #0.01 for cd stand
         if min_x > cfg['min_pt'][0]:
-            cfg['min_pt'][0] = min_x -0.05
-        cfg['max_pt'][2] = cfg['min_pt'][2] + 0.1
+            cfg['min_pt'][0] = min_x -0.04
+        cfg['max_pt'][2] = cfg['min_pt'][2] + 0.15
         seg_point_cloud_world = self.pointCloudProcessor.get_segmented_point_cloud_world(cfg, point_cloud_world )
         
         #point_cloud_1 = get_current_point_cloud_for_movement(min_x + 0.04,False, False, 'real', min_z)
@@ -272,15 +295,21 @@ class VisionMovementDetector(object):
             else: #It is point cloud 2
                 point_cloud_2 = self.get_current_point_cloud(
                 self.process_raw_point_cloud(depth_im))
-            if point_cloud_2.num_points > 1:
-                self.pub_point_cloud2.publish(self.get_raw_point_cloud(point_cloud_2))
-            else:
-                print "Not publishing current point cloud with "+ repr(point_cloud_2.num_points) + " points"
-            #check has object moved
-            self.object_moved = giob.has_object_moved(self.point_cloud_1, point_cloud_2)
-            self.object_moved_final = self.object_moved
-            print self.object_moved
-            self.pub_vision_movement.publish(self.object_moved)
+            
+            self.has_object_moved(point_cloud_2)
+            
+    def has_object_moved(self, point_cloud_2, point_cloud_1 = None):
+        if point_cloud_2.num_points > 1:
+            self.pub_point_cloud2.publish(self.get_raw_point_cloud(point_cloud_2))
+        else:
+            print "Not publishing current point cloud with "+ repr(point_cloud_2.num_points) + " points"
+        if point_cloud_1 is None:
+            point_cloud_1 = self.point_cloud_1
+        #check has object moved
+        self.object_moved = giob.has_object_moved(point_cloud_1, point_cloud_2)
+        self.object_moved_final = self.object_moved
+        print self.object_moved
+        self.pub_vision_movement.publish(self.object_moved)
     
     
     def update_initial_point_cloud(self):

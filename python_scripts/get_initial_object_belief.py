@@ -80,18 +80,23 @@ class KinectSensor:
         self.depth = rospy.wait_for_message(self.DEPTH_TOPIC, Image)
         if self.cam_info is None:
             self.get_cam_intrinsic()
-        raw_depth = self.bridge.imgmsg_to_cv2(self.depth, 'passthrough')
+        return self.process_raw_depth_image(self.depth, self.cam_info)
+    
+    def process_raw_depth_image(self, depth_im, camera_info = None):
+        if camera_info is None:
+            camera_info = self.cam_info
+        raw_depth = self.bridge.imgmsg_to_cv2(depth_im, 'passthrough')
         if self.env=='simulator':
             depth_arr = np.flipud(copy.copy(raw_depth))
             depth_arr = np.fliplr(copy.copy(depth_arr))
         else:
             depth_arr = copy.copy(raw_depth)
         depth_arr = depth_arr * 0.001
-        depth_image = perception.DepthImage(depth_arr, self.cam_info.header.frame_id)
+        depth_image = perception.DepthImage(depth_arr, camera_info.header.frame_id)
 
         #depth_image = perception.DepthImage((self.bridge.imgmsg_to_cv2(raw_depth, desired_encoding = "passthrough")).astype('float'), frame=self.cam_info.header.frame_id)
         return depth_image
-
+        
     def get_cam_intrinsic(self):
         #while self.cam_info is None:
         #    print "Waiting for cam_info"
@@ -205,14 +210,17 @@ class GetInitialObjectBelief():
     
     
     
-    def get_world_point_cloud(self):
+    def get_world_point_cloud(self, depth_image = None, camera_intrinsics = None, T_camera_world = None):
         #sensor = self.sensor
-        camera_intrinsics = self.sensor.get_cam_intrinsic()
+        if camera_intrinsics is None:
+            camera_intrinsics = self.sensor.get_cam_intrinsic()
         #T_camera_world = RigidTransform.load('data/calib/primesense_overhead/kinect2_to_world.tf')
-        T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME, self.config_path)
+        if T_camera_world is None:
+            T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME, self.config_path)
         
 
-        depth_image = self.sensor.get_depth_im()
+        if depth_image is None:
+            depth_image = self.sensor.get_depth_im()
         inpainted_depth_image = depth_image.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
         #print camera_intrinsics.rosmsg
         depth_im = inpainted_depth_image
