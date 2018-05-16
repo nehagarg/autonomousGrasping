@@ -143,8 +143,8 @@ class MicoActionRequestHandler():
             else:
                 self.myKinovaMotionExecutor.goto('table_pre_grasp2')
                 self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
-                self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
-                self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+                self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
+                self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
 
         if req.action == req.MOVE_AWAY_POS:
             self.myKinovaMotionExecutor.goto('top_of_books')
@@ -235,8 +235,10 @@ class VisionMovementDetector(object):
         self.pub_point_cloud2 = rospy.Publisher('movement_detector/current_point_cloud', PointCloud2, queue_size=10)
         
         self.motion_executor = motionExector
-        
-        self.pointCloudProcessor = giob.GetInitialObjectBelief(None,False,False,'real')
+        env_name = 'real'
+        if RLS_LAB:
+            env_name = 'real_rls'
+        self.pointCloudProcessor = giob.GetInitialObjectBelief(None,False,False,'real_rls')
         self.T_cam_world = self.pointCloudProcessor.sensor.get_T_cam_world(
         self.pointCloudProcessor.CAM_FRAME, self.pointCloudProcessor.WORLD_FRAME, 
         self.pointCloudProcessor.config_path)

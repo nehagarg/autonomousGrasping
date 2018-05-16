@@ -161,6 +161,8 @@ class GetInitialObjectBelief():
         self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
         if env == 'real':
             self.config = YamlConfig(self.config_path + 'mico_control_node_real.yaml')
+        if env == 'real_rls':
+            self.config = YamlConfig(self.config_path + 'mico_control_node_real_rls.yaml')
 
 
 
@@ -172,6 +174,9 @@ class GetInitialObjectBelief():
             CAMINFO_TOPIC = self.config['kinect_sensor_cfg']['camera_info_topic']
         if self.config['kinect_sensor_cfg']['cam_frame']:
             self.CAM_FRAME = self.config['kinect_sensor_cfg']['cam_frame']
+        if 'world_frame' in self.config['kinect_sensor_cfg'].keys():
+            self.WORLD_FRAME = self.config['kinect_sensor_cfg']['world_frame']
+        
 
         self.detector_cfg = self.config['detector']
         if obj_filenames is not None:
@@ -245,7 +250,7 @@ class GetInitialObjectBelief():
 
 
 
-        box = Box(min_pt_box, max_pt_box, 'world')
+        box = Box(min_pt_box, max_pt_box, self.WORLD_FRAME)
         print min_pt_box
         print max_pt_box
         

@@ -25,7 +25,7 @@ TOP_OF_BOOKS = PoseStamped()
 RLS_PRE_GRASP_2 = PoseStamped()
 
 RLS_PRE_GRASP_2.header.frame_id = 'm1n6s200_link_base'
-RLS_PRE_GRASP_2.pose.position.x= -0.0585744976997
+RLS_PRE_GRASP_2.pose.position.x= -0.217151999474
 RLS_PRE_GRASP_2.pose.position.y= -0.298175355196
 RLS_PRE_GRASP_2.pose.position.z= 0.103789567947
 RLS_PRE_GRASP_2.pose.orientation.x= 0.722
