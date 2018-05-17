@@ -44,12 +44,12 @@ public:
     //double real_max_y_o = 0.2295; // range for object location
     
     double vrep_finger_joint_min = 0;
-    double vrep_finger_joint_max = 1.58;
+    double vrep_finger_joint_max = 1.07;
     double vrep_finger_joint_for_dummy_joint_value_change = 1.5;
     double vrep_dummy_finger_joint_min = 0.0;
     double vrep_dummy_finger_joint_max = 0.4;
     double real_finger_joint_min = 0.0; 
-    double real_finger_joint_max = 1.4; 
+    double real_finger_joint_max = 1.5; 
     double vrep_touch_value_max = 2.5; //2.6;
     double vrep_touch_value_min = 0.0;
     

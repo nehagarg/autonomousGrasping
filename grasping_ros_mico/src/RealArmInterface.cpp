@@ -95,8 +95,8 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
         //Finger Joints
         for(int i = 0; i < 4; i=i+2)
         {
-            state.finger_joint_state[i+1] = micoActionFeedback_srv.response.finger_joint_state[i/2];
-            obs.finger_joint_state[i+1] = micoActionFeedback_srv.response.finger_joint_state[i/2];
+            state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
+            obs.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
         }
         AdjustRealFingerJointsToSimulatedJoints(state.finger_joint_state);
         AdjustRealFingerJointsToSimulatedJoints(obs.finger_joint_state);
@@ -219,29 +219,30 @@ void RealArmInterface::AdjustRealFingerJointsToSimulatedJoints(double gripper_jo
     //Adjust the gathered real joint values according to vrep
     for(int i = 0; i < 4; i=i+2)
     {
-        if (gripper_joint_values[i+1]  < 0)
+        if (gripper_joint_values[i]  < 0)
         {
-            gripper_joint_values[i+1] = 0;
+            gripper_joint_values[i] = 0;
         }
         
-        gripper_joint_values[i+1] = gripper_joint_values[i+1] - real_finger_joint_min;
-            gripper_joint_values[i+1] = gripper_joint_values[i+1] * (vrep_finger_joint_max - vrep_finger_joint_min);
-            gripper_joint_values[i+1] = gripper_joint_values[i+1] /(real_finger_joint_max - real_finger_joint_min);
-            gripper_joint_values[i+1] = gripper_joint_values[i+1] + vrep_finger_joint_min;
+        gripper_joint_values[i] = gripper_joint_values[i] - real_finger_joint_min;
+            gripper_joint_values[i] = gripper_joint_values[i] * (vrep_finger_joint_max - vrep_finger_joint_min);
+            gripper_joint_values[i] = gripper_joint_values[i] /(real_finger_joint_max - real_finger_joint_min);
+            gripper_joint_values[i] = gripper_joint_values[i] + vrep_finger_joint_min;
         
     }
-    for(int i = 0; i < 4; i=i+2)
+    
+    /*for(int i = 0; i < 4; i=i+2)
     {
-        gripper_joint_values[i] = vrep_dummy_finger_joint_min;
-        if(gripper_joint_values[i+1] >= vrep_finger_joint_for_dummy_joint_value_change)
+        gripper_joint_values[i+1] = vrep_dummy_finger_joint_min;
+        if(gripper_joint_values[i] >= vrep_finger_joint_for_dummy_joint_value_change)
         {
             double add_value = (vrep_dummy_finger_joint_max - vrep_dummy_finger_joint_min);
-            add_value = add_value*(gripper_joint_values[i+1] - vrep_finger_joint_for_dummy_joint_value_change);
+            add_value = add_value*(gripper_joint_values[i] - vrep_finger_joint_for_dummy_joint_value_change);
             add_value = add_value/(vrep_finger_joint_max-vrep_finger_joint_for_dummy_joint_value_change);
-            gripper_joint_values[i] = gripper_joint_values[i] + add_value;
+            gripper_joint_values[i+1] = gripper_joint_values[i+1] + add_value;
         }
         
-    }
+    }*/
 }
 
 void RealArmInterface::AdjustTouchSensorToSimulatedTouchSensor(double gripper_obs_values[]) const {
