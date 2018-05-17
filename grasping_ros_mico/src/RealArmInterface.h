@@ -25,6 +25,7 @@ public:
     bool StepActual(GraspingStateRealArm& state, double random_num, int action, double& reward, GraspingObservation& obs) const;
     
     void CreateStartState(GraspingStateRealArm& initial_state, std::string type) const;
+    std::pair<std::map<int,double>,std::vector<double> > GetBeliefObjectProbability(std::vector<int> belief_object_ids) const;
     
     //bool IsValidState(GraspingStateRealArm grasping_state) const;
     
@@ -78,7 +79,7 @@ private:
     void AdjustRealObjectPoseToSimulatedPose(geometry_msgs::PoseStamped& object_pose) const;
     void AdjustRealFingerJointsToSimulatedJoints(double gripper_joint_values[]) const;
     void AdjustTouchSensorToSimulatedTouchSensor(double gripper_joint_values[]) const;
-
+    PyObject* get_belief_module;
 
 };
 

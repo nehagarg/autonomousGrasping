@@ -13,6 +13,25 @@ RealArmInterface::RealArmInterface(int start_state_index_) : VrepDataInterface(s
     max_x_i = 0.5279 + 0.08;  // range for gripper movement
     //min_y_i = 0.0816 - 0.08; // range for gripper movement
     //max_y_i = 0.2316 + 0.08;
+    
+    //Initialize python script for loading object
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('python_scripts')");
+    
+    char ** argv;
+    //std::cout << "Initialized python 1" << std::endl;
+    PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
+    PyObject *pName;
+    pName = PyString_FromString("get_initial_object_belief");
+    get_belief_module = PyImport_Import(pName);
+    if(get_belief_module == NULL)
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"get_initial_object_belief\"\n");
+        assert(0==1);
+    }
+    Py_DECREF(pName);
 }
 
 RealArmInterface::RealArmInterface(const RealArmInterface& orig) {
@@ -302,6 +321,118 @@ void RealArmInterface::AdjustRealObjectPoseToSimulatedPose(geometry_msgs::PoseSt
 }
 
 
+std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBeliefObjectProbability(std::vector<int> belief_object_ids) const {
+    if(!RobotInterface::get_object_belief)
+    {
+        return VrepDataInterface::GetBeliefObjectProbability(belief_object_ids);
+    }
+    std::map<int,double> belief_object_weights;
+    std::vector<double> vision_observation;
+
+    std::cout << "Initialized python 2" << std::endl;
+    //PyRun_SimpleString("print sys.argv[0]");
+    //std::cout << "Initialized python 3" << std::endl;
+    //PyRun_SimpleString("import tensorflow as tf");
+    
+    //std::cout << "Initialized python" << std::endl;
+     
+    
+    PyObject *load_function = PyObject_GetAttrString(get_belief_module, "get_belief_for_real_objects");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"get_belief_for_objects\"\n");
+    }
+    
+    PyObject *pArgs, *pValue;
+    int num_args = 3;
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        num_args = 6;
+    }
+    //Change here to real for robot experiment lab
+    pValue = PyString_FromString("real_rls");
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, 0, pValue);
+    
+    pArgs = PyTuple_New(num_args);
+    PyObject* object_list = PyList_New(belief_object_ids.size());
+    for(int i =0;i < belief_object_ids.size(); i++)
+    {
+        PyList_SetItem(object_list, i, PyString_FromString(object_id_to_filename[belief_object_ids[i]].c_str()));
+    }
+    
+    PyTuple_SetItem(pArgs, 1, object_list);
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        pValue = PyString_FromString(GraspObject::object_pointcloud_for_classification_dir.c_str());
+    }
+    else
+    {
+        pValue = PyString_FromString(GraspObject::object_pointcloud_dir.c_str());
+    }
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, 2, pValue);
+
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        pValue = PyInt_FromLong(clip_number_of_objects);
+        PyTuple_SetItem(pArgs, 3, pValue);
+        pValue = PyString_FromString(classifier_string_name.c_str());
+        PyTuple_SetItem(pArgs, 4, pValue);
+        pValue = PyString_FromString(graspObjects[belief_object_ids[0]]->data_dir_name.c_str());
+        PyTuple_SetItem(pArgs, 5, pValue);
+    }
+    PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(pArgs);
+    Py_DECREF(load_function);
+    
+    if (belief_probs != NULL) {
+        std::cout << "Call to get belief probs succeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to get belief probs failed\n");
+        assert(0==1);
+    }
+
+    for(int i = 0; i < belief_object_ids.size(); i++)
+    {
+        PyObject* tmpObj = PyList_GetItem(belief_probs, i);
+        belief_object_weights[belief_object_ids[i]] = PyFloat_AsDouble(tmpObj);
+        //Py_DECREF(tmpObj);
+    }
+    
+    if(RobotInterface::use_classifier_for_belief)
+    {
+        int weighted_obs_size = GetWeightedObservationSize();
+        for(int i = belief_object_ids.size(); i < belief_object_ids.size()+weighted_obs_size; i++)
+        {
+            PyObject* tmpObj = PyList_GetItem(belief_probs, i);
+            vision_observation.push_back(PyFloat_AsDouble(tmpObj));
+            //Py_DECREF(tmpObj);
+        }
+    }
+    else
+    {
+        for(int i = 0; i < belief_object_ids.size(); i++)
+        {
+            vision_observation.push_back(belief_object_weights[belief_object_ids[i]]);
+        }
+    }
+    std::cout << "Vision observation " ;
+    for(int i = 0; i < vision_observation.size(); i++)
+    {
+        std::cout << vision_observation[i] << " ";
+    }
+    std::cout << std::endl;
+    
+    Py_DECREF(belief_probs);
+    return std::make_pair(belief_object_weights,vision_observation);
+    
+}
 
 
 

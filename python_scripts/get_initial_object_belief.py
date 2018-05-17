@@ -540,18 +540,21 @@ def get_belief_for_objects_old(object_group_name, object_file_dir, debug = False
     print "<Object Probabilities>" + repr(ans)
     return ans
 
+def get_belief_for_real_objects(env, object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):
+    return get_belief_for_objects(object_group_name, object_file_dir, clip_objects , keras_model_name , baseline_results_dir, env, debug, start_node)
+
 #object_file_dir = point clod dir when not using keras model
 #object_file_dir = keras model dir when using keras model
-def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):
+def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, env = 'simulator', debug = False, start_node=True):
     if keras_model_name is None:
         obj_filenames = get_object_filenames(object_group_name, object_file_dir)
-        giob = GetInitialObjectBelief(obj_filenames, debug, start_node)
+        giob = GetInitialObjectBelief(obj_filenames, debug, start_node, env)
         ans = giob.get_object_probabilities()
         print "<Object Probabilities>" + repr(ans)
         return ans
     else:
         #Load keras model
-        giob = GetInitialObjectBelief(None, debug, start_node)
+        giob = GetInitialObjectBelief(None, debug, start_node, env)
         (depth_im,cam_intr) = giob.get_object_point_cloud_from_sensor()
         import object_baseline_classifier as obc
         keras_model_dir = object_file_dir + "/keras_model/" 
