@@ -155,6 +155,7 @@ class GetInitialObjectBelief():
         self.WORLD_FRAME = 'world'
         self.MICO_TARGET_FRAME = 'mico_target_frame'
         self.debug = debug
+        self.env = env
         rospack = rospkg.RosPack()
         self.grasping_ro_mico_path = rospack.get_path('grasping_ros_mico')
         self.config_path = self.grasping_ro_mico_path + '/config_files/dexnet_config/'
@@ -306,6 +307,11 @@ class GetInitialObjectBelief():
         """
         print seg_point_cloud_cam.shape
         depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
+        if 'real' in self.env:
+            vis.figure()
+            vis.subplot(1,1,1)
+            vis.imshow(depth_im_seg)
+            vis.show()
         #camera_intr._frame = self.MICO_TARGET_FRAME
         #depth_im_seg = camera_intr.project_to_image(seg_point_cloud_target)
         #camera_intr._frame = self.WORLD_FRAME
