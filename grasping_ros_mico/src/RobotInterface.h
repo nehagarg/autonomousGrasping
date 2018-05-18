@@ -130,6 +130,7 @@ public:
     bool separate_close_reward ;
     std::string classifier_string_name;
     int clip_number_of_objects;
+    int object_class_value; //used only by real arm interface as object classification is not working well
     static bool low_friction_table;
     static bool version5;
     static bool version6;

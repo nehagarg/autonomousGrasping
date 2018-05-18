@@ -413,6 +413,15 @@ GraspingRealArm::GraspingRealArm(std::string modelParamFileName, int start_state
         robotInterface->clip_number_of_objects = -1;
     }
     
+    if(config["object_class"])
+    {
+        robotInterface->object_class_value = config["object_class"].as<int>();
+    }
+    else
+    {
+        robotInterface->object_class_value = -1;
+    }
+    
     if(config["object_classifier_string_name"])
     {
         robotInterface->classifier_string_name = config["object_classifier_string_name"].as<std::string>();

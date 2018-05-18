@@ -89,7 +89,13 @@ class KinectSensor:
         if self.env=='simulator':
             depth_arr = np.flipud(copy.copy(raw_depth))
             depth_arr = np.fliplr(copy.copy(depth_arr))
+        elif 'object_detection' in self.env:
+            print 'Going to ' + self.env
+            #depth_arr = np.flipud(copy.copy(raw_depth))
+            #depth_arr = np.fliplr(copy.copy(depth_arr))
+            depth_arr = copy.copy(raw_depth)
         else:
+            print 'Going to ' + self.env
             depth_arr = copy.copy(raw_depth)
         depth_arr = depth_arr * 0.001
         depth_image = perception.DepthImage(depth_arr, camera_info.header.frame_id)
@@ -159,12 +165,12 @@ class GetInitialObjectBelief():
         rospack = rospkg.RosPack()
         self.grasping_ro_mico_path = rospack.get_path('grasping_ros_mico')
         self.config_path = self.grasping_ro_mico_path + '/config_files/dexnet_config/'
-        self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
-        if env == 'real':
-            self.config = YamlConfig(self.config_path + 'mico_control_node_real.yaml')
-        if env == 'real_rls':
-            self.config = YamlConfig(self.config_path + 'mico_control_node_real_rls.yaml')
-
+        
+        if env =='simulator':
+            self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
+        else:
+            self.config = YamlConfig(self.config_path + 'mico_control_node_' + env + '.yaml')
+        
 
 
         if self.config['kinect_sensor_cfg']['color_topic']:
@@ -177,7 +183,6 @@ class GetInitialObjectBelief():
             self.CAM_FRAME = self.config['kinect_sensor_cfg']['cam_frame']
         if 'world_frame' in self.config['kinect_sensor_cfg'].keys():
             self.WORLD_FRAME = self.config['kinect_sensor_cfg']['world_frame']
-        
 
         self.detector_cfg = self.config['detector']
         if obj_filenames is not None:
@@ -547,6 +552,7 @@ def get_belief_for_objects_old(object_group_name, object_file_dir, debug = False
     return ans
 
 def get_belief_for_real_objects(env, object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):
+    print "Getting Belief for real objects"
     return get_belief_for_objects(object_group_name, object_file_dir, clip_objects , keras_model_name , baseline_results_dir, env, debug, start_node)
 
 #object_file_dir = point clod dir when not using keras model

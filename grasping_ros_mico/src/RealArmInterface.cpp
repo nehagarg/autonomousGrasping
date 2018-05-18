@@ -326,6 +326,13 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
     {
         return VrepDataInterface::GetBeliefObjectProbability(belief_object_ids);
     }
+    int proceed;
+    std::cout << "Getting object class. Place object correctly. \n Shall I prroceed?[1=yes]\n";
+    std::cin >> proceed;
+    if(proceed !=1)
+    {
+        assert(0==1);
+    }
     std::map<int,double> belief_object_weights;
     std::vector<double> vision_observation;
 
@@ -352,11 +359,13 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
         num_args = 6;
     }
     //Change here to real for robot experiment lab
-    pValue = PyString_FromString("real_rls");
-    /* pValue reference stolen here: */
-    PyTuple_SetItem(pArgs, 0, pValue);
+    std::string env_name = "real_rls_object_detection";
+    pValue = PyString_FromString(env_name.c_str());
+    
     
     pArgs = PyTuple_New(num_args);
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, 0, pValue);
     PyObject* object_list = PyList_New(belief_object_ids.size());
     for(int i =0;i < belief_object_ids.size(); i++)
     {
@@ -379,7 +388,13 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
     {
         pValue = PyInt_FromLong(clip_number_of_objects);
         PyTuple_SetItem(pArgs, 3, pValue);
-        pValue = PyString_FromString(classifier_string_name.c_str());
+        std::string classifier_name = classifier_string_name;
+        if(object_class_value > 0)
+        {
+            
+            classifier_name = classifier_name + "_object_class_" + std::to_string(object_class_value);
+        }
+        pValue = PyString_FromString(classifier_name.c_str());
         PyTuple_SetItem(pArgs, 4, pValue);
         pValue = PyString_FromString(graspObjects[belief_object_ids[0]]->data_dir_name.c_str());
         PyTuple_SetItem(pArgs, 5, pValue);

@@ -316,13 +316,15 @@ def test(model_name, use_kmeans = False, kmeans_label = '', use_extra = False ):
     
 def get_object_represention_and_weighted_belief(depth_im, 
 object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
-    from keras.models import load_model
-    X = []
-    (depth_im_cropped,clipped) = get_depth_image_thumbmail(depth_im, 200,160,False)
-    X.append(depth_im_cropped.data)
-    model_name = keras_model_dir + keras_model_name + '.h5'
-    model = load_model(model_name)
-    ans = model_prediction(model,np.array(X))[0]
+    if 'object_class' not in keras_model_name:
+        from keras.models import load_model
+        X = []
+        (depth_im_cropped,clipped) = get_depth_image_thumbmail(depth_im, 200,160,False)
+        X.append(depth_im_cropped.data)
+        model_name = keras_model_dir + keras_model_name + '.h5'
+        model = load_model(model_name)
+        ans = model_prediction(model,np.array(X))[0]
+
     use_kmeans = False
     kmeans_label = ''
     if 'kmeans' in keras_model_name:
@@ -330,6 +332,17 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
         if 'label' in keras_model_name:
             kmeans_label = "_" + keras_model_name.split('_')[2]
     object_labels = get_baseline_labels(baseline_results_dir,use_kmeans, kmeans_label)
+    if 'object_class' in keras_model_name:
+        num_classes = len(set(object_labels))
+        class_id = int(keras_model_name.split('_')[-1])
+        ans_value = 1.0
+        if num_classes > 1:
+            ans_value = 0.1/(num_classes - 1 )
+        ans = np.array([ans_value]*num_classes)
+        ans[class_id] = 0.9 if 0.9 > ans_value  else ans_value
+        
+    
+    
     object_list = giob.get_object_filenames(object_group_name, "")
     object_list = [x.replace('.yaml',"").replace("/","") for x in object_list]
     if use_kmeans:
