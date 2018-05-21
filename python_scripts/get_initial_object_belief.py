@@ -22,7 +22,7 @@ from grasping_object_list import get_grasping_object_name_list
 
 class KinectSensor:
     def __init__(self, COLOR_TOPIC,DEPTH_TOPIC, CAMINFO_TOPIC, start_node = True,env = 'simulator'):
-        print CAMINFO_TOPIC 
+        print CAMINFO_TOPIC
         self.rgb = None
         self.depth = None
         self.cam_info = None
@@ -35,10 +35,10 @@ class KinectSensor:
         #rospy.init_node('kinect_listener', disable_signals=True)
         if(start_node):
             rospy.init_node('kinect_listener', anonymous=True)
-        #self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback) 
+        #self.rgb_sub = rospy.Subscriber(COLOR_TOPIC, Image, self.color_callback)
         #self.depth_sub = rospy.Subscriber(DEPTH_TOPIC, Image, self.depth_callback)
         #self.cameinfo_sub = rospy.Subscriber(CAMINFO_TOPIC, CameraInfo, self.caminfo_callback)
-        
+
 
     def color_callback(self, data):
         if not self.freeze:
@@ -68,7 +68,7 @@ class KinectSensor:
         #color_arr[:,:,1] = np.fliplr(color_arr[:,:,1])
         #color_arr[:,:,2] = np.fliplr(color_arr[:,:,2])
         #color_arr[:,:,3] = np.fliplr(color_arr[:,:,3])
-        color_image = perception.ColorImage(color_arr[:,:,:3], self.cam_info.header.frame_id) 
+        color_image = perception.ColorImage(color_arr[:,:,:3], self.cam_info.header.frame_id)
         #color_image = perception.ColorImage(self.bridge.imgmsg_to_cv2(raw_color, "rgb8"), frame=self.cam_info.header.frame_id)
         return color_image
 
@@ -81,7 +81,7 @@ class KinectSensor:
         if self.cam_info is None:
             self.get_cam_intrinsic()
         return self.process_raw_depth_image(self.depth, self.cam_info)
-    
+
     def process_raw_depth_image(self, depth_im, camera_info = None):
         if camera_info is None:
             camera_info = self.cam_info
@@ -102,7 +102,7 @@ class KinectSensor:
 
         #depth_image = perception.DepthImage((self.bridge.imgmsg_to_cv2(raw_depth, desired_encoding = "passthrough")).astype('float'), frame=self.cam_info.header.frame_id)
         return depth_image
-        
+
     def get_cam_intrinsic(self):
         #while self.cam_info is None:
         #    print "Waiting for cam_info"
@@ -129,7 +129,7 @@ class KinectSensor:
         time = 0
         trans = None
         qat = None
-        
+
         self.tl = tf.TransformListener()
         while not rospy.is_shutdown():
             try:
@@ -144,7 +144,7 @@ class KinectSensor:
         #print qat
         qat_wxyz = [qat[-1], qat[0], qat[1], qat[2]]
 
-        #rot = RT.rotation_from_quaternion(qat_wxyz) 
+        #rot = RT.rotation_from_quaternion(qat_wxyz)
         #print trans
         #print rot
 
@@ -165,12 +165,12 @@ class GetInitialObjectBelief():
         rospack = rospkg.RosPack()
         self.grasping_ro_mico_path = rospack.get_path('grasping_ros_mico')
         self.config_path = self.grasping_ro_mico_path + '/config_files/dexnet_config/'
-        
+
         if env =='simulator':
             self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
         else:
             self.config = YamlConfig(self.config_path + 'mico_control_node_' + env + '.yaml')
-        
+
 
 
         if self.config['kinect_sensor_cfg']['color_topic']:
@@ -194,21 +194,21 @@ class GetInitialObjectBelief():
         print "Creating sensor"
         rospy.loginfo('Creating RGBD Sensor')
         self.sensor = KinectSensor(COLOR_TOPIC, DEPTH_TOPIC, CAMINFO_TOPIC, start_node ,env)
-        
+
         rospy.loginfo('Sensor Running')
         print "Sensor running"
-        
-    
+
+
     def get_nearest_pick_point(self, min_z,max_z):
         (camera_intr, point_cloud_world, T_camera_world) = self.get_world_point_cloud()
         cfg = copy.deepcopy(self.detector_cfg )
         cfg['min_pt'][2] = min_z
         cfg['max_pt'][2] = max_z
         seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
-        
+
         #get the min x value and corresponding y value in segmented point cloud
         #min_index = np.argmin(seg_point_cloud_world.x_coords)
-        
+
         #need to get all the min points , otherwise can get random locations for cuboidal objects
         pick_point = [None, None, None]
         if(len(seg_point_cloud_world.x_coords)> 0):
@@ -218,9 +218,9 @@ class GetInitialObjectBelief():
             min_z_coordinate = np.mean(seg_point_cloud_world.z_coords[min_indices])
             pick_point = [float(x_coords_min), float(min_y_coordinate), float(min_z_coordinate)]
         return pick_point
-    
-    
-    
+
+
+
     def get_world_point_cloud(self, depth_image = None, camera_intrinsics = None, T_camera_world = None):
         #sensor = self.sensor
         if camera_intrinsics is None:
@@ -228,7 +228,7 @@ class GetInitialObjectBelief():
         #T_camera_world = RigidTransform.load('data/calib/primesense_overhead/kinect2_to_world.tf')
         if T_camera_world is None:
             T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME, self.config_path)
-        
+
 
         if depth_image is None:
             depth_image = self.sensor.get_depth_im()
@@ -236,21 +236,21 @@ class GetInitialObjectBelief():
         #print camera_intrinsics.rosmsg
         depth_im = inpainted_depth_image
         camera_intr = camera_intrinsics
-        
+
 
         #print T_camera_world.translation
         #print T_camera_world.rotation
-        
+
         # project into 3D
         point_cloud_cam = camera_intr.deproject(depth_im)
         point_cloud_world = T_camera_world * point_cloud_cam
 
-        
+
         return (camera_intr, point_cloud_world, T_camera_world)
-    
+
     def get_segmented_point_cloud_world(self, cfg, point_cloud_world ):
         # read params
-            
+
         min_pt_box = np.array(cfg['min_pt'])
         max_pt_box = np.array(cfg['max_pt'])
 
@@ -259,7 +259,7 @@ class GetInitialObjectBelief():
         box = Box(min_pt_box, max_pt_box, self.WORLD_FRAME)
         print min_pt_box
         print max_pt_box
-        
+
         ch, num = point_cloud_world.data.shape
 
         print num
@@ -277,21 +277,21 @@ class GetInitialObjectBelief():
         seg_point_cloud_world, _ = point_cloud_world.box_mask(box)
         #seg_point_cloud_world = point_cloud_world
         return seg_point_cloud_world
-    
+
     def get_object_point_cloud_from_sensor(self, cfg = None):
-        
+
         (camera_intr, point_cloud_world, T_camera_world) = self.get_world_point_cloud()
-        
+
         if cfg is None:
-            cfg = self.detector_cfg 
+            cfg = self.detector_cfg
         seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
-        
+
         #T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME, self.config_path)
         #print T_camera_world
         #print T_camera_target
         #seg_point_cloud_target = T_camera_target * seg_point_cloud_cam
-        
+
         """
         import sensor_msgs.point_cloud2 as pcl2
         from sensor_msgs.msg import Image, PointCloud2, PointField
@@ -300,23 +300,23 @@ class GetInitialObjectBelief():
         pc2.header.frame_id = self.WORLD_FRAME
         segmented_pc = pcl2.create_cloud_xyz32(pc2.header, np.transpose(seg_point_cloud_world.data))
         pcl_pub = rospy.Publisher('mico_node/pointcloud', PointCloud2, queue_size=10)
-        
+
         while not rospy.is_shutdown():
            #hello_str = "hello world %s" % rospy.get_time()
            #rospy.loginfo(hello_str)
            pcl_pub.publish(segmented_pc)
            #depth_im_pub.publish(depth_im)
            #rospy.sleep(5)
-        
+
         #return copy.deepcopy(point_cloud_world)
         """
         print seg_point_cloud_cam.shape
         depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
-        if 'real' in self.env:
-            vis.figure()
-            vis.subplot(1,1,1)
-            vis.imshow(depth_im_seg)
-            vis.show()
+        #if 'real' in self.env:
+        #    vis.figure()
+        #    vis.subplot(1,1,1)
+        #    vis.imshow(depth_im_seg)
+        #    vis.show()
         #camera_intr._frame = self.MICO_TARGET_FRAME
         #depth_im_seg = camera_intr.project_to_image(seg_point_cloud_target)
         #camera_intr._frame = self.WORLD_FRAME
@@ -338,7 +338,7 @@ class GetInitialObjectBelief():
         camera_intr = perception.CameraIntrinsics.load(filename_prefix  + '.intr')
         camera_intr._frame = camera_intr.frame + "_target"
         depth_im = perception.DepthImage.open(filename_prefix + '.npy', frame=camera_intr.frame)
-        
+
         return (depth_im, camera_intr)
 
     def get_non_nan_points(self, point_cloud):
@@ -380,12 +380,12 @@ class GetInitialObjectBelief():
             print source_point_cloud.shape
             print source_normal_cloud.shape
         return (source_point_cloud, source_normal_cloud)
-                        
-                
-        
+
+
+
     def register_point_cloud(self):
         registration_result_array = []
-        depth_im_seg, camera_intr = self.get_object_point_cloud_from_sensor() #self.database_objects[1]# 
+        depth_im_seg, camera_intr = self.get_object_point_cloud_from_sensor() #self.database_objects[1]#
         source_point_cloud, source_normal_cloud = self.get_point_normal_cloud(depth_im_seg, camera_intr)
         source_sample_size = int(source_point_cloud.shape[1])
         if self.debug:
@@ -409,9 +409,9 @@ class GetInitialObjectBelief():
                 registration_result = p2pis.register( source_point_cloud, target_point_cloud,
                      source_normal_cloud, target_normal_cloud, p2pfm, num_iterations=10)
                 registration_result_array.append(registration_result)
-            
+
         return registration_result_array
-    
+
     def get_object_probabilities(self):
         registration_result_array = self.register_point_cloud()
         if self.debug:
@@ -423,8 +423,8 @@ class GetInitialObjectBelief():
         z = sum(probs_unnormalized)
         probs = [x/z for x in probs_unnormalized]
         return probs
-        
-    
+
+
     def load_object_point_clouds(self, obj_filenames = None):
         if obj_filenames is None:
             obj_filenames = self.obj_filenames
@@ -449,9 +449,9 @@ def get_current_point_cloud(debug = False, start_node=True, env = 'simulator'):
         vis.subplot(1,1,1)
         vis.imshow(depth_im_seg)
         vis.show()
-        
+
 def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True, env = 'simulator', min_z = None):
-    
+
     giob = GetInitialObjectBelief(None, debug, start_node,env)
     (camera_intr, point_cloud_world, T_camera_world) = giob.get_world_point_cloud()
     cfg = copy.deepcopy(giob.detector_cfg )
@@ -461,7 +461,7 @@ def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True, 
     if min_x > cfg['min_pt'][0]:
         cfg['min_pt'][0] = min_x
     seg_point_cloud_world = giob.get_segmented_point_cloud_world(cfg, point_cloud_world )
-    
+
     """
     import sensor_msgs.point_cloud2 as pcl2
     from sensor_msgs.msg import Image, PointCloud2, PointField
@@ -481,7 +481,7 @@ def get_current_point_cloud_for_movement(min_x, debug = False, start_node=True, 
        i = i+1
        if i > 5:
            break
-    
+
     #return copy.deepcopy(point_cloud_world)
     """
     if debug:
@@ -503,8 +503,8 @@ def has_object_moved(point_cloud_1, point_cloud_2):
         return 1 if movement > 0.01 else 0
     else:
         return 2
-    
-    
+
+
 def load_object_file(obj_file_names, debug = False, start_node=True):
     giob = GetInitialObjectBelief(obj_file_names, debug, start_node)
     return giob.load_object_point_clouds()
@@ -569,7 +569,7 @@ def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1
         giob = GetInitialObjectBelief(None, debug, start_node, env)
         (depth_im,cam_intr) = giob.get_object_point_cloud_from_sensor()
         import object_baseline_classifier as obc
-        keras_model_dir = object_file_dir + "/keras_model/" 
+        keras_model_dir = object_file_dir + "/keras_model/"
         ans,object_beliefs = obc.get_object_represention_and_weighted_belief(depth_im,
         object_group_name,keras_model_dir,keras_model_name, baseline_results_dir)
         print "<Object Probabilities>" + repr(ans)
@@ -588,7 +588,7 @@ if __name__ == '__main__':
     object_group_name = None
     debug = False
     opts, args = getopt.getopt(sys.argv[1:],"g:hs:d")
-    for opt,arg in opts:    
+    for opt,arg in opts:
         if opt == '-s':
             object_file_name = arg
         elif opt =='-g':
@@ -599,12 +599,9 @@ if __name__ == '__main__':
             debug = True
     object_file_dir = args[0]
     #rospy.init_node('Object_belief_node')
-    
+
     if object_file_name is not None:
         save_object_file(object_file_dir + "/" + object_file_name, debug)
     if object_group_name is not None:
         get_belief_for_objects(object_group_name, object_file_dir, debug)
     #rospy.spin()
-    
-    
-
