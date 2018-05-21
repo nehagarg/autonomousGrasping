@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   RealArmInterface.cpp
  * Author: neha
- * 
+ *
  * Created on May 6, 2015, 2:06 PM
  */
 
@@ -13,12 +13,12 @@ RealArmInterface::RealArmInterface(int start_state_index_) : VrepDataInterface(s
     max_x_i = 0.5279 + 0.08;  // range for gripper movement
     //min_y_i = 0.0816 - 0.08; // range for gripper movement
     //max_y_i = 0.2316 + 0.08;
-    
+
     //Initialize python script for loading object
     Py_Initialize();
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("sys.path.append('python_scripts')");
-    
+
     char ** argv;
     //std::cout << "Initialized python 1" << std::endl;
     PySys_SetArgvEx(0, argv, 0); //Required when python script import rospy
@@ -97,28 +97,23 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
     else if(action == A_CLOSE)
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_CLOSE;
+        state.closeCalled = true;
     }
     else if(action == A_OPEN)
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_OPEN;
+        state.closeCalled = false;
     }
     else if (action == A_PICK)
     {
         micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.ACTION_PICK;
     }
-    
+
     if(micoActionFeedbackClient.call(micoActionFeedback_srv))
     {
         state.gripper_pose = micoActionFeedback_srv.response.gripper_pose;
         AdjustRealGripperPoseToSimulatedPose(state.gripper_pose);
-        //Finger Joints
-        for(int i = 0; i < 4; i=i+2)
-        {
-            state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
-            obs.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
-        }
-        AdjustRealFingerJointsToSimulatedJoints(state.finger_joint_state);
-        AdjustRealFingerJointsToSimulatedJoints(obs.finger_joint_state);
+
         for(int i = 0; i < 2; i++)
         {
             int finger_index = i;
@@ -129,20 +124,36 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
             obs.touch_sensor_reading[i] = micoActionFeedback_srv.response.touch_sensor_reading[finger_index];
         }
         AdjustTouchSensorToSimulatedTouchSensor(obs.touch_sensor_reading);
+
+
+
+        //Finger Joints
+        for(int i = 0; i < 4; i=i+2)
+        {
+            state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
+            obs.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
+        }
+        AdjustRealFingerJointsToSimulatedJoints(state, obs.touch_sensor_reading);
+        for(int i = 0; i < 4; i=i+2)
+        {
+           obs.finger_joint_state[i] =  state.finger_joint_state[i];
+        }
+        //AdjustRealFingerJointsToSimulatedJoints(obs.finger_joint_state, obs.touch_sensor_reading);
+
         if(RobotInterface::version7)
         {
             obs.vision_movement = micoActionFeedback_srv.response.vision_movement;
         }
         obs.gripper_pose = state.gripper_pose;
         obs.mico_target_pose = obs.gripper_pose; //Not being used
-        
+
     }
     else
     {
         std::cout << "Call for action failed " << std::endl;
             assert(false);
     }
-    
+
     GetReward(initial_grasping_state, state, obs, action, reward);
     UpdateNextStateValuesBasedAfterStep(state,obs,reward,action);
     bool validState = IsValidState(state);
@@ -152,7 +163,7 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
         return true;
     }
     return false;
-    
+
     /*if(action == A_CLOSE)
     {
         return true;
@@ -162,7 +173,7 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
 }
 
 void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std::string type) const {
-    
+
     //TODO: Set min and max touch values by closing and opening the gripper
     //Fetch touch threshold value from mico action feedback node
     //Get robot pose and finger joints
@@ -172,13 +183,13 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
         //This will load object properties
         graspObjects[initial_state.object_id] = getGraspObject(object_id_to_filename[initial_state.object_id]);
     }
-    
+
     VrepDataInterface::CreateStartState(initial_state, type);
     grasping_ros_mico::MicoActionFeedback micoActionFeedback_srv;
     //Move to pre grasp pos
     micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.INIT_POS;
     micoActionFeedbackClient.call(micoActionFeedback_srv);
-    
+
     micoActionFeedback_srv.request.action = micoActionFeedback_srv.request.GET_TOUCH_THRESHOLD;
     if(micoActionFeedbackClient.call(micoActionFeedback_srv))
     {
@@ -189,7 +200,7 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
         {
             real_touch_value_max = real_touch_value_max_calc;
         }
-        std::cout << "Touch params: min="<< real_touch_value_min 
+        std::cout << "Touch params: min="<< real_touch_value_min
                   << "thresh="<< real_touch_threshold
                   << "max=" << real_touch_value_max << std::endl;
     }
@@ -206,16 +217,17 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
         for(int i = 0; i < 4; i=i+2)
         {
             initial_state.finger_joint_state[i] = micoActionFeedback_srv.response.finger_joint_state[i/2];
-           
+
         }
-        AdjustRealFingerJointsToSimulatedJoints(initial_state.finger_joint_state);
+       double initial_touch[2] = {0.0,0.0};
+        AdjustRealFingerJointsToSimulatedJoints(initial_state, initial_touch);
 
     }
-    
+
     //Get object pose
     //Ideally should call object detector but currently it is not ready
     //So adding a default object pose . When object pose from kinect is available should compute offeset from defalut pose
-    
+
     //initial_state.object_pose = initial_state.gripper_pose;
     initial_state.object_pose.pose.position.x = graspObjects[initial_state.object_id]->initial_object_x;
     initial_state.object_pose.pose.position.y = graspObjects[initial_state.object_id]->initial_object_y;
@@ -234,22 +246,46 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
 
 
 
-void RealArmInterface::AdjustRealFingerJointsToSimulatedJoints(double gripper_joint_values[]) const {
-    //Adjust the gathered real joint values according to vrep
-    for(int i = 0; i < 4; i=i+2)
+void RealArmInterface::AdjustRealFingerJointsToSimulatedJoints(GraspingStateRealArm& state, double gripper_obs_values[]) const {
+  if(state.closeCalled)
+  {
+    if(gripper_obs_values[0]> vrep_touch_threshold && gripper_obs_values[1]> vrep_touch_threshold)
     {
-        if (gripper_joint_values[i]  < 0)
-        {
-            gripper_joint_values[i] = 0;
-        }
-        
-        gripper_joint_values[i] = gripper_joint_values[i] - real_finger_joint_min;
-            gripper_joint_values[i] = gripper_joint_values[i] * (vrep_finger_joint_max - vrep_finger_joint_min);
-            gripper_joint_values[i] = gripper_joint_values[i] /(real_finger_joint_max - real_finger_joint_min);
-            gripper_joint_values[i] = gripper_joint_values[i] + vrep_finger_joint_min;
-        
+      std::cout << "Adjusting gripper joint angles because of touch" << std::endl;
+      for(int i = 0; i < 4; i=i+2)
+      {
+        state.finger_joint_state[i] = state.finger_joint_state[i] - 0.1; //To differentiate between close without object and close with a thin object
+      }
     }
-    
+  }
+
+//Adjust the gathered real joint values according to vrep
+for(int i = 0; i < 4; i=i+2)
+    {
+        if (state.finger_joint_state[i]  < 0)
+        {
+            state.finger_joint_state[i] = 0;
+        }
+
+        state.finger_joint_state[i] = state.finger_joint_state[i] - real_finger_joint_min;
+        state.finger_joint_state[i] = state.finger_joint_state[i] * (vrep_finger_joint_max - vrep_finger_joint_min);
+        state.finger_joint_state[i] = state.finger_joint_state[i] /(real_finger_joint_max - real_finger_joint_min);
+        state.finger_joint_state[i] = state.finger_joint_state[i] + vrep_finger_joint_min;
+
+    }
+
+    if(state.closeCalled)
+    {
+      int gripper_status = GetGripperStatus(state);
+      if(gripper_status == 1)
+      {
+        std::cout << "Artificially generating touch on close. Otherwise it confuses planner and learneer" << std::endl;
+        gripper_obs_values[0] = 2*vrep_touch_threshold;
+        gripper_obs_values[1] = 2*vrep_touch_threshold;
+      }
+    }
+
+
     /*for(int i = 0; i < 4; i=i+2)
     {
         gripper_joint_values[i+1] = vrep_dummy_finger_joint_min;
@@ -260,7 +296,7 @@ void RealArmInterface::AdjustRealFingerJointsToSimulatedJoints(double gripper_jo
             add_value = add_value/(vrep_finger_joint_max-vrep_finger_joint_for_dummy_joint_value_change);
             gripper_joint_values[i+1] = gripper_joint_values[i+1] + add_value;
         }
-        
+
     }*/
 }
 
@@ -284,7 +320,7 @@ void RealArmInterface::AdjustTouchSensorToSimulatedTouchSensor(double gripper_ob
             gripper_obs_values[i] = gripper_obs_values[i]*(vrep_touch_threshold - vrep_touch_value_min);
             gripper_obs_values[i] = gripper_obs_values[i]/(real_touch_threshold - real_touch_value_min);
             gripper_obs_values[i] = gripper_obs_values[i] + vrep_touch_value_min;
-            
+
         }
         else
         {
@@ -296,7 +332,7 @@ void RealArmInterface::AdjustTouchSensorToSimulatedTouchSensor(double gripper_ob
 
         }
     }
-    
+
 }
 
 
@@ -306,18 +342,18 @@ void RealArmInterface::AdjustRealGripperPoseToSimulatedPose(geometry_msgs::PoseS
     gripper_pose.pose.position.y = gripper_pose.pose.position.y + real_gripper_offset_y;
     gripper_pose.pose.position.z = gripper_pose.pose.position.z + real_gripper_offset_z;
 
-    
-    
+
+
     //Get tip pose
     //gripper_pose.pose.position.x = gripper_pose.pose.position.x + tip_wrt_hand_link_x;
-    
+
    }
 
 void RealArmInterface::AdjustRealObjectPoseToSimulatedPose(geometry_msgs::PoseStamped& object_pose) const {
     //This function will be needed when using kinect to determine object pose
     //object_pose.pose.position.x = object_pose.pose.position.x - real_min_x_o + min_x_o;
     //object_pose.pose.position.y = object_pose.pose.position.y - real_min_y_o + min_y_o;
-    
+
 }
 
 
@@ -340,10 +376,10 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
     //PyRun_SimpleString("print sys.argv[0]");
     //std::cout << "Initialized python 3" << std::endl;
     //PyRun_SimpleString("import tensorflow as tf");
-    
+
     //std::cout << "Initialized python" << std::endl;
-     
-    
+
+
     PyObject *load_function = PyObject_GetAttrString(get_belief_module, "get_belief_for_real_objects");
     if (!(load_function && PyCallable_Check(load_function)))
     {
@@ -351,7 +387,7 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
                 PyErr_Print();
             fprintf(stderr, "Cannot find function \"get_belief_for_objects\"\n");
     }
-    
+
     PyObject *pArgs, *pValue;
     int num_args = 3;
     if(RobotInterface::use_classifier_for_belief)
@@ -361,8 +397,8 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
     //Change here to real for robot experiment lab
     std::string env_name = "real_rls_object_detection";
     pValue = PyString_FromString(env_name.c_str());
-    
-    
+
+
     pArgs = PyTuple_New(num_args);
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 0, pValue);
@@ -371,7 +407,7 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
     {
         PyList_SetItem(object_list, i, PyString_FromString(object_id_to_filename[belief_object_ids[i]].c_str()));
     }
-    
+
     PyTuple_SetItem(pArgs, 1, object_list);
     if(RobotInterface::use_classifier_for_belief)
     {
@@ -391,7 +427,7 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
         std::string classifier_name = classifier_string_name;
         if(object_class_value > 0)
         {
-            
+
             classifier_name = classifier_name + "_object_class_" + std::to_string(object_class_value);
         }
         pValue = PyString_FromString(classifier_name.c_str());
@@ -402,7 +438,7 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
     PyObject* belief_probs = PyObject_CallObject(load_function, pArgs);
     Py_DECREF(pArgs);
     Py_DECREF(load_function);
-    
+
     if (belief_probs != NULL) {
         std::cout << "Call to get belief probs succeded \n";
     }
@@ -419,7 +455,7 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
         belief_object_weights[belief_object_ids[i]] = PyFloat_AsDouble(tmpObj);
         //Py_DECREF(tmpObj);
     }
-    
+
     if(RobotInterface::use_classifier_for_belief)
     {
         int weighted_obs_size = GetWeightedObservationSize();
@@ -443,18 +479,8 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
         std::cout << vision_observation[i] << " ";
     }
     std::cout << std::endl;
-    
+
     Py_DECREF(belief_probs);
     return std::make_pair(belief_object_weights,vision_observation);
-    
+
 }
-
-
-
-
-
-
-
-
-
-

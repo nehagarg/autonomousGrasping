@@ -38,7 +38,7 @@ def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
         nb_classes = (np.unique(Y_train)).size
     nb_epoch = 30
 
-    
+
     # number of convolutional filters to use
     nb_filters = 32
     # size of pooling area for max pooling
@@ -48,12 +48,12 @@ def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
 
     (X_train,input_shape) = reshape_keras_input(X_train)
 
-    
+
 
     #X_train = X_train.astype('bool')
     #X_test = X_test.astype('bool')
 
-    print('X_train shape:', X_train.shape)  
+    print('X_train shape:', X_train.shape)
     print(X_train.shape[0], 'train samples')
     #print(X_test.shape[0], 'test samples')
 
@@ -98,16 +98,16 @@ def get_keras_cnn_model(X_train, Y_train, use_kmeans=False):
         model.fit(X_train, Y_train, validation_split=0.2, batch_size=batch_size, nb_epoch=nb_epoch,
           verbose=1)
     end_time = time.time()
-    
+
     print 'model train time : {:.5f}'.format(end_time -start_time)
-    
+
     #logistic_train_predicted = np.argmax(model.predict(X_train), axis = 1)
     logistic_train_predicted = model.predict(X_train)
     #logistic_train_predicted = [chr(x+97) for x in logistic_train_predicted]
     #logistic_test_predicted = model.predict(X_test)
     #logistic_test_predicted = [chr(x+97) for x in logistic_test_predicted]
     #print logistic_train_predicted
-    
+
     return (model, logistic_train_predicted)
     #print('Test score:', score[0])
     #print('Test accuracy:', score[1])
@@ -154,7 +154,7 @@ def get_depth_image_thumbmail(depth_im, size_x = 16,size_y = 8, debug = False):
         vis.imshow(depth_im_crop_thumbnail)
         vis.show()
     return depth_im_crop_thumbnail,clipped
-    
+
 def get_dir_list():
     dir_list = []
     for i in range(0,7):
@@ -180,12 +180,12 @@ def get_baseline_labels(baseline_result_dir = 'data_low_friction_table_exp_ver6'
                 object_labels[data[0]] = int(data[1])
             else:
                 object_labels[data[0]] = [float(x)/81.0 for x in data[1:8]]
-            
+
     return object_labels
-                
-def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_test = False): 
+
+def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_test = False):
     object_labels = get_baseline_labels(use_kmeans = use_kmeans, kmeans_label=kmeans_label, object_type = object_type)
-    
+
     if object_type == 'g3db_instances':
         object_name = 'g3db_instances_non_test_version7'
         if for_test:
@@ -199,7 +199,7 @@ def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_tes
         object_name = 'g3db_instances_for_classification'
         #object_name = '39_beerbottle_final-13-Nov-2015-09-07-13_instance0'
         object_file_dir = '../grasping_ros_mico/point_clouds_for_classification/additional_g3db_objects_for_classification'
-    
+
     object_file_names = giob.get_object_filenames(object_name, object_file_dir)
 
     X = []
@@ -210,10 +210,10 @@ def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_tes
     with open(outfile_name, 'r') as f:
         for line in f:
             clipped_objects.append(line.strip())
-            
+
     for object_file_name_ in object_file_names:
         object_instance_name = object_file_name_.replace('.yaml','').split('/')[-1]
-        
+
         for i in range(0,81):
             if for_test:
                 if object_instance_name in object_labels.keys():
@@ -241,34 +241,34 @@ def get_data_from_source(object_type,use_kmeans=False,kmeans_label = '', for_tes
                 if clipped:
                     clipped_objects.append(object_file_name)
             X.append(depth_im_cropped.data)
-            
+
     #print clipped_objects
     outfile_name = object_file_dir + "/clipped_object_list.txt"
     with open(outfile_name, 'w') as f:
-            f.write("\n".join(sorted(clipped_objects)))  
+            f.write("\n".join(sorted(clipped_objects)))
             f.write("\n")
     assert len(X) == len(Y)
     return (X,Y,object_names)
-    
-def get_data(use_kmeans=False,kmeans_label = '', for_test = False, use_extra = False):   
+
+def get_data(use_kmeans=False,kmeans_label = '', for_test = False, use_extra = False):
     (X,Y,object_names) = get_data_from_source('g3db_instances', use_kmeans, kmeans_label, for_test)
     if use_extra:
         (X2,Y2,object_names_2) = get_data_from_source('g3db_instances_for_classification', use_kmeans, kmeans_label, for_test)
         X = X+X2
         Y = Y + Y2
         object_names = object_names + object_names_2
-    
+
     num_samples = len(X)
     print num_samples
     X = np.array(X)
     Y = np.array(Y)
-    
+
     arr = np.arange(num_samples)
     np.random.shuffle(arr)
     #train_length = int(0.8*num_samples)
     #X_train = X[arr[0:train_length]]
     #Y_train = Y[arr[0:train_length]]
-    
+
     #X_test = X[arr[train_length:num_samples]]
     #Y_test = Y[arr[train_length:num_samples]]
     X_shuf = X[arr[0:num_samples]]
@@ -276,9 +276,9 @@ def get_data(use_kmeans=False,kmeans_label = '', for_test = False, use_extra = F
     #object_names_shuf = object_names[arr[0:num_samples]]
     model_dir =  '../grasping_ros_mico/point_clouds_for_classification'+ '/keras_model/'
     return (X_shuf,Y_shuf, object_names ,arr,model_dir)
-    
+
 def train(use_kmeans = False, kmeans_label = '',use_extra = False):
-    
+
     model_name_prefix = "kmeans"
     if use_extra:
         model_name_prefix = model_name_prefix + "-extra-data"
@@ -290,14 +290,14 @@ def train(use_kmeans = False, kmeans_label = '',use_extra = False):
     print train_predicted[0]
     print Y_shuf[0]
     print object_names[arr[0]]
-    
+
     timestr = time.strftime("%Y%m%d-%H%M%S")
     model_file_name = model_dir + timestr + '.h5'
     if use_kmeans:
         model_file_name = model_dir + model_name_prefix + "_" +label_tag + timestr + '.h5'
     model.save(model_file_name)
     return (X_shuf,Y_shuf, model_dir,timestr)
-    
+
 def test(model_name, use_kmeans = False, kmeans_label = '', use_extra = False ):
     from keras.models import load_model
     (X_shuf,Y_shuf, object_names,arr,model_dir) = get_data(use_kmeans,kmeans_label, True, use_extra)
@@ -308,13 +308,13 @@ def test(model_name, use_kmeans = False, kmeans_label = '', use_extra = False ):
     model_prediction_filename = model_name.replace('.h5','.pred')
     with open(model_prediction_filename,'w') as f:
         for i in range(0,len(ans)):
-            f.write(object_names[arr[i]] + " " + repr(list(ans[i])) + " " + 
+            f.write(object_names[arr[i]] + " " + repr(list(ans[i])) + " " +
             repr(np.argmax(ans[i])) + " " + repr(Y_shuf[i]) + "\n")
-        
+
     #model = load_model(model_dir + model_name + '.h5')
     #y_predicted = model.predict(X_test)
-    
-def get_object_represention_and_weighted_belief(depth_im, 
+
+def get_object_represention_and_weighted_belief(depth_im,
 object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
     if 'object_class' not in keras_model_name:
         from keras.models import load_model
@@ -333,22 +333,22 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
             kmeans_label = "_" + keras_model_name.split('_')[2]
     object_labels = get_baseline_labels(baseline_results_dir,use_kmeans, kmeans_label)
     if 'object_class' in keras_model_name:
-        num_classes = len(set(object_labels))
+        num_classes = len(set(object_labels.values()))
         class_id = int(keras_model_name.split('_')[-1])
         ans_value = 1.0
         if num_classes > 1:
-            ans_value = 0.1/(num_classes - 1 )
+            ans_value = 0.01/(num_classes - 1 )
         ans = np.array([ans_value]*num_classes)
-        ans[class_id] = 0.9 if 0.9 > ans_value  else ans_value
-        
-    
-    
+        ans[class_id] = 0.99 if 0.99 > ans_value  else ans_value
+
+
+
     object_list = giob.get_object_filenames(object_group_name, "")
     object_list = [x.replace('.yaml',"").replace("/","") for x in object_list]
     if use_kmeans:
         probs = [ans[object_labels[o]] for o in object_list]
     else:
-        
+
         object_list_pred = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
         print object_list_pred
         mean_error_list = [np.square(np.subtract(ans, np.array(object_labels[o]))).mean() for o in object_list]
@@ -357,8 +357,8 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
         probs = [x/z for x in probs_unnormalized]
     return list(ans),np.array(probs)
 
-        
-    
+
+
 
 """
 def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):
@@ -373,7 +373,7 @@ def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1
         giob = GetInitialObjectBelief(None, debug, start_node)
         (depth_im,cam_intr) = giob.get_object_point_cloud_from_sensor()
         import object_baseline_classifier as obc
-        keras_model_dir = object_file_dir + "/" +keras_model 
+        keras_model_dir = object_file_dir + "/" +keras_model
         ans,object_beliefs = obc.get_object_represention_and_weighted_belief(depth_im,
         object_group_name,keras_model_dir,keras_model_name, baseline_results_dir)
         print "<Object Probabilities>" + repr(ans)
@@ -397,13 +397,13 @@ def cluster_labels(num_clusters=3):
         object_labels[object_name] = [x/sum_value for x in object_labels[object_name]]
         object_key_to_array_index[object_name] = len(X)
         X.append(object_labels[object_name])
-    kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(X)  
+    kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(X)
     transormed_X = kmeans.transform(X)
-    
-    
+
+
     for object_name in get_grasping_object_name_list(object_group_name):
         print repr(kmeans.labels_[object_key_to_array_index[object_name]])+':' + object_name + ':'  + repr(transormed_X[object_key_to_array_index[object_name]])
-    
+
     baseline_result_dir = 'data_low_friction_table_exp_ver6'
     grasping_ros_mico_path = get_grasping_ros_mico_path()
     label_file_name = grasping_ros_mico_path + "/" + baseline_result_dir + "/baseline_results/kmeans_object_labels_g3db_instances_trial.csv"
@@ -412,7 +412,7 @@ def cluster_labels(num_clusters=3):
         for object_name in get_grasping_object_name_list(object_group_name):
             f.write(object_name+"," +repr(kmeans.labels_[object_key_to_array_index[object_name]]) + '\n' )
     return kmeans
-    
+
 def main():
     test('kmeans-extra-data_label_4_20180504-200455', use_kmeans = True, kmeans_label = '_4')
     #train(use_kmeans = True, kmeans_label = '_4', use_extra = True)
@@ -426,6 +426,6 @@ def main():
     #test('kmeans_label_1_20180223-105821', use_kmeans = True, kmeans_label = '_1' )
     #train(use_kmeans = True, kmeans_label = '_1')
     #cluster_labels(3)
-    
+
 if __name__ == '__main__':
-    main()    
+    main()
