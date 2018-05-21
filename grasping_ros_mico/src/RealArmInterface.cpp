@@ -249,6 +249,7 @@ void RealArmInterface::CreateStartState(GraspingStateRealArm& initial_state, std
 void RealArmInterface::AdjustRealFingerJointsToSimulatedJoints(GraspingStateRealArm& state, double gripper_obs_values[]) const {
   if(state.closeCalled)
   {
+    std::cout << "Touch values " << gripper_obs_values[0] << " " << gripper_obs_values[1] << std::endl;
     if(gripper_obs_values[0]> vrep_touch_threshold && gripper_obs_values[1]> vrep_touch_threshold)
     {
       std::cout << "Adjusting gripper joint angles because of touch" << std::endl;
