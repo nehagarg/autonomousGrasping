@@ -160,6 +160,9 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
     //Decide if terminal state is reached
     if(action == A_PICK || !validState) //Wither pick called or invalid state reached
     {
+      std::cout << "Please specify reward\n";
+      std::cin >> reward;
+
         return true;
     }
     return false;
