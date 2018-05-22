@@ -44,16 +44,16 @@ detector:
   #  - 0.23
   #  - 0.30
   min_pt:
-    - 0.30 
-    - -0.48
-    - 0.329
+    - 0.26 
+    - -0.58
+    - 0.10
 
   max_pt:
-    - 0.74
-    - 0.05
-    - 1.0  
+    - 0.70
+    - -0.05
+    - 0.7 
 
-  min_z_for_movement: 0.41
+  min_z_for_movement: 0.12
   #if kinect is too tilted towards bottom, might need to increase this value as fingers are seen. 
   #Keep kinect as flat as possible
   #Robot z should be less that 0.33

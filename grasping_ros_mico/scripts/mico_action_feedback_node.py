@@ -70,16 +70,25 @@ class MicoActionRequestHandler():
 
         if req.action == req.ACTION_MOVE:
             print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (req.move_x, req.move_y, req.move_z)
+            #HACK to make arm move back by 1cm. It generally moves by 0.05 cm only
+            if req.move_x <= -0.009 and req.move_x > -0.015:
+                req.move_x = -0.015
+            req_move_x = req.move_x
+            req_move_y = req.move_y
+            req_move_z = req.move_z
+            if(RLS_LAB):
+                req_move_x = req.move_y
+                req_move_y = -1*req.move_x
             start_time = time.time()
             p_o_array = []
             (position_,orientation_) = self.myKinovaMotionExecutor.get_cartesian_goal_from_relative_pose(
-            req.move_x, req.move_y, req.move_z)
-            if(abs(req.move_x)>0.01 or abs(req.move_y)>0.01):
+            req_move_x, req_move_y, req_move_z)
+            if(abs(req_move_x)>0.015 or abs(req_move_y)>0.01):
                 pos_index = 0
-                move_value = req.move_x
-                if(abs(req.move_y)>0.01):
+                move_value = req_move_x
+                if(abs(req_move_y)>0.01):
                         pos_index = 1
-                        move_value = req.move_y
+                        move_value = req_move_y
                 for i in range(1,8):                 
                     pos_interim = position_[:]
                     pos_interim[pos_index] = pos_interim[pos_index] - move_value + (i*0.01*abs(move_value)/move_value)
@@ -137,14 +146,14 @@ class MicoActionRequestHandler():
             self.myKinovaMotionExecutor.set_gripper_state('open')
             if(RLS_LAB):
                 self.myKinovaMotionExecutor.goto('rls_table_pre_grasp2')
-                self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
+                #self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
                 self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
                 self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
             else:
                 self.myKinovaMotionExecutor.goto('table_pre_grasp2')
                 self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
-                self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
-                self.myKinovaMotionExecutor.goto_relative_pose(dx=-0.04)
+                self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
+                self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
 
         if req.action == req.MOVE_AWAY_POS:
             self.myKinovaMotionExecutor.goto('top_of_books')
@@ -154,6 +163,10 @@ class MicoActionRequestHandler():
                 self.visionMovementDetector.has_object_moved(self.visionMovementDetector.get_current_point_cloud())
         res = MicoActionFeedbackResponse()
         res.gripper_pose = self.myKinovaMotionExecutor.curr_pose #arm.get_current_pose()
+        if(RLS_LAB):
+            temp_x_pos = res.gripper_pose.pose.position.x
+            res.gripper_pose.pose.position.x = -1*res.gripper_pose.pose.position.y
+            res.gripper_pose.pose.position.y = temp_x_pos
         res.touch_sensor_reading =  self.myKinovaMotionExecutor.max_pressure
         res.vision_movement = self.visionMovementDetector.object_moved_final #self.myKinovaMotionExecutor.vision_movement
         #print myKinovaMotionExecutor.initial_pressure
@@ -273,6 +286,8 @@ class VisionMovementDetector(object):
             point_cloud_world = self.process_raw_point_cloud(point_cloud_cam_raw)
         
         min_x = self.motion_executor.curr_pose.pose.position.x
+        if(RLS_LAB):
+            min_x = -1*self.motion_executor.curr_pose.pose.position.y
         min_z = self.motion_executor.curr_pose.pose.position.z
         
         cfg = copy.deepcopy(self.pointCloudProcessor.detector_cfg )
@@ -321,6 +336,7 @@ class VisionMovementDetector(object):
         self.point_cloud_1 = self.get_current_point_cloud()
         end_time = time.time()
         if self.point_cloud_1.num_points > 1:
+            print "Publishing initial point cloud with "+ repr(self.point_cloud_1.num_points) + " points"
             self.pub_point_cloud1.publish(self.get_raw_point_cloud(self.point_cloud_1))
         else:
             print "Not publishing initial point cloud with "+ repr(self.point_cloud_1.num_points) + " points"
