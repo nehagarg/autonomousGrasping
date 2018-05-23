@@ -10,7 +10,7 @@
 RealArmInterface::RealArmInterface(int start_state_index_) : VrepDataInterface(start_state_index_) {
     micoActionFeedbackClient = grasping_n.serviceClient<grasping_ros_mico::MicoActionFeedback>("mico_action_feedback_server");
     //realArmObs = true;
-    max_x_i = 0.5279 + 0.08;  // range for gripper movement
+    //max_x_i = 0.5279 + 0.01;  // range for gripper movement
     //min_y_i = 0.0816 - 0.08; // range for gripper movement
     //max_y_i = 0.2316 + 0.08;
 
