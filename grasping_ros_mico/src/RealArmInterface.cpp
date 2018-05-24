@@ -156,7 +156,7 @@ bool RealArmInterface::StepActual(GraspingStateRealArm& state, double random_num
 
     GetReward(initial_grasping_state, state, obs, action, reward);
     UpdateNextStateValuesBasedAfterStep(state,obs,reward,action);
-    bool validState = IsValidState(state);
+    bool validState = true; //IsValidState(state); //Not checking valid state for real arm as state is always valid
     //Decide if terminal state is reached
     if(action == A_PICK || !validState) //Wither pick called or invalid state reached
     {
