@@ -336,10 +336,11 @@ object_group_name,keras_model_dir,keras_model_name, baseline_results_dir):
         num_classes = len(set(object_labels.values()))
         class_id = int(keras_model_name.split('_')[-1])
         ans_value = 1.0
+        prob_value = 0.999999
         if num_classes > 1:
-            ans_value = 0.01/(num_classes - 1 )
+            ans_value = (1-prob_value)/(num_classes - 1 )
         ans = np.array([ans_value]*num_classes)
-        ans[class_id] = 0.99 if 0.99 > ans_value  else ans_value
+        ans[class_id] = prob_value if prob_value > ans_value  else ans_value
 
 
 
