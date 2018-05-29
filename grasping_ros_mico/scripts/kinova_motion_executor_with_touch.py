@@ -11,8 +11,8 @@ kinova_motion_executor.DEFAULT_FINGER_MAX_DIST = 18.9/2/1000
 kinova_motion_executor.DEFAULT_HOME_POS = [0.212322831154, -0.257197618484, 0.509646713734, 1.63771402836, 1.11316478252, 0.134094119072] # default home in unit mq
 # kinova_motion_executor.DEFAULT_ROBOT_TYPE = 'm1n6a200'
 kinova_motion_executor.DEFAULT_ROBOT_TYPE = 'm1n6s200'
-THRES_TOUCH_GRASPED = 300
-THRES_TOUCH = 150
+THRES_TOUCH_GRASPED = 750.0
+THRES_TOUCH = 75.0
 
 class KinovaExecutorWithTouch(KinovaExecutor):
     def __init__(self, node=None):
@@ -98,9 +98,10 @@ class KinovaExecutorWithTouch(KinovaExecutor):
     
     def goto_absolute_pose_until_touch(self, position_, orientation_q, check_touch=True, check_vision_movement = False):
         print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (position_[0],position_[1] , position_[2])
-        self.max_pressure = [-1000, -1000]
-        self.vision_movement = 0
-        self.cancelled_execution = 0
+        #Donr by mico action feedback as sometimes touch is missed while moving 8cm
+        #self.max_pressure = [-1000, -1000]
+        #self.vision_movement = 0
+        #self.cancelled_execution = 0
         check_need_cancel = lambda: (check_touch and self.is_touched) or (check_vision_movement and self.has_moved)
         
         

@@ -71,11 +71,16 @@ class MicoActionRequestHandler():
         if req.action == req.ACTION_MOVE:
             print 'move_until_touch: dx=%.4f, dy=%.4f, dz=%.4f' % (req.move_x, req.move_y, req.move_z)
             #HACK to make arm move back by 1cm. It generally moves by 0.05 cm only
-            if req.move_x <= -0.009 and req.move_x > -0.015:
-                req.move_x = -0.015
+            #Probably Not needed with new workspace
+            #if req.move_x <= -0.009 and req.move_x > -0.015:
+            #    req.move_x = -0.015
             req_move_x = req.move_x
             req_move_y = req.move_y
             req_move_z = req.move_z
+            
+            self.myKinovaMotionExecutor.max_pressure = [-1000, -1000]
+            self.myKinovaMotionExecutor.vision_movement = 0
+            self.myKinovaMotionExecutor.cancelled_execution = 0
             if(RLS_LAB):
                 req_move_x = req.move_y
                 req_move_y = -1*req.move_x
@@ -83,7 +88,7 @@ class MicoActionRequestHandler():
             p_o_array = []
             (position_,orientation_) = self.myKinovaMotionExecutor.get_cartesian_goal_from_relative_pose(
             req_move_x, req_move_y, req_move_z)
-            if(abs(req_move_x)>0.015 or abs(req_move_y)>0.01):
+            if(abs(req_move_x)>0.01 or abs(req_move_y)>0.01):
                 pos_index = 0
                 move_value = req_move_x
                 if(abs(req_move_y)>0.01):
@@ -154,10 +159,15 @@ class MicoActionRequestHandler():
                 self.myKinovaMotionExecutor.goto_relative_pose(dz=0.01)
                 self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
                 self.myKinovaMotionExecutor.goto_relative_pose(dy=-0.04)
-
+            #To adjust z according to object class
+            #For headphones: Move by -0.02
+            #For wineglass: Move by -0.025
+            #self.myKinovaMotionExecutor.goto_relative_pose(dz=-0.025)
         if req.action == req.MOVE_AWAY_POS:
             self.myKinovaMotionExecutor.goto('top_of_books')
         
+        #Required because learned policy is too fast and point clod and touch is not generated properly
+        rospy.sleep(0.5)
         if req.check_vision_movement:
             if(req.action == req.ACTION_OPEN or req.action == req.ACTION_CLOSE):
                 self.visionMovementDetector.has_object_moved(self.visionMovementDetector.get_current_point_cloud())
@@ -175,11 +185,13 @@ class MicoActionRequestHandler():
 
         self.finger = None
         topic_address = '/' + self.myKinovaMotionExecutor._prefix + 'driver/out/joint_state'
-        rospy.Subscriber(topic_address, JointState, self.joint_state_callback, res.finger_joint_state)
-        while not self.finger :
-            rospy.sleep(5)
-            print "Waiting for joint state"
-        res.finger_joint_state = self.finger
+        self.finger = rospy.wait_for_message(topic_address, JointState)
+        #rospy.Subscriber(topic_address, JointState, self.joint_state_callback, res.finger_joint_state)
+        #while not self.finger :
+        #    rospy.sleep(2)
+        #    print "Waiting for joint state"
+        print "Got Joint State"
+        res.finger_joint_state = [self.finger.position[6],self.finger.position[7]]
         
         """
         if req.check_vision_movement:
@@ -275,6 +287,7 @@ class VisionMovementDetector(object):
     def process_raw_point_cloud(self, point_cloud_cam_raw):
         points = pcl2.read_points(point_cloud_cam_raw, field_names=('x','y','z'), skip_nans=True)
         point_cloud_raw_points = [p for p in points]
+        print "Num raw points in point cloud: " + repr(len(point_cloud_raw_points)) + " points"
         point_cloud_cam = PointCloud(np.transpose(np.array(point_cloud_raw_points)),
         self.pointCloudProcessor.CAM_FRAME)
         
@@ -293,12 +306,13 @@ class VisionMovementDetector(object):
         cfg = copy.deepcopy(self.pointCloudProcessor.detector_cfg )
         cfg['min_pt'][2] = cfg['min_z_for_movement']
         if min_z is not None:
-            cfg['min_pt'][2] = min_z +0.02 #0.01 for cd stand
+            cfg['min_pt'][2] = min_z +0.02 #0.02 for headphones
         if min_x > cfg['min_pt'][0]:
-            cfg['min_pt'][0] = min_x -0.04
+            cfg['min_pt'][0] = min_x -0.06
         cfg['max_pt'][2] = cfg['min_pt'][2] + 0.15
+        print "Min x = " + repr(cfg['min_pt'][0]) + " Min y = " + repr(cfg['min_pt'][1]) + " Min z = " + repr(cfg['min_pt'][2])
         seg_point_cloud_world = self.pointCloudProcessor.get_segmented_point_cloud_world(cfg, point_cloud_world )
-        
+        print "Num points in segmented point cloud: " + repr(seg_point_cloud_world.num_points) + " points"
         #point_cloud_1 = get_current_point_cloud_for_movement(min_x + 0.04,False, False, 'real', min_z)
         return seg_point_cloud_world
     
