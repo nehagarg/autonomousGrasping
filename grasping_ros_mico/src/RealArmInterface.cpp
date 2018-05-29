@@ -436,7 +436,7 @@ std::pair <std::map<int,double>,std::vector<double> > RealArmInterface::GetBelie
         pValue = PyInt_FromLong(clip_number_of_objects);
         PyTuple_SetItem(pArgs, 3, pValue);
         std::string classifier_name = classifier_string_name;
-        if(object_class_value > 0)
+        if(object_class_value > -1)
         {
 
             classifier_name = classifier_name + "_object_class_" + std::to_string(object_class_value);
