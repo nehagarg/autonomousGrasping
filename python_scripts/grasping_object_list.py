@@ -46,7 +46,7 @@ def get_grasping_object_name_list(type='used'):
         pattern_list = [x  for x in pattern_list_  if '79_toy_dog_final' in x]
     elif type=='objects_modified':
         pattern_list = ['5_bottle_final-15-Dec-2015-15-43-28_instance0']
-	pattern_list.append('62_mouse_final-21-Nov-2015-06-46-41_instance0') 
+	pattern_list.append('62_mouse_final-21-Nov-2015-06-46-41_instance0')
 	pattern_list.append('6_jar_final-14-Nov-2015-19-14-33_instance0')
         pattern_list.append('6_jar_final-20-Dec-2015-09-26-23_instance0')
     elif type=='training_towelstand':
@@ -64,10 +64,19 @@ def get_grasping_object_name_list(type='used'):
     elif type=='validation_headphones':
         pattern_list = ['56_headphones_final-18-Dec-2015-12-49-27_instance0']
         pattern_list.append('56_headphones_final-11-Nov-2015-14-14-02_instance0')
-        
+    elif type=='cup_with_handles':
+        pattern_list = ['25_mug-06-Feb-2016-04-46-11_instance0']
+        pattern_list.append('25_mug-02-Feb-2016-12-40-43_instance1')
+        pattern_list.append('25_mug-02-Feb-2016-12-40-43_instance0')
+        pattern_list.append('25_mug-03-Feb-2016-18-01-09_instance2')
+        pattern_list.append('25_mug-04-Feb-2016-23-15-43_instance2')
+        pattern_list.append('24_mug_final-24-Dec-2015-07-57-38_instance0')
+        pattern_list.append('24_mug_final-18-Dec-2015-12-36-31_instance0')
+        pattern_list.append('24_mug_final-08-Mar-2016-17-40-27_instance0')
+        pattern_list.append('24_mug_final-14-Nov-2015-08-57-59_instance0')   
     else:
         pattern_list=[type]
-        
+
     return pattern_list
 
 def get_g3db_txt_file_path(server_name = 'ncl'):
@@ -89,10 +98,10 @@ def get_g3db_instances(type = 'all'):
     if(type == 'all'):
        g3db_object_list_file = g3db_object_list_file +  "object_instance_names.txt"
     elif(type == 'for_classification'):
-       g3db_object_list_file = g3db_object_list_file.replace('g3db_object_labels', 'g3db_object_labels_for_classification') +  "object_instance_names.txt" 
+       g3db_object_list_file = g3db_object_list_file.replace('g3db_object_labels', 'g3db_object_labels_for_classification') +  "object_instance_names.txt"
     else:
         g3db_object_list_file = g3db_object_list_file +  "object_instance_names_" + type + ".txt"
-    
+
     ans = []
     with open(g3db_object_list_file, 'r') as f:
         lines = f.readlines()
@@ -102,8 +111,8 @@ def get_g3db_instances(type = 'all'):
 def get_classes_from_g3db_instances(g3db_instances):
     g3db_classes = sorted(list(set([x.split('-')[0] for x in g3db_instances])))
     return g3db_classes
-    
-    
+
+
 def classify_g3db_instances():
     ans = {}
     g3db_object_cylindrical = []
@@ -154,11 +163,11 @@ def classify_g3db_instances():
     g3db_object_cylindrical.append('91_peppershaker_final')
     g3db_object_misc.append('92_shell_final')
     g3db_object_cylindrical.append('94_weight_final')
-    ans['cylindrical'] =g3db_object_cylindrical 
+    ans['cylindrical'] =g3db_object_cylindrical
     ans['square'] =g3db_object_square
-    ans['handles'] =g3db_object_handles 
+    ans['handles'] =g3db_object_handles
     ans['wine'] =g3db_object_wine
-    ans['stands'] =g3db_object_stands 
+    ans['stands'] =g3db_object_stands
     ans['misc'] =g3db_object_misc
     return ans
 
@@ -181,7 +190,7 @@ def test_get_object_classification():
     print len(g3db_instances_classified)
     print len(g3db_instance_classes)
     assert(len(g3db_instances_classified) == len(g3db_instance_classes))
-  
+
 def sample_object_instances(num_samples, object_instance_list):
     import random
     a = range(0,len(object_instance_list))
@@ -202,8 +211,8 @@ def sample_instances_from_class(num_samples, object_class_list, type):
     target_object_instances = get_instances_for_class(object_class_list, type)
     ans = sample_object_instances(num_samples, target_object_instances)
     return ans
-    
-def sample_one_from_class(num_samples, object_class_list, type): 
+
+def sample_one_from_class(num_samples, object_class_list, type):
     ans = []
     square_classes = sample_object_instances(num_samples, object_class_list)
     for square_class in square_classes:
@@ -223,7 +232,7 @@ def sample_from_non_test_g3db_instances(update_file = False):
     ans = ans + sample_instances_from_class(1, non_test_object_classification['wine'], 'non_test')
     ans = ans + sample_instances_from_class(2, non_test_object_classification['stands'], 'non_test')
     ans = ans + sample_one_from_class(4, non_test_object_classification['misc'], 'non_test')
-    
+
     print ans
     validation_set = sorted(list(set(non_test_object_instances) - set(ans)))
     if update_file:
@@ -236,6 +245,3 @@ def sample_from_non_test_g3db_instances(update_file = False):
         with open(g3db_validation_file_name, 'w') as f:
             f.write("\n".join(validation_set))
             f.write("\n")
-    
-    
-    
