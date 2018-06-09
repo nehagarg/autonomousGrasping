@@ -210,7 +210,7 @@ def parse(fileName, belief_type = '', isTraining = False):
 
             for i in range(0,object_class_samples_mapping[object_class_name]):
                 for t in ['5']:
-                    for scenario in ['80']:
+                    for scenario in ['160']:
                        for object in object_list:
                             logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
                             logfileName = logfileName + 'vrep_scene_ver7/multiObjectType/'
