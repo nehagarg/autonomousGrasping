@@ -3,7 +3,7 @@ import sys
 import re
 import getopt
 import yaml
-import grasping_object_list 
+import grasping_object_list
 LEARNED_MODEL_NAME = None
 SVM_MODEL_NAME = None
 
@@ -17,21 +17,21 @@ def load_config_from_file(yaml_file):
             ans = yaml.load(stream)
     return ans
 
-    
+
 def get_initial_object_pose_z(id):
-    
+
     if id==84:
        return  1.1406
     if id==1 :
        return 1.0899;
 
 
-    
+
 def get_min_z_o(id):
-    
+
     ans = get_initial_object_pose_z(id) -0.0048;
     return ans;
-    
+
 def get_g3db_belief_ver7_low_friction_table_config(ans):
     ans["object_mapping"] = get_grasping_object_name_list('cylinders_train')
     ans["low_friction_table"] = True
@@ -45,14 +45,14 @@ def get_g3db_belief_ver6_low_friction_table_config(ans):
     ans["belief_object_ids"] = [0,1,2]
     ans["version6"] = True
     ans["auto_load_object"] = True
-    
+
 def get_g3db_belief_ver5_low_friction_table_config(ans):
     ans["object_mapping"] = get_grasping_object_name_list('all_cylinders')
     ans["low_friction_table"] = True
     ans["belief_object_ids"] = [0,1,2]
     ans["version5"] = True
     ans["auto_load_object"] = True
-    
+
 def get_g3db_belief_ver5_low_friction_table_config_old_version(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp_ver5/SASOData_Cylinder_1001cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_1084cm_")
@@ -61,18 +61,18 @@ def get_g3db_belief_ver5_low_friction_table_config_old_version(ans):
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_7cm_")
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_75cm_")
     ans["object_mapping"].append("data_low_friction_table_exp_ver5/SASOData_Cylinder_85cm_")
-    
+
     #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_7cm_")
     #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_75mm_")
     #ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_85mm_")
     ans["object_min_z"] = [get_min_z_o(1), get_min_z_o(84)]
-    ans["object_min_z"] = ans["object_min_z"] + [1.0950]*(len(ans["object_mapping"]) -2 + 1) 
+    ans["object_min_z"] = ans["object_min_z"] + [1.0950]*(len(ans["object_mapping"]) -2 + 1)
     ans["object_initial_pose_z"] = [get_initial_object_pose_z(1), get_initial_object_pose_z(84)]
     ans["object_initial_pose_z"] =ans["object_initial_pose_z"]+ [1.0998]*(len(ans["object_mapping"])-2 + 1)
     ans["low_friction_table"] = True
     ans["belief_object_ids"] = [0,1]
     ans["version5"] = True
-    
+
 def get_g3db_belief_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_1001cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_1084cm_")
@@ -80,7 +80,7 @@ def get_g3db_belief_low_friction_table_config(ans):
     ans["object_initial_pose_z"] = [get_initial_object_pose_z(1), get_initial_object_pose_z(84)]
     ans["low_friction_table"] = True
     ans["belief_object_ids"] = [0,1]
-    
+
 def get_low_friction_table_config(ans):
     ans["object_mapping"] = ["data_low_friction_table_exp/SASOData_Cylinder_9cm_"]
     ans["object_mapping"].append("data_low_friction_table_exp/SASOData_Cylinder_8cm_")
@@ -90,7 +90,7 @@ def get_low_friction_table_config(ans):
     ans["object_min_z"] = [1.0950]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     ans["object_initial_pose_z"] = [1.0998]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     ans["low_friction_table"] = True
-    
+
 def create_basic_config(filename):
     ans = get_learning_config(filename, 'vrep')
     #ans["start_state_index"] = -1
@@ -107,7 +107,7 @@ def create_basic_config(filename):
     ans["object_mapping"].append("data_table_exp/SASOData_Cylinder_85mm_")
     #ans["object_min_z"] = [1.1200]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
     #ans["object_initial_pose_z"] = [1.1248]*(len(ans["object_mapping"])+ 1) # 1 element extra for test object
-    
+
     ans["low_friction_table"] = False
     ans["test_object_id"] = len(ans["object_mapping"])
     ans["belief_object_ids"] = [0]
@@ -116,7 +116,7 @@ def create_basic_config(filename):
     #ans["svm_model_prefix"] = ""
     #ans["learned_model_name"] = ""
     #ans["switching_threshold"] = 10
-        
+
     return ans
 
 def get_toy_config(filename):
@@ -138,7 +138,7 @@ def get_learning_version_from_filename(filename):
         ans2 = 'model.ckpt-823'
     #TODO use pattern matching to get learned model ckpt no
     return (ans1, ans2)
-    
+
 def get_svm_model_name(filename):
     ans = SVM_MODEL_NAME
     if ans is None:
@@ -149,7 +149,7 @@ def get_switching_threshold(filename):
     ans = 10
     m = re.search('_combined_[0-9]+-([0-9]+)', filename)
     if m:
-       ans = m.groups(0)[0] 
+       ans = m.groups(0)[0]
     return int(ans)
 
 def get_learning_config_old(filename, problem_type):
@@ -168,27 +168,27 @@ def get_learning_config_old(filename, problem_type):
         if ans["switching_method"] > 0:
             svm_model_name = get_svm_model_name(filename)
             ans["svm_model_prefix"] = "output/"+ problem_type +"/version" + learning_version + "/" + svm_model_name
-    return ans    
+    return ans
 
 def get_learning_config(filename, problem_type):
     ans = {}
-    if 'learning' in filename: 
+    if 'learning' in filename:
         learning_version = re.search('learning/version([0-9]+)', filename).groups(0)[0]
         learning_version_name = problem_type + "/version" + learning_version
         model_name = get_learning_model_from_version(learning_version_name)
         ans["learned_model_name"] = learning_version_name + "/" + model_name
-        
+
     return ans
-    
+
 def get_pocman_config(filename):
     return get_learning_config(filename, 'pocman')
-        
-    
+
+
 def modify_basic_config(filename, ans):
-    
+
     #if 'toy' in filename:
     #    return get_toy_config(filename)
-    
+
     #if 'pocman' in filename:
     #    return get_pocman_config(filename)
     if 'ver7' in filename:
@@ -200,19 +200,19 @@ def modify_basic_config(filename, ans):
     if 'ver5' in filename:
             get_g3db_belief_ver5_low_friction_table_config(ans)
             return ans
-        
+
     if '1001-84' in filename:
         if 'Ver5' in filename:
             get_g3db_belief_ver5_low_friction_table_config(ans)
         else:
             get_g3db_belief_low_friction_table_config(ans)
         return ans
-    
-    
+
+
     if filename == "VrepDataInterface.yaml" :
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
-    
+
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     if 'G3DB' in filename:
         object_list = get_grasping_object_name_list()
@@ -229,49 +229,49 @@ def modify_basic_config(filename, ans):
                     ans = load_config_from_file(file_prefix + '.yaml')
                     ans['svm_model_prefix'] = 'output/vrep/version8/nu_0_1_kernel_rbf_gamma_0_1_'
                     ans['switching_method'] = int(filetype.split('_')[1].split('-')[0])
-    
-    ans["switching_threshold"] = get_switching_threshold(filename)    
-    
+
+    ans["switching_threshold"] = get_switching_threshold(filename)
+
     if filename == "VrepDataInterface_low_friction.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["test_object_id"] = 0
-        
-    
+
+
     if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm_low_friction_table.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 0
-        
-        
-        
+
+
+
     if filename == "VrepDataInterfaceMultiCylinderObjectTest8cm_low_friction_table.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 1
-        
+
     if filename == "VrepDataInterfaceMultiCylinderObjectTest7cm_low_friction_table.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 2
-     
+
     if filename == "VrepDataInterfaceMultiCylinderObjectTest75mm_low_friction_table.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 3
-        
+
     if filename == "VrepDataInterfaceMultiCylinderObjectTest85mm_low_friction_table.yaml" :
         get_low_friction_table_config(ans)
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 4
-        
-        
-        
+
+
+
     if filename == "VrepDataInterfaceMultiCylinderObjectTest9cm.yaml" :
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
@@ -292,27 +292,27 @@ def modify_basic_config(filename, ans):
         ans["interface_type"] = 1
         ans["belief_object_ids"] = [0, 1, 2]
         ans["test_object_id"] = 7
-        
+
     if filename == "VrepInterfaceMultiCylinderObject.yaml" :
         ans["interface_type"] = 0
         ans["belief_object_ids"] = [0, 1, 2]
-        
+
     if filename == "VrepInterface.yaml" :
         ans["interface_type"] = 0
         ans["test_object_id"] = 0
-        
+
     if filename == "VrepInterface_cup.yaml" :
         ans["interface_type"] = 0
         ans["object_initial_pose_z"][-1] = 1.0950
         ans["object_min_z"][-1] = 1.0900
-        
-        
+
+
     if filename == "RealArmInterface.yaml" :
         ans["interface_type"] = 2
-        
-    return ans 
+
+    return ans
 def write_config_in_file(filename, ans):
-    
+
     from yaml import dump
     try:
         from yaml import CDumper as Dumper
@@ -329,7 +329,7 @@ def generate_config_files_for_penalty100_v10(type='G3DB'):
         object_list = get_grasping_object_name_list()
         interface_types = [""]
     for filetype in ['', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
-        for interface_type in interface_types:    
+        for interface_type in interface_types:
             for object_type in object_list:
                 file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + filetype + '.yaml'
@@ -340,7 +340,7 @@ def generate_config_files_for_penalty100_v10(type='G3DB'):
                     ans["svm_model_prefix"] = ans["svm_model_prefix"].replace('version8', 'version10')
                 ans["learned_model_name"] = "vrep/version10/model.ckpt-826"
                 write_config_in_file(filename.replace('Vrep','VrepPenalty100V10'), ans)
-                
+
 def generate_config_files_for_penalty100_v8(type='G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     interface_types = ["", "Data"]
@@ -348,7 +348,7 @@ def generate_config_files_for_penalty100_v8(type='G3DB'):
         object_list = get_grasping_object_name_list()
         interface_types = [""]
     for filetype in ['', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
-        for interface_type in interface_types:    
+        for interface_type in interface_types:
             for object_type in object_list:
                 file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + filetype + '.yaml'
@@ -359,7 +359,7 @@ def generate_config_files_for_penalty100_v8(type='G3DB'):
                 #    ans["svm_model_prefix"] = ans["svm_model_prefix"].replace('version8', 'version9')
                 #ans["learned_model_name"] = "vrep/version9/model.ckpt-976"
                 write_config_in_file(filename.replace('Vrep','VrepPenalty100V8'), ans)
-                
+
 def generate_config_files_for_penalty100(type='G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     interface_types = ["", "Data"]
@@ -367,7 +367,7 @@ def generate_config_files_for_penalty100(type='G3DB'):
         object_list = get_grasping_object_name_list()
         interface_types = [""]
     for filetype in ['', '_combined_1', '_combined_2', '_combined_0-15', '_combined_0-20', '_combined_3-50', '_combined_4']:
-        for interface_type in interface_types:    
+        for interface_type in interface_types:
             for object_type in object_list:
                 file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + filetype + '.yaml'
@@ -378,7 +378,7 @@ def generate_config_files_for_penalty100(type='G3DB'):
                     ans["svm_model_prefix"] = ans["svm_model_prefix"].replace('version8', 'version9')
                 ans["learned_model_name"] = "vrep/version9/model.ckpt-976"
                 write_config_in_file(filename.replace('Vrep','VrepPenalty100'), ans)
-    
+
 def generate_combined_config_files_for_G3DB(type='G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
     interface_types = ["", "Data"]
@@ -386,12 +386,12 @@ def generate_combined_config_files_for_G3DB(type='G3DB'):
         object_list = get_grasping_object_name_list()
         interface_types = [""]
     for filetype in ['combined_4']: #, 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
-        for interface_type in interface_types:    
+        for interface_type in interface_types:
             for object_type in object_list:
                 file_prefix = "Vrep" +interface_type + "InterfaceMultiCylinderObjectTest" + object_type + "_low_friction_table"
                 filename = file_prefix + '_' + filetype + '.yaml'
                 ans = create_basic_config()
-                ans = modify_basic_config(filename, ans) 
+                ans = modify_basic_config(filename, ans)
                 write_config_in_file(filename, ans)
 
 def generate_G3DB_belief_files():
@@ -407,9 +407,9 @@ def generate_G3DB_belief_files():
                 ans["interface_type"] = 0
                 if interface_type == 'Data':
                     ans["interface_type"] = 1
-                ans["test_object_id"] = object_list.index(object_type)                
+                ans["test_object_id"] = object_list.index(object_type)
                 write_config_in_file(filename, ans)
-                
+
 def generate_G3DB_ver5_belief_files(weighted = 'false'):
     global LEARNED_MODEL_NAME
     LEARNED_MODEL_NAME = 'model.ckpt-867' #for version 13
@@ -436,7 +436,7 @@ def generate_G3DB_ver5_belief_files(weighted = 'false'):
                 if weighted != 'false':
                     ans["get_object_belief"] = True
                 write_config_in_file(filename, ans)
-                
+
 def generate_G3DB_ver5_single_belief_files():
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     interface_types = ["", "Data"]
@@ -452,22 +452,22 @@ def generate_G3DB_ver5_single_belief_files():
                     ans["interface_type"] = 1
                 ans["test_object_id"] = object_list.index(object_type)
                 ans["belief_object_ids"] = [object_list.index(object_type)]
-                
+
                 write_config_in_file(filename, ans)
 
 def generate_G3DB_ver5_cylinder_belief_files(dynamic_model='regression'):
     global LEARNED_MODEL_NAME
     LEARNED_MODEL_NAME = 'model.ckpt-965' #for version 12
     object_list = get_grasping_object_name_list('all_cylinders')
-    interface_types = ["", "Data"] 
-    
+    interface_types = ["", "Data"]
+
 def generate_G3DB_ver5_cylinder_belief_files_old(regression = 'false'):
     global LEARNED_MODEL_NAME
     #LEARNED_MODEL_NAME = 'model.ckpt-693' #for version 11
     LEARNED_MODEL_NAME = 'model.ckpt-965' #for version 12
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     object_list = object_list+['9cm', '8cm', '7cm', '75mm', '85mm']
-    interface_types = ["", "Data"] 
+    interface_types = ["", "Data"]
     regression_prefix = ''
     if(regression !='false'):
         regression_prefix = 'use_regression/'
@@ -510,7 +510,7 @@ def generate_G3DB_ver5_cylinder_cup_belief_files():
                     ans["interface_type"] = 1
                 ans["test_object_id"] = object_list.index(object_type)
                 ans["belief_object_ids"] = [0,2,3]
-                
+
                 write_config_in_file(filename, ans)
 
 class ConfigFileGenerator():
@@ -532,6 +532,10 @@ class ConfigFileGenerator():
         if('towelstand_train1_version7' in type):
             self.belief_name = 'towelstand_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')
+            self.filetypes = ['']
+        if('g3db_instances_train3' in type):
+            self.belief_name = 'g3db_instances_train3'
+            self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances')
             self.filetypes = ['']
         if('g3db_instances_train2' in type):
             self.belief_name = 'g3db_instances_train2'
@@ -574,7 +578,7 @@ class ConfigFileGenerator():
                 self.keras_model_name = "kmeans-extra-data_label_3_20180419-123116"
             if "kmeans_label_4" in type:
                 self.keras_model_name = "kmeans-extra-data_label_4_20180504-200455"
-                
+
         if('clip' in type):
             self.clip_objects= True
             self.num_clip = re.search('clip-([0-9]+)', type).groups(0)[0]
@@ -589,14 +593,14 @@ class ConfigFileGenerator():
         if('discrete_observation_in_update' in type):
             self.use_discrete_observation_in_update = True
         if('discrete_observation_in_step' in type):
-            self.use_discrete_observation_in_step = True   
+            self.use_discrete_observation_in_step = True
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
         self.interface_types = ["", "simulator/", "real/"]
         self.object_list_copy = self.object_list[:]
-        
-    
+
+
     def generate_setup_files(self, ver='ver5'):
         for filetype in self.filetypes:
             for interface_type in self.interface_types:
@@ -664,7 +668,7 @@ def get_learning_model_from_version(version_name):
         return 'model.ckpt-400'
     if version_name == 'vrep/version14_old_pick_9Jan2018':
         return 'model.ckpt-897'
-    
+
 def get_hand_defined_actions(type):
     ans = ['1']
     baseline_no = int(type.split('_')[-1])
@@ -695,6 +699,7 @@ def get_hand_defined_actions(type):
 #type = 'g3db_instances_train2_version7_discretize_weighted_classifier_kmeans_label_4_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type = 'cylinder_discretize_binary_touch_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type = 'baseline_wider_workspace_<no>'
+#type = 'g3db_instances_train3_version7_discretize_weighted_classifier_kmeans_label_3_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
@@ -740,7 +745,7 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
             ans["hand_defined_actions"] = get_hand_defined_actions(type)
-            
+
         if 'cylinder_7_8_9' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('cylinders_train')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
@@ -754,23 +759,28 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             if ver == 'ver7':
                 ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train2_version7')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
+        if 'g3db_instances_train3' in filename:
+            #ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train3')
+            if ver == 'ver7':
+                ans["object_mapping"] = get_grasping_object_name_list('g3db_instances_train3_version7')
+            ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
         if 'towelstand_train1' in filename:
             ans["object_mapping"] = get_grasping_object_name_list('training_towelstand')
             ans["belief_object_ids"] = range(0,len(ans["object_mapping"]))
-            
+
         if object_type not in ans["object_mapping"]:
             ans["object_mapping"].append(object_type)
         ans["test_object_id"] = ans["object_mapping"].index(object_type)
         print ans
         write_config_in_file(filename, ans)
-    
-                    
-            
+
+
+
 def main():
     opts, args = getopt.getopt(sys.argv[1:],"g:hm:s:")
     global LEARNED_MODEL_NAME
     global SVM_MODEL_NAME
-    for opt,arg in opts:    
+    for opt,arg in opts:
         if opt == '-m':
             LEARNED_MODEL_NAME = arg
         elif opt == '-s':
@@ -787,14 +797,14 @@ def main():
             return
         elif opt == '-h':
             print "python generate_grasping_ros_mico_yaml_config.py -m <learning model name> -s <joint model_name> <config filename>"
-    
+
     filename = "VrepInterface.yaml"
     if len(args) > 0:
         filename = args[0]
     ans = create_basic_config(filename)
     ans = modify_basic_config(filename, ans)
     write_config_in_file(filename, ans)
-    
+
 
 if __name__ == "__main__" :
     main()
