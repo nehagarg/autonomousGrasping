@@ -191,6 +191,39 @@ def parse(fileName, belief_type = '', isTraining = False):
                for scenario in ['10','20']:
                    logfileName = '../../graspingV4/results/despot_logs/t' + t + "_n" + scenario + "/Toy_train_belief_default_t" + t + "_n" + scenario+ "_trial_" + repr(i) + ".log"
                    seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'toy')
+    elif fileName in ['vrep/version25']:
+        object_class_names = ['g3db_instances_train3_version7_label_3_class_0',
+                                'g3db_instances_train3_version7_label_3_class_1',
+                                'g3db_instances_train3_version7_label_3_class_2',
+                                'g3db_instances_train3_version7_label_3_class_3',
+                                'g3db_instances_train3_version7_label_3_class_4']
+        object_class_samples_mapping = {}
+        object_class_samples_mapping['g3db_instances_train3_version7_label_3_class_0'] = 2000
+        object_class_samples_mapping['g3db_instances_train3_version7_label_3_class_1'] = 500
+        object_class_samples_mapping['g3db_instances_train3_version7_label_3_class_2'] = 4000
+        object_class_samples_mapping['g3db_instances_train3_version7_label_3_class_3'] = 3000
+        object_class_samples_mapping['g3db_instances_train3_version7_label_3_class_4'] = 4000
+
+        for object_class_name in object_class_names:
+            object_list = get_grasping_object_name_list(object_class_name)
+
+            for i in range(0,object_class_samples_mapping[object_class_name]):
+                for t in ['5']:
+                    for scenario in ['160']:
+                       for object in object_list:
+                            logfileName = '../../grasping_ros_mico/results/despot_logs/low_friction_table/'
+                            logfileName = logfileName + 'vrep_scene_ver7/multiObjectType/'
+                            logfileName = logfileName + 'belief_uniform_g3db_instances_train3_reward100_penalty10/'
+                            logfileName = logfileName + 'use_discretized_data/use_binary_touch'
+                            logfileName = logfileName + '/use_wider_workspace/use_probabilistic_neighbour_step'
+                            logfileName = logfileName + '/use_discrete_observation_in_update/'
+                            logfileName = logfileName + 'use_discrete_observation_in_step/'
+                            logfileName = logfileName + 'use_weighted_belief/'
+                            logfileName = logfileName + 'use_classifier/kmeans-extra-data_label_3_20180419-123116/horizon90/t'
+                            logfileName = logfileName + t + '_n' + scenario + '/Table_scene_'+ object + '_belief_uniform_with_state_in_t' + t + '_n' + scenario + '_trial_' + repr(i) +'.log'
+                            #print i
+                            seqs = seqs + parse_file(logfileName, belief_type, True, 0, 'vrep/ver7/weighted_5')
+
 
     elif fileName in ['vrep/version24']:
         object_class_names = ['g3db_instances_train2_version7_label_3_class_0',
