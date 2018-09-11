@@ -96,9 +96,9 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         
         command = command + ' ' + ",".join(map(str,[begin_index, end_index, y_start, y_end]))
         command = command + ' ' + l
-        if len(command_prefix_parts) > 3:
-            rot_z = command_prefix_parts[3]
-        command = command + ' ' + rot_z
+        #if len(command_prefix_parts) > 3:
+        #    rot_z = command_prefix_parts[3]
+        #command = command + ' ' + rot_z
         if c != 'None':
             command = command + ' ' + c
         return command
