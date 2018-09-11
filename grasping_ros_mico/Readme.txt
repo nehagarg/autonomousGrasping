@@ -7,14 +7,14 @@ For details see this link : http://marcinkaszynski.com/2016/09/10/vrep-ros-rgbds
 
 to run vrep in headless mode via ssh
 xvfb-run --auto-servernum --server-num=1 -s "-screen 0 640x480x24" ./vrep.sh -h ../../WORK_FOLDER/vrep_scenes/micoWithSensorsMutliObjectTrialWithDespotIKVer1.ttt
-Remove the port in remoteapiconnections.txt for running multiple vrep instances 
+Remove the port in remoteapiconnections.txt for running multiple vrep instances
 if not using remote api no need to specify new port while runnig vrep, otherwise specify a different remote api port while started a new vrep instance
 
 vrep scenes:
-for amazon grasp trial : 
+for amazon grasp trial :
 micoWithSensorsAmazonGraspTrialWithDespotIKVer3.ttt
 
-for multi object experiments : 
+for multi object experiments :
 micoWithSensorsMutliObjectTrialWithDespotIKVer1.ttt ormicoWithSensorsMutliObjectTrialWithDespotIKVer1<Size>Cylinder.ttt (Cylindrical object too heavy. Data collected does not mimic real robot behaviour)
 micoWithSensorsMutliObjectTrialWithDespotIKCuboidVer2.ttt(Cuboid object too heavy. Data collected does not mimic real robot behaviour)
 micoWithSensorsMutliObjectTrialWithDespotIKYCBObjectsVer3.ttt
@@ -32,11 +32,14 @@ Changed initial object y from 1485 to 1562 as it is the mid point of min and max
 Increased gripper z by 0.005 as gripper was colliding with table and was not able to have proper movements
 Robot position shifted as gripper unstable when y = 0.08, pick height adjusted to 0.09 because of this
 Made mico palm invisible to kinect for easy detection of object movement
+(RobotInterface::version6 and RobotInterface::version7 get data from this interface. Version 7 check object movement using vision)
 
+micoWithSensorsMutliObjectTrialWithDespotIKVer7.ttt : Difference from Ver 6: Adjustments for adding vision feedback: Gripper visiible to kinect sensor
+RobotInterface::version8 gets data from this interface.
 
 
 For data collection:
-Run vrep 
+Run vrep
 Then:
 1. Generate joint data for various gripper locations using GatherJointData function
 2. Generate sas'or data for all actions without object (Not needed for open table as default is fine)
@@ -103,4 +106,3 @@ And make sure that robot arm and point clod overlap completley. m1n6s200_moveit_
 
 #G3DB objects
 Version 7 includes objects which are visible above gripper level. The test objects are same s verion 6 test objects. Only one extra object has been added randomly because one test object was not visible and had to be removed.
-

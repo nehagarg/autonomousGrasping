@@ -23,6 +23,7 @@ bool RobotInterface::low_friction_table;
 bool RobotInterface::version5;
 bool RobotInterface::version6;
 bool RobotInterface::version7;
+bool RobotInterface::version8;
 bool RobotInterface::get_object_belief;
 bool RobotInterface::use_data_step;
 bool RobotInterface::use_regression_models;
@@ -82,7 +83,7 @@ RobotInterface::RobotInterface() {
 
     num_predictions_for_dynamic_function = 18;
 
-    if(version5 || version6 || version7)
+    if(version5 || version6 || version7 || version8)
     {
         touch_sensor_mean_ver5[0] = 0.11;
         touch_sensor_mean_ver5[1] = 0.12;
@@ -129,7 +130,7 @@ RobotInterface::RobotInterface() {
     }
     if(low_friction_table)
     {
-        if(version6 || version7)
+        if(version6 || version7 || version8)
         {
             initial_gripper_pose_z = initial_gripper_pose_z_low_friction_table_version6;
             initial_gripper_pose_xx = initial_gripper_pose_xx_ver6;
@@ -203,7 +204,11 @@ GraspObject* RobotInterface::getGraspObject(std::string object_name) const{
             {
                 data_dir = data_dir + "_ver7";
             }
-
+            if(version8)
+            {
+                data_dir = data_dir + "_ver8";
+            }
+            
         }
         else
         {
@@ -533,6 +538,10 @@ std::vector<int> RobotInterface::getSimulationDataFromFile(int object_id, std::s
     {
         simDataReader = SimulationDataReader(7);
     }
+    else if(RobotInterface::version8)
+    {
+        simDataReader = SimulationDataReader(8);
+    }
     else
     {
         simDataReader = SimulationDataReader();
@@ -812,7 +821,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
 
 
     double tau = finger_weight + sensor_weight + gripper_position_weight + gripper_orientation_weight;
-    if(RobotInterface::version7)
+    if(RobotInterface::version7 || RobotInterface::version8)
     {
         tau = tau + vision_sensor_weight;
     }
@@ -839,7 +848,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
         if(gripper_status == 2)
         {
             int inc = 1;
-            if (version5 || version6 || version7)
+            if (version5 || version6 || version7 || version8)
             {
                 inc = 2;
             }
@@ -875,7 +884,7 @@ double RobotInterface::ObsProb(GraspingObservation grasping_obs, const GraspingS
     }
     sensor_distance = sensor_distance/2.0;
     double vision_sensor_distance = 0;
-    if(RobotInterface::version7)
+    if(RobotInterface::version7 || RobotInterface::version8)
     {
         vision_sensor_distance = RobotInterface::abs(grasping_obs.vision_movement - grasping_obs_expected.vision_movement);
         if (grasping_obs.vision_movement == 2 || grasping_obs_expected.vision_movement == 2)
@@ -1019,7 +1028,7 @@ void RobotInterface::PrintObs(GraspingObservation& grasping_obs, std::ostream& o
         out << grasping_obs.touch_sensor_reading[i] ;
         if(i==1)
         {
-            if(RobotInterface::version7)
+            if(RobotInterface::version7 || RobotInterface::version8)
             {
                 out<<"|";
             }
@@ -1033,9 +1042,18 @@ void RobotInterface::PrintObs(GraspingObservation& grasping_obs, std::ostream& o
             out<<" ";
         }
     }
-     if(RobotInterface::version7)
+     if(RobotInterface::version7 || RobotInterface::version8)
      {
-        out << grasping_obs.vision_movement << last_char ;
+        out << grasping_obs.vision_movement ;
+        if(RobotInterface::version8)
+        {
+          out << "|"  ;
+          out << grasping_obs.rgb_image_name;
+        }
+        
+        
+        out << last_char ;
+       
      }
 }
 
@@ -1513,7 +1531,7 @@ int RobotInterface::GetGripperStatus(double finger_joint_state[], bool closeCall
         degree_readings[i] = finger_joint_state[i]*180/3.14;
     }
 
-    if(version5 || version6 || version7)
+    if(version5 || version6 || version7 || version8)
     {
         if(closeCalled)
         {
@@ -1702,7 +1720,7 @@ SimulationData RobotInterface::GetNextStateUsingNearestNeighbourSearch(std::vect
             if(action == A_PICK)
             {
                 int inc = 1;
-                if (version5 || version6 || version7)
+                if (version5 || version6 || version7 || version8)
                 {
                     inc = 2;
                 }
@@ -1782,7 +1800,7 @@ std::vector<SimulationData>::iterator xy_lower_bound,
             if(action == A_PICK)
             {
                 int inc = 1;
-                if (version5 || version6 || version7)
+                if (version5 || version6 || version7 || version8)
                 {
                     inc = 2;
                 }
@@ -2131,7 +2149,7 @@ void RobotInterface::GetNextStateAndObsUsingDefaulFunction(GraspingStateRealArm&
     else if (action == A_CLOSE)
     {
         grasping_state.closeCalled = true;
-        if(version5 || version6 || version7)
+        if(version5 || version6 || version7 || version8)
         {
             grasping_state.finger_joint_state[0] = 61.15*3.14/180;
             grasping_state.finger_joint_state[1] = 0*3.14/180;
@@ -2187,7 +2205,7 @@ void RobotInterface::GetObsUsingDefaultFunction(GraspingStateRealArm grasping_st
 
     int gripper_status = GetGripperStatus(grasping_state);
 
-    if(version5 || version6 || version7)
+    if(version5 || version6 || version7 || version8)
     {
         for(int i = 0; i < 2; i++)
         {
@@ -2368,7 +2386,7 @@ void RobotInterface::PrintDicretizedObs(GraspingObservation& grasping_obs, int a
         out << grasping_obs.touch_sensor_reading[0] << " "
             << grasping_obs.touch_sensor_reading[1] << " ";
     }
-    if(version7)
+    if(version7 || version8)
     {
         out << grasping_obs.vision_movement << " ";
     }
@@ -2376,7 +2394,7 @@ void RobotInterface::PrintDicretizedObs(GraspingObservation& grasping_obs, int a
     int gripper_status = GetGripperStatus(grasping_obs.finger_joint_state, closeCalled);
     if(gripper_status == 0)
     {
-        if(version5 || version6 || version7)
+        if(version5 || version6 || version7 || version8)
         {
             out << "0 0 ";
 
@@ -2390,7 +2408,7 @@ void RobotInterface::PrintDicretizedObs(GraspingObservation& grasping_obs, int a
     {
 
 
-        if(version5 || version6 || version7)
+        if(version5 || version6 || version7 || version8)
         {
             out << "1.07 1.07 ";
 
@@ -2406,7 +2424,7 @@ void RobotInterface::PrintDicretizedObs(GraspingObservation& grasping_obs, int a
     if(gripper_status == 2)
     {
         int inc = 1;
-        if (version5 || version6 || version7)
+        if (version5 || version6 || version7 || version8)
         {
             inc = 2;
         }

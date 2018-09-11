@@ -198,6 +198,11 @@ def save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_clou
         save_object_file(point_cloud_dir + "/" + object_id, False)
     start_stop_simulation('Stop')
     time.sleep(2)
+
+def update_object_from_action_value(action, value):
+    action_ = {action: value}
+    update_object(action_, {})
+    return ""
     
 def add_object_in_scene(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
     

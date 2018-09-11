@@ -23,6 +23,7 @@ public:
     std::string getRegressionModelDir();
     std::vector<std::string> getSASOFilenames(bool use_pruned_data, bool dicretize_data = false);
     void loadObject(bool load_in_vrep = false);
+    void rotateZ(double rot_z); //rotation value in degrees
     std::pair<int, int> getDiscretizationIndex(double x1, double y1);
     std::vector<SimulationData> getSimulationData(geometry_msgs::PoseStamped object_pose, geometry_msgs::PoseStamped gripper_pose, int action, bool use_next = false);
     geometry_msgs::PoseStamped getInitialObjectPose();
@@ -32,6 +33,7 @@ public:
     static std::string pure_object_property_dir ;
     static std::string object_pointcloud_dir ;
     static std::string object_pointcloud_for_classification_dir ;
+    static std::string raw_vision_feedback_dir;
     
     std::vector<SimulationData> simulationDataCollectionWithObject[A_PICK+1];
     //std::vector<int> simulationDataIndexWithObject[A_PICK+1];
@@ -93,7 +95,7 @@ private:
     std::vector<double> pick_point; //Only for low friction table
     
     std::string getOldSasoFilename();
-    PyObject* callPythonFunction(std::string function_name, std::string arg1, std::string arg2);
+    PyObject* callPythonFunction(std::string function_name, std::string arg1, std::string arg2, double arg3 = -1);
     
     
 };

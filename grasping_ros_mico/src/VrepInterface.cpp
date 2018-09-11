@@ -25,7 +25,7 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
          joint_file_name = "data_low_friction_table_exp/jointData.txt";
     }
     
-    if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7)
+    if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7 || RobotInterface::version8)
     {
      
         joint_file_name = "data_low_friction_table_exp";
@@ -33,7 +33,7 @@ VrepInterface::VrepInterface(int start_state_index_) : VrepDataInterface(start_s
         {
             joint_file_name = joint_file_name + "_ver5";
         }
-        if(RobotInterface::version6 || RobotInterface::version7)
+        if(RobotInterface::version6 || RobotInterface::version7 || RobotInterface::version8)
         {
             joint_file_name = joint_file_name + "_ver6";
         }
@@ -1026,6 +1026,11 @@ void VrepInterface::GatherJointData(int object_id, double epsi) const {
         out_file = out_file + "_ver7";
        
     }
+    if(RobotInterface::version8)
+    {
+        out_file = out_file + "_ver8";
+       
+    }
     out_file = out_file + "/jointData_0";
     if(epsi == 0.005)
     {
@@ -1273,7 +1278,7 @@ void VrepInterface::GatherDataStep(GraspingStateRealArm* grasping_state,
 }
 
 void VrepInterface::GatherData(std::string object_id, int action_type, double gap,
-        int min_x, int max_x, int min_y, int max_y, 
+        int min_x, int max_x, int min_y, int max_y, int rot_z,
         int object_state_id, bool generate_default) const {
     //return;
 
@@ -1281,7 +1286,8 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     std::string filename;
     std::string file_dir;
     std::string filename_suffix;
-    if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7)
+    double theta_z;
+    if(RobotInterface::version5 || RobotInterface::version6 || RobotInterface::version7 || RobotInterface::version8)
     {
         file_dir =  graspObjects[0]->regression_data_dir_name + "/";
         /*
@@ -1323,6 +1329,14 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
         filename = filename + std::to_string(min_y) + "-";
         filename = filename + std::to_string(max_y) + "_";        
     }
+    
+    if(rot_z > -1)
+    {
+        filename = filename + std::to_string(rot_z) + "_";
+        theta_z = rot_z*1.0;
+        
+    }
+    
     
     bool allActions = true;
     int k_loop_min_value = 0;
@@ -1401,6 +1415,10 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     //Set Object pose
     start_state_index = object_state_id;
     CreateObjectStartState(initial_state);
+    if(rot_z > -1)
+    {
+        graspObjects[0]->rotateZ(theta_z);
+    }
     
     /*if(initial_state.object_id == -1)
     {
@@ -1456,7 +1474,11 @@ void VrepInterface::GatherData(std::string object_id, int action_type, double ga
     
     
     //int l_loop = 2;
-    
+    /*double theta_z = 0.0;
+    if(rot_z > -1)
+    {
+        theta_z = rot_z * 1.0;
+    }*/
     
     for(int i = i_loop_min; i < i_loop_max; i++) //loop over x
         {
@@ -1792,6 +1814,40 @@ int VrepInterface::GetCollisionState() const {
     
 }
 
+std::string VrepInterface::GetAndSaveVisionImageName(int object_id) const {
+    PyObject* ans;
+    std::string ans_str;
+    std::string raw_feedback_dir = GraspObject::raw_vision_feedback_dir + "/" + graspObjects[object_id]->GetObject_name();
+    PyObject *load_function = PyObject_GetAttrString(get_belief_module, "save_current_rgb_image");
+    if (!(load_function && PyCallable_Check(load_function)))
+    {
+        if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"save_current_rgb_image\"\n");
+    }
+    PyObject *pArgs, *pValue;
+    pArgs = PyTuple_New(1);
+    pValue = PyString_FromString(raw_feedback_dir.c_str());
+    PyTuple_SetItem(pArgs, 0, pValue);
+    ans = PyObject_CallObject(load_function, pArgs);
+    Py_DECREF(load_function);
+    Py_DECREF(pArgs);
+    if (ans != NULL) {
+        std::cout << "Call to save_current_rgb_image succeeded \n";
+    }
+    else {
+
+        PyErr_Print();
+        fprintf(stderr,"Call to save_current_rgb_image failed\n");
+        assert(0==1);
+    }
+    
+    ans_str = PyString_AsString(ans);
+    Py_DECREF(ans);
+    return ans_str;
+}
+
+
 PyObject* VrepInterface::GetPointCloudAboveGripperPlane(double min_x) const {
     PyObject* ans;
     
@@ -1874,7 +1930,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
     GraspingStateRealArm initial_grasping_state = grasping_state;
     
     PyObject* starting_point_cloud;
-    if(RobotInterface::version7)
+    if(RobotInterface::version7 || RobotInterface::version8)
     {
         starting_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x -0.03);
     }
@@ -1888,7 +1944,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         {
             std::cout << i << std::endl;
             bool stopMoving = TakeStepInVrep(action_offset, i, alreadyTouching, grasping_state, grasping_obs, reward);                 
-            if(RobotInterface::version7)
+            if(RobotInterface::version7 || RobotInterface::version8)
             {
                 PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x - 0.03);
                 grasping_state.vision_movement = CheckPointCloudMovement(starting_point_cloud,step_point_cloud);
@@ -1943,7 +1999,7 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
                 
             }
         }
-        if(RobotInterface::version7)
+        if(RobotInterface::version7 || RobotInterface::version8)
             {
                 PyObject* step_point_cloud = GetPointCloudAboveGripperPlane(grasping_state.gripper_pose.pose.position.x - 0.03);
                 grasping_state.vision_movement = CheckPointCloudMovement(starting_point_cloud,step_point_cloud);
@@ -1959,9 +2015,17 @@ bool VrepInterface::StepActual(GraspingStateRealArm& grasping_state, double rand
         //return true;
     }
     
-    if(RobotInterface::version7)
+    if(RobotInterface::version7 || RobotInterface::version8)
     {
         Py_DECREF(starting_point_cloud);
+    }
+    if(RobotInterface::version8)
+    {
+        if(action < A_PICK)
+        {
+            //Get vision observation
+            grasping_obs.rgb_image_name = GetAndSaveVisionImageName(grasping_state.object_id);
+        }
     }
     GetReward(initial_grasping_state, grasping_state, grasping_obs, action, reward);
     UpdateNextStateValuesBasedAfterStep(grasping_state,grasping_obs,reward,action);
@@ -1980,7 +2044,7 @@ void VrepInterface::CreateObjectStartState(GraspingStateRealArm& initial_state, 
         //Get object pose from vrep and update its x and y coordnates from initial state
         double object_x = initial_state.object_pose.pose.position.x;
         double object_y = initial_state.object_pose.pose.position.y;
-      
+        
          vrep_common::simRosGetObjectPose object_pose_srv;
         object_pose_srv.request.relativeToObjectHandle = -1;
         object_pose_srv.request.handle = target_object_handle;

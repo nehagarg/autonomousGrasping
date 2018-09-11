@@ -27,11 +27,12 @@ public:
 
 
 void GatherSimulationData(std::string val, double epsi, int action_type, 
-        int min_x, int max_x, int min_y, int max_y, int object_state_id, bool generate_default)
+        int min_x, int max_x, int min_y, int max_y, int rot_z, int object_state_id, bool generate_default)
 {
     //GraspingRealArm* model = new GraspingRealArm(-1);
     RobotInterface::low_friction_table = true;
-    RobotInterface::version7 = true;
+    RobotInterface::version8 = true;
+    RobotInterface::version7 = false;
     RobotInterface::version6 = false;
     RobotInterface::version5 = false;
     RobotInterface::use_data_step = false;
@@ -60,7 +61,7 @@ void GatherSimulationData(std::string val, double epsi, int action_type,
             //vrepInterfacePointer->initial_object_pose_z.push_back(vrepInterfacePointer->default_initial_object_pose_z);
         }
         std::cout<< "Gathering data" << std::endl;
-        vrepInterfacePointer->GatherData(val, action_type, epsi, min_x, max_x, min_y, max_y, object_state_id, generate_default);
+        vrepInterfacePointer->GatherData(val, action_type, epsi, min_x, max_x, min_y, max_y, rot_z, object_state_id, generate_default);
 
     }
     else
@@ -110,6 +111,7 @@ int main(int argc, char* argv[]) {
     int max_x = -1;
     int min_y=-1;
     int max_y = -1;
+    int rot_z = -1;
     bool generate_default = false;
     //6 27 48
     //3 24 45
@@ -161,6 +163,13 @@ int main(int argc, char* argv[]) {
     
     if(argc >=7)
     {
+        std::istringstream iss( argv[6] );
+        iss >> rot_z;
+       std::cout << "Rot_z  : " << rot_z << std::endl;
+        
+    }
+    if(argc >=8)
+    {
         //Whether to generate the pruned data file or not
         generate_default = true;
        std::cout << "Generating defualt " << std::endl;
@@ -169,7 +178,7 @@ int main(int argc, char* argv[]) {
     std::cout << "In main" << std::endl;
     ros::init(argc,argv,"gather_data" + to_string(getpid()));
     
-    GatherSimulationData(val, epsilon, action_type, min_x, max_x, min_y, max_y, object_state_id, generate_default);
+    GatherSimulationData(val, epsilon, action_type, min_x, max_x, min_y, max_y, rot_z, object_state_id, generate_default);
     return 0;
     
     //test_python();

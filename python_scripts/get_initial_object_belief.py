@@ -18,6 +18,9 @@ import copy
 from gqcnn import Visualizer as vis
 import logging
 from grasping_object_list import get_grasping_object_name_list
+import socket
+import time
+import hashlib
 
 
 class KinectSensor:
@@ -60,16 +63,18 @@ class KinectSensor:
         self.rgb = rospy.wait_for_message(self.COLOR_TOPIC, Image)
         if self.cam_info is None:
             self.get_cam_intrinsic()
-        raw_color = self.bridge.imgmsg_to_cv2(self.rgb, 'bgr8')
+        #raw_color = self.bridge.imgmsg_to_cv2(self.rgb, 'bgr8')
         #print raw_color.shape
-        color_arr = np.fliplr(np.flipud(copy.copy(raw_color)))
-        color_arr[:,:,[0,2]] = color_arr[:,:,[2,0]] # convert BGR to RGB
+        #color_arr = copy.copy(raw_color)
+        #color_arr = np.fliplr(np.flipud(copy.copy(raw_color)))
+        #color_arr[:,:,[0,2]] = color_arr[:,:,[2,0]] # convert BGR to RGB
         #color_arr[:,:,0] = np.fliplr(color_arr[:,:,0])
         #color_arr[:,:,1] = np.fliplr(color_arr[:,:,1])
         #color_arr[:,:,2] = np.fliplr(color_arr[:,:,2])
         #color_arr[:,:,3] = np.fliplr(color_arr[:,:,3])
-        color_image = perception.ColorImage(color_arr[:,:,:3], self.cam_info.header.frame_id)
-        #color_image = perception.ColorImage(self.bridge.imgmsg_to_cv2(raw_color, "rgb8"), frame=self.cam_info.header.frame_id)
+        #color_image = perception.ColorImage(color_arr[:,:,:3], self.cam_info.header.frame_id)
+        color_image = perception.ColorImage(self.bridge.imgmsg_to_cv2(self.rgb), frame=self.cam_info.header.frame_id)
+        color_image.save('test.jpg')
         return color_image
 
     def get_depth_im(self):
@@ -87,6 +92,7 @@ class KinectSensor:
             camera_info = self.cam_info
         raw_depth = self.bridge.imgmsg_to_cv2(depth_im, 'passthrough')
         if self.env=='simulator':
+            #depth_arr = copy.copy(raw_depth)
             depth_arr = np.flipud(copy.copy(raw_depth))
             depth_arr = np.fliplr(copy.copy(depth_arr))
         elif 'object_detection' in self.env:
@@ -221,14 +227,18 @@ class GetInitialObjectBelief():
 
 
 
-    def get_world_point_cloud(self, depth_image = None, camera_intrinsics = None, T_camera_world = None):
+    def get_camera_instrinsincs_and_t_cam_world(self, camera_intrinsics = None, T_camera_world = None):
         #sensor = self.sensor
         if camera_intrinsics is None:
             camera_intrinsics = self.sensor.get_cam_intrinsic()
         #T_camera_world = RigidTransform.load('data/calib/primesense_overhead/kinect2_to_world.tf')
         if T_camera_world is None:
             T_camera_world = self.sensor.get_T_cam_world(self.CAM_FRAME, self.WORLD_FRAME, self.config_path)
+        return (camera_intrinsics, T_camera_world)
 
+    def get_world_point_cloud(self, depth_image = None, camera_intrinsics = None, T_camera_world = None):
+        
+        (camera_intrinsics,T_camera_world) = self.get_camera_instrinsincs_and_t_cam_world(camera_intrinsics, T_camera_world)
 
         if depth_image is None:
             depth_image = self.sensor.get_depth_im()
@@ -248,6 +258,16 @@ class GetInitialObjectBelief():
 
         return (camera_intr, point_cloud_world, T_camera_world)
 
+    def get_world_color_image(self, color_image = None, camera_intrinsics = None, T_camera_world = None):
+        (camera_intrinsics,T_camera_world) = self.get_camera_instrinsincs_and_t_cam_world(camera_intrinsics, T_camera_world)
+        if color_image is None:
+            color_image = self.sensor.get_color_im()
+        #inpainted_color_image = color_image.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
+        #color_im = inpainted_color_image
+        camera_intr = camera_intrinsics
+        
+        return (color_image, camera_intr)
+        
     def get_segmented_point_cloud_world(self, cfg, point_cloud_world ):
         # read params
 
@@ -278,13 +298,16 @@ class GetInitialObjectBelief():
         #seg_point_cloud_world = point_cloud_world
         return seg_point_cloud_world
 
-    def get_object_point_cloud_from_sensor(self, cfg = None):
+    def get_object_point_cloud_from_sensor(self, cfg = None, segment = True):
 
         (camera_intr, point_cloud_world, T_camera_world) = self.get_world_point_cloud()
 
         if cfg is None:
             cfg = self.detector_cfg
-        seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
+        if segment:
+            seg_point_cloud_world = self.get_segmented_point_cloud_world(cfg, point_cloud_world )
+        else:
+            seg_point_cloud_world = point_cloud_world
         seg_point_cloud_cam = T_camera_world.inverse() * seg_point_cloud_world
 
         #T_camera_target = self.sensor.get_T_cam_world(self.CAM_FRAME, self.MICO_TARGET_FRAME, self.config_path)
@@ -441,6 +464,30 @@ class GetInitialObjectBelief():
         self.database_objects = ans
         return ans
 
+
+def get_current_rgb_image(debug = False, start_node=True, env = 'simulator'):
+    giob = GetInitialObjectBelief(None, debug, start_node, env)
+    (color_im_seg,camera_intr) = giob.get_world_color_image()
+    (depth_im_seg,camera_intr) = giob.get_object_point_cloud_from_sensor(None,False)
+    if debug:
+        vis.figure()
+        vis.subplot(1,1,1)
+        vis.imshow(depth_im_seg)
+        vis.show()
+    return (depth_im_seg, color_im_seg, camera_intr)
+        
+def save_current_rgb_image(filename_dir, debug = False, start_node=True, env = 'simulator'):
+    (depth_im_seg, color_im_seg, camera_intr) = get_current_rgb_image(debug, start_node, env)
+    file_name = filename_dir + socket.gethostname()+ "-" + repr(os.getpid()) + "-" + time.strftime("%Y%m%d-%H%M%S")
+    file_name_hash =  hashlib.sha1(file_name).hexdigest()
+    file_dir = filename_dir + "/" + file_name_hash[0:2] + "/" + file_name_hash[2:4] + "/"
+    os.makedirs(file_dir)
+    filename = file_dir + file_name_hash
+    color_im_seg.save(filename + '.npy')
+    depth_im_seg.save(filename + "_depth" + ".npy")
+    camera_intr.save(filename  + '.intr')
+    return filename
+    
 def get_current_point_cloud(debug = False, start_node=True, env = 'simulator'):
     giob = GetInitialObjectBelief(None, debug, start_node, env)
     (depth_im_seg,_) = giob.get_object_point_cloud_from_sensor()

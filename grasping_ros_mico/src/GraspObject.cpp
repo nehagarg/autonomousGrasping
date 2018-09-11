@@ -15,6 +15,7 @@ std::string GraspObject::g3db_object_property_dir = "g3db_object_labels/object_i
 std::string GraspObject::pure_object_property_dir = "pure_shape_labels";
 std::string GraspObject::object_pointcloud_dir = "point_clouds";
 std::string GraspObject::object_pointcloud_for_classification_dir = "point_clouds_for_classification";
+std::string GraspObject::raw_vision_feedback_dir = "raw_vision_feedback_dir";
 double GraspObject::pick_point_x_diff = -0.03;
 double GraspObject::pick_point_y_diff = 0.0;
 
@@ -191,6 +192,14 @@ void GraspObject::loadObject(bool load_in_vrep) {
 
 }
 
+void GraspObject::rotateZ(double rot_z) {
+    //update_object_from_action_value(action, value):
+    if(rot_z > -1)
+    {
+        PyObject* object_properties = callPythonFunction("update_object_from_action_value", "rotate_z", "", rot_z);
+        Py_DECREF(object_properties);
+    }
+}
 
 GraspObject::GraspObject(const GraspObject& orig) {
 }
@@ -266,7 +275,7 @@ std::string GraspObject::getOldSasoFilename() {
     return ans;
 }
 
-PyObject* GraspObject::callPythonFunction(std::string function_name, std::string arg1, std::string arg2) {
+PyObject* GraspObject::callPythonFunction(std::string function_name, std::string arg1, std::string arg2, double arg3) {
     PyObject *pName;
     pName = PyString_FromString("load_objects_in_vrep");
     PyObject *pModule = PyImport_Import(pName);
@@ -292,7 +301,14 @@ PyObject* GraspObject::callPythonFunction(std::string function_name, std::string
     pValue = PyString_FromString(arg1.c_str());
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 0, pValue);
-    pValue = PyString_FromString(arg2.c_str());
+    if(arg3 == -1)
+    {
+        pValue = PyString_FromString(arg2.c_str());
+    }
+    else
+    {
+        pValue = PyFloat_FromDouble(arg3);
+    }
     /* pValue reference stolen here: */
     PyTuple_SetItem(pArgs, 1, pValue);
 

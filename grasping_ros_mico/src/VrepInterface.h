@@ -35,7 +35,7 @@ public:
     virtual ~VrepInterface();
     
     void GatherData(std::string object_id, int action_type, double gap,
-            int min_x, int max_x, int min_y, int max_y, int object_state_id, 
+            int min_x, int max_x, int min_y, int max_y, int rot_z, int object_state_id, 
             bool generate_default=false) const;
     void GatherJointData(int object_id = 0, double epsi=0.01) const;
     void GatherGripperStateData(int object_id = 0) const;
@@ -105,6 +105,7 @@ private:
     
     PyObject* GetPointCloudAboveGripperPlane(double min_x) const;
     int CheckPointCloudMovement(PyObject* starting_point_cloud, PyObject* step_point_cloud) const;
+    std::string GetAndSaveVisionImageName(int object_id) const;
     PyObject* get_belief_module;
 };
 
