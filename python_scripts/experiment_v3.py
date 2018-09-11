@@ -13,6 +13,7 @@ def make_object_dirs(dir_name, object_group):
 
 initial_ros_port = 11311
 max_ros_port = initial_ros_port + 50
+current_ros_port = initial_ros_port
 running_nodes_to_screen = {}
 running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
@@ -134,8 +135,9 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     global max_ros_port
     global vrep_scene_version
     global generic_scene
+    global current_ros_port
     starting_ros_port = initial_ros_port
-    vrep_ros_port = initial_ros_port + 1
+    vrep_ros_port = current_ros_port + 1
 
     tensorflow_path = '~/tensorflow' #Assumed location of tensorflow dir
     vrep_dir =  work_folder_dir + '/V-REP_PRO_EDU_V3_3_2_64_Linux'
@@ -655,6 +657,8 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
 
 
     global initial_ros_port
+    global current_ros_port
+    global max_ros_port
 
     command_list_file = command_list_file + "_temp"
     for i in range(0,len(inputs)):
@@ -667,7 +671,9 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
         else:
             run_command_on_node('cat ' + command_file + '_' + repr(i) + ' >> ' + command_file)
         if separate_ros_vrep_port:
-            initial_ros_port = initial_ros_port + 1
+            current_ros_port = current_ros_port + 1
+            if current_ros_port > max_ros_port:
+                current_ros_port = initial_ros_port
 
 def main():
     opts, args = getopt.getopt(sys.argv[1:],"hefrgkv:td:p:s:",["dir="])
