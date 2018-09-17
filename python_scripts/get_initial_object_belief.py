@@ -481,7 +481,8 @@ def save_current_rgb_image(filename_dir, debug = False, start_node=True, env = '
     file_name = filename_dir + socket.gethostname()+ "-" + repr(os.getpid()) + "-" + time.strftime("%Y%m%d-%H%M%S")
     file_name_hash =  hashlib.sha1(file_name).hexdigest()
     file_dir = filename_dir + "/" + file_name_hash[0:2] + "/" + file_name_hash[2:4] + "/"
-    os.makedirs(file_dir)
+    if not os.path.exists(file_dir):
+        os.makedirs(file_dir)
     filename = file_dir + file_name_hash
     color_im_seg.save(filename + '.npy')
     depth_im_seg.save(filename + "_depth" + ".npy")
