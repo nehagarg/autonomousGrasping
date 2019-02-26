@@ -471,8 +471,10 @@ def get_current_rgb_image(debug = False, start_node=True, env = 'simulator'):
     (depth_im_seg,camera_intr) = giob.get_object_point_cloud_from_sensor(None,False)
     if debug:
         vis.figure()
-        vis.subplot(1,1,1)
+        vis.subplot(1,2,1)
         vis.imshow(depth_im_seg)
+        vis.subplot(1,2,2)
+        vis.imshow(color_im_seg)
         vis.show()
     return (depth_im_seg, color_im_seg, camera_intr)
         
@@ -484,8 +486,8 @@ def save_current_rgb_image(filename_dir, debug = False, start_node=True, env = '
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
     filename = file_dir + file_name_hash
-    color_im_seg.save(filename + '.npy')
-    depth_im_seg.save(filename + "_depth" + ".npy")
+    color_im_seg.save(filename + '.npz')
+    depth_im_seg.save(filename + "_depth" + ".npz")
     camera_intr.save(filename  + '.intr')
     return filename
     
