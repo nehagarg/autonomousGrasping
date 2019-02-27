@@ -23,8 +23,7 @@ def main():
             filename = os.path.join(root, file)
             if filename.endswith('.npy'):
                 a = np.load(filename)
-                filename_new = filename
-                filename_new[-1] = 'z'
+                filename_new = filename[:-1] + 'z'
                 print filename_new
                 command = 'rm ' + filename
                 print command
