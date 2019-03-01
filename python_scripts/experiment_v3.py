@@ -1,4 +1,4 @@
-
+import re
 import os
 import getopt
 import sys
@@ -21,6 +21,9 @@ stopped_screen_to_nodes = {}
 last_assigned_node = None
 vrep_scene_version = "7"
 generic_scene = False
+port_name_macro = 'PORT_NAME'
+assigned_port = None #Port assigned if true port is already occupied on node
+true_port = None #Intended port
 
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
@@ -339,13 +342,19 @@ def get_maximum_load_for_node(node):
     return 4
 
 def assign_node(node_list, screen_name, running_node_file):
+    
     global initial_ros_port
+    global max_ros_port
     global running_nodes_to_screen
     global running_screen_to_nodes
     global stopped_nodes_to_screen
     global stopped_screen_to_nodes
     global last_assigned_node
-
+    global assigned_port 
+    global true_port
+    
+    true_port = None
+    assigned_port = None
     (screen_counter, screen_port) = get_screen_counter_port_from_screen_name(screen_name)
 
     node_start_index = 0
@@ -375,16 +384,26 @@ def assign_node(node_list, screen_name, running_node_file):
 
         #if vrep node (screen_port is > initial_ros_port) node check in the file containing vrep ports and nodes
         if screen_port > initial_ros_port:
+            true_port = screen_port
             if port_running_on_node(screen_port, node):
-                continue
+                for possible_port in range(initial_ros_port+1, max_ros_port ): #Search for available port
+                    if !port_running_on_node(possible_port, node):
+                        assigned_port = possible_port
+                        break
+                if assigned_port is None:
+                    continue;
         elif 'despot_without_display' in screen_name:
+            true_port = None
             do_roscore_setup([node])
 
         #update ans
         #update file containing screen_counters and node
-        add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node, screen_name)
+        new_screen_name = screen_name
+        if true_port is not None and assigned_port is not None:
+            new_screen_name = re.sub(repr(true_port)+'$', repr(assigned_port), screen_name)
+        add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node, new_screen_name)
         with open(running_node_file, 'a' ) as f:
-            f.write(node + " " + screen_name + "\n")
+            f.write(node + " " + new_screen_name + "\n")
 
         #assign node
         last_assigned_node = node
@@ -394,7 +413,12 @@ def assign_node(node_list, screen_name, running_node_file):
 
 
 def run_command_on_node(command, node = None):
+    global true_port
+    global assigned_port
+    
     if node is not None:
+        if true_port is not None and assigned_port is not None:
+            command = command.replace(repr(true_port) + ' ', repr(assigned_port) + ' ')
         command = 'ssh ' + node + ' "' + command.replace('"', '\\"') + ' "'
     ans = None
     try:
