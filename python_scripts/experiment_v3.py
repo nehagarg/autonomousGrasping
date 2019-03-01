@@ -387,7 +387,7 @@ def assign_node(node_list, screen_name, running_node_file):
             true_port = screen_port
             if port_running_on_node(screen_port, node):
                 for possible_port in range(initial_ros_port+1, max_ros_port ): #Search for available port
-                    if !port_running_on_node(possible_port, node):
+                    if not port_running_on_node(possible_port, node):
                         assigned_port = possible_port
                         break
                 if assigned_port is None:
