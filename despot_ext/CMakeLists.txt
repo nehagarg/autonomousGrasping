@@ -9,7 +9,7 @@ set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")
 set(CONFIG_INSTALL_PATH "${LIBRARY_INSTALL_PATH}/${PROJECT_NAME}/cmake")
 
 include_directories("${DESPOT_HOME}/include" "include")
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 
