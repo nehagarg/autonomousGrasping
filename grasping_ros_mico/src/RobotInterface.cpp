@@ -961,7 +961,7 @@ void RobotInterface::PrintObs(const GraspingStateRealArm& state, GraspingObserva
 
 void RobotInterface::PrintObs(GraspingObservation& grasping_obs, std::ostream& out) const {
  char last_char = '*';
-    if(out == std::cout)
+    if(&out == &std::cout)
     {
         last_char = '\n';
     }
@@ -1059,7 +1059,7 @@ void RobotInterface::PrintObs(GraspingObservation& grasping_obs, std::ostream& o
 
 void RobotInterface::PrintState(const GraspingStateRealArm& grasping_state, std::ostream& out) const {
     char last_char = '*';
-    if(out == std::cout)
+    if(&out == &std::cout)
     {
         last_char = '\n';
     }

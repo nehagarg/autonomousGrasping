@@ -1,3 +1,6 @@
+This version is compatible with ubuntu 16. Ros kinetic and vrep functionality is not guaranteed to work. Vrep functionality has been moved to python which invokes vrep on ubuntu 14. This code interacts with a server running vrep on ubuntu 14.
+Fo ubuntu 14 version see branch grasping_without_vision
+
 Works with vrep version 3_3_2
 version 3_3_2 modified using patch from here:
 https://github.com/marcinkaszynski/vrep-ros-plugins/commit/3e3c1c22703a14e55cf32aff4603c23f82b2a5ab
