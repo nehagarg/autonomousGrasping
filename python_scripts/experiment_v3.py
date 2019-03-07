@@ -808,6 +808,7 @@ if __name__ == '__main__':
 #http://www.larkinweb.co.uk/computing/mounting_file_systems_over_two_ssh_hops.html
 # ssh -f userB@systemB -L 2222:systemC:22 -N
 # ssh -f a0117042@sunfire-r.comp.nus.edu.sg -L 2222:unicorn0.d2.comp.nus.edu.sg:22 -N
+# Dont use -f for ssh
 # sshfs -p 2222 userC@localhost:/remote/path/ /mnt/localpath/
 # sshfs -p 2222 neha@localhost:/data/neha/WORK_FOLDER unicorn_dir_mount/
 
@@ -830,6 +831,7 @@ if __name__ == '__main__':
 
 #Move data
 #rsync -avz ngarg211@users.ncl.sg:/big/public_share/ngarg211/WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico/results ./WORK_FOLDER/neha_github/autonomousGrasping/grasping_ros_mico/ > rsync.log
+#Use -e 'ssh -p 2222' to specify port while rsync
 
 #ncl node script
 #tb-set-node-startcmd $n0 "/users/ngarg211/WORK_FOLDER/mystart.sh >& /tmp/mystart.log"
