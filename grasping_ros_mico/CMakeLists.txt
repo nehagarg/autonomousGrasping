@@ -19,7 +19,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-set(DESPOT_HOME "../despot/")
+#set(DESPOT_HOME "../despot/")
+set(HYPDESPOTALPHA_HOME "../hyp-despot-alpha/")
 
 set(CMAKE_CXX_COMPILER "g++")
 #uncomment if you have defined messages
