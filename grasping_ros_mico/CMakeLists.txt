@@ -19,7 +19,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-set(DESPOT_HOME "../despot/")
+#set(DESPOT_HOME "../despot/")
+set(HYPDESPOTALPHA_HOME "../hyp-despot-alpha/")
 
 set(CMAKE_CXX_COMPILER "g++")
 #uncomment if you have defined messages
@@ -62,7 +63,7 @@ find_library(DESPOT_EXT_LIB NAMES despot_ext HINTS "../build/despot_ext")
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 find_library(YAML-CPP yaml-cpp /usr/local/lib)
@@ -103,5 +104,5 @@ rosbuild_add_compile_flags(despot_without_display ${PED_COMPILE_FLAGS})
 rosbuild_add_compile_flags(gather_data ${PED_COMPILE_FLAGS})
 
 rosbuild_add_executable(display src/Display/mainCupDisplay.cpp src/Display/cupDisplay.cpp)
-
+target_link_libraries(display ${Boost_SYSTEM_LIBRARY} )  
 #rosbuild_add_compile_flags(mico_despot_planner ${PED_COMPILE_FLAGS})
