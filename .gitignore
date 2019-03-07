@@ -1,0 +1,11 @@
+build/
+*/build/
+*.pyc
+*.log
+*/msg_gen/
+*/srv_gen/
+*~
+*.csv
+grasping_ros_mico/results/
+python_scripts/unicorn_csv_files/
+grasping_ros_mico/data*
