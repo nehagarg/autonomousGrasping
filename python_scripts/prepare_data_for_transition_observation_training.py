@@ -239,7 +239,7 @@ def get_data_from_line(line):
     return ans
 
 
-def load_data(object_name_list, data_dir, object_id_mapping_file):
+def load_data(object_name_list, data_dir, object_id_mapping_file, debug = True):
     object_id_mapping = yaml.load(file(object_id_mapping_file, 'r'))
     ans = {}
     for object_name in object_name_list:
@@ -248,8 +248,9 @@ def load_data(object_name_list, data_dir, object_id_mapping_file):
         files = [os.path.join(final_data_dir, f) for f in os.listdir(final_data_dir) if object_name in f and f.endswith('.txt') and '_24_' in f]
         for file_ in files:
             print file_
-            if len(ans) > 1:
-                break
+            if debug:
+                if len(ans) > 1:
+                    break
             #if  file not in bad_list:
             #    continue
             file_nan_count = 0
@@ -278,7 +279,7 @@ def load_data(object_name_list, data_dir, object_id_mapping_file):
 
             print file_nan_count
             assert(file_nan_count < 5)
-        print ans
+        #print ans
         return ans
 
 def get_depth_image(griper_3D_pose, image_dir,image_file_name):
@@ -290,16 +291,17 @@ def get_depth_image(griper_3D_pose, image_dir,image_file_name):
     #depth_file = image_file_prefix + '_depth.npz'
     #depth_image = perception.
 
-def get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir=None):
-    ans = load_data(object_name_list, data_dir, object_id_mapping_file)
+def get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir=None, debug = False):
+    ans = load_data(object_name_list, data_dir, object_id_mapping_file, debug)
     input_s = []
     expected_outcome = []
     image_input = []
     for action in ans.keys():
         if(action % 2 == 0 or action > 8):
             for i in range(0,len(ans[action])):
-                if i>2:
-                    break
+                if debug:
+                    if i>2:
+                        break
                 #print ans[action][i]
                 input_s_entry = ans[action][i]['init_gripper'][0:2]
                 input_s_entry = input_s_entry +  ans[action][i]['init_object'][0:2]
@@ -343,8 +345,8 @@ def generate_next_state_entry(input_si, expected_outcomei):
     next_state_entry = np.concatenate((gripper_pos,object_pos,theta_z,joint_values,object_id, action))
     return next_state_entry
 
-def get_training_data_for_observation_model(object_name_list, data_dir, object_id_mapping_file, image_dir):
-    input_s, expected_outcome, image_input = get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir)
+def get_training_data_for_observation_model(object_name_list, data_dir, object_id_mapping_file, image_dir, debug = False):
+    input_s, expected_outcome, image_input = get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir, debug)
     input_s_gen = []
     image_input_gen = []
     input_s_existing = []
@@ -374,7 +376,7 @@ def main():
     image_dir = '../grasping_ros_mico'
     object_id_mapping = yaml.load(file(object_id_mapping_file, 'r'))
     object_name_list = object_id_mapping.keys()
-    get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir)
+    get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir, True)
     #imProc = StoredDepthAndColorImageProcesser(image_dir)
     #imProc.segment_using_giob('./test_images','sample_depth_im')
     #imProc.mark_gripper_in_depth_image([0.3379, 0.1516, 1.0833], './test_images','sample_depth_im')

@@ -404,7 +404,7 @@ def train_transition_model(object_name_list, data_dir, object_id_mapping_file):
 
 def train_observation_model(object_name_list, data_dir, object_id_mapping_file):
     #from tensorflow.python import debug as tf_debug
-    batch_size = 5
+    batch_size = 128
     epochs = 50
     input_s_gen, image_input_gen, input_s_existing, prob = dataProcessor.get_training_data_for_observation_model(object_name_list, data_dir, object_id_mapping_file, '../')
     latent_dim = 2
