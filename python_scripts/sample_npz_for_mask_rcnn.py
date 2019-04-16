@@ -5,6 +5,7 @@ import numpy as np
 import perception as perception
 import matplotlib.pyplot as plt
 from gqcnn import Visualizer as vis
+#This scipt is used to generate images that can be labelled using VIA tool for mask-RCNN
 
 def main():
     delete_files = False
