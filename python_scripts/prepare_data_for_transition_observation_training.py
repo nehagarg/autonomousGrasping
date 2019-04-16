@@ -280,7 +280,7 @@ def load_data(object_name_list, data_dir, object_id_mapping_file, debug = True):
             print file_nan_count
             assert(file_nan_count < 5)
         #print ans
-        return ans
+    return ans
 
 def get_depth_image(griper_3D_pose, image_dir,image_file_name):
     imProc = StoredDepthAndColorImageProcesser(image_dir)
