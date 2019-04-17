@@ -108,6 +108,9 @@ class StoredDepthAndColorImageProcesser():
         print image_file_name
         #g = giob.GetInitialObjectBelief(None, True, True)
         filename_prefix = os.path.join(image_dir,image_file_name)
+        cropped_depth_filename = filename_prefix + '_depth_cropped.npz'
+        if os.path.exists(cropped_depth_filename):
+            return perception.DepthImage.open(cropped_depth_filename)
         camera_intr =  perception.CameraIntrinsics.load(filename_prefix  + '.intr')
         #depth_im = perception.DepthImage.open(filename_prefix + '.npy', frame=camera_intr.frame)
         #depth_im_inpainted = depth_im.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
@@ -211,6 +214,7 @@ class StoredDepthAndColorImageProcesser():
             #vis.imshow(color_im)
             vis.imshow(new_depth_cropped)
             vis.show()
+        new_depth_cropped.save(cropped_depth_filename)
         return new_depth_cropped
 
 def get_float_array(a):
