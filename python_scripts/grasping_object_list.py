@@ -73,7 +73,11 @@ def get_grasping_object_name_list(type='used'):
         pattern_list.append('24_mug_final-24-Dec-2015-07-57-38_instance0')
         pattern_list.append('24_mug_final-18-Dec-2015-12-36-31_instance0')
         pattern_list.append('24_mug_final-08-Mar-2016-17-40-27_instance0')
-        pattern_list.append('24_mug_final-14-Nov-2015-08-57-59_instance0')   
+        pattern_list.append('24_mug_final-14-Nov-2015-08-57-59_instance0')
+    elif type== 'headphones_train3':
+        pattern_list = ['56_headphones_final-11-Nov-2015-14-14-02_instance0',
+                        '56_headphones_final-16-Nov-2015-11-29-41_instance0',
+                        '56_headphones_final-18-Dec-2015-12-49-27_instance0']
     else:
         pattern_list=[type]
 
