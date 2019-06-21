@@ -4,6 +4,7 @@ import getopt
 import numpy as np
 import yaml
 import math
+import argparse
 import utils as loiv
 import perception as perception
 import matplotlib.pyplot as plt
@@ -110,7 +111,7 @@ class StoredDepthAndColorImageProcesser():
         filename_prefix = os.path.join(image_dir,image_file_name)
         cropped_depth_filename = filename_prefix + '_depth_cropped.npz'
         if os.path.exists(cropped_depth_filename):
-            return perception.DepthImage.open(cropped_depth_filename)
+            return #perception.DepthImage.open(cropped_depth_filename)
         camera_intr =  perception.CameraIntrinsics.load(filename_prefix  + '.intr')
         #depth_im = perception.DepthImage.open(filename_prefix + '.npy', frame=camera_intr.frame)
         #depth_im_inpainted = depth_im.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
@@ -215,7 +216,7 @@ class StoredDepthAndColorImageProcesser():
             vis.imshow(new_depth_cropped)
             vis.show()
         new_depth_cropped.save(cropped_depth_filename)
-        return new_depth_cropped
+        return #new_depth_cropped
 
 def get_float_array(a):
     return [float(x) for x in a]
@@ -286,93 +287,197 @@ def load_data(object_name_list, data_dir, object_id_mapping_file, debug = True):
         #print ans
     return ans
 
-def get_depth_image(griper_3D_pose, image_dir,image_file_name):
-    imProc = StoredDepthAndColorImageProcesser(image_dir)
-    depth_im = imProc.mark_gripper_in_depth_image(griper_3D_pose, image_dir,image_file_name, False)
-    return depth_im
-    #image_file_prefix = os.path.join(image_dir, image_file_name)
-    #camera_file = image_file_prefix + '.intr'
-    #depth_file = image_file_prefix + '_depth.npz'
-    #depth_image = perception.
 
-def get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir=None, debug = False):
-    ans = load_data(object_name_list, data_dir, object_id_mapping_file, debug)
-    input_s = []
-    expected_outcome = []
-    image_input = []
-    for action in ans.keys():
-        if(action % 2 == 0 or action > 8):
-            for i in range(0,len(ans[action])):
-                if debug:
-                    if i>2:
-                        break
-                #print ans[action][i]
-                input_s_entry = ans[action][i]['init_gripper'][0:2]
-                input_s_entry = input_s_entry +  ans[action][i]['init_object'][0:2]
-                (theta_x, theta_y, theta_z) = loiv.quaternion_to_euler_angle(
-                ans[action][i]['init_object'][6],
-                ans[action][i]['init_object'][3],
-                ans[action][i]['init_object'][4],
-                ans[action][i]['init_object'][5])
-                input_s_entry = input_s_entry +  [math.radians(theta_z)]
-                input_s_entry = input_s_entry +  ans[action][i]['init_joint_values']
-                input_s_entry = input_s_entry +  [ ans[action][i]['object_id']]
-                input_s_entry = input_s_entry +  [action]
-                input_s.append(input_s_entry)
-                gripper_pos_change = np.array(ans[action][i]['next_gripper'][0:2]) - np.array(ans[action][i]['init_gripper'][0:2])
-                object_pos_change =  np.array(ans[action][i]['next_object'][0:2]) - np.array(ans[action][i]['init_object'][0:2])
-                (theta_x, theta_y, theta_z) = loiv.quaternion_to_euler_angle(
-                ans[action][i]['next_object'][6],
-                ans[action][i]['next_object'][3],
-                ans[action][i]['next_object'][4],
-                ans[action][i]['next_object'][5])
-                theta_z_change = np.array([math.radians(theta_z) - input_s_entry[4]])
-                joint_angle_change = np.array(ans[action][i]['next_joint_values']) - np.array(ans[action][i]['init_joint_values'])
-                touch_values = np.array(ans[action][i]['touch'])
-                expected_outcome_entry = np.concatenate((gripper_pos_change, object_pos_change, theta_z_change, joint_angle_change, touch_values))
-                expected_outcome.append(expected_outcome_entry)
-                if image_dir is not None : #and action != PICK_ACTION_ID:
-                    image_input_entry = get_depth_image(ans[action][i]['next_gripper'][0:3], image_dir, ans[action][i]['image_file_name'])
-                    image_input.append(image_input_entry.raw_data)
+class LoadTransitionData():
+    def __init__(self):
+        self.ans = None
+        self.imProc = None
+    def get_data(self,object_name_list, data_dir, object_id_mapping_file, debug = True):
+        if self.ans is None:
+            self.ans = load_data(object_name_list, data_dir, object_id_mapping_file, debug)
+        return self.ans
 
-    #print input_s
-    #print expected_outcome
-    return np.array(input_s), np.array(expected_outcome), np.array(image_input)
+    def get_depth_image(self,griper_3D_pose, image_dir,image_file_name):
+        if self.imProc is None:
+            self.imProc = StoredDepthAndColorImageProcesser(image_dir)
+        self.imProc.mark_gripper_in_depth_image(griper_3D_pose, image_dir,image_file_name, False)
+        #return depth_im
+        #image_file_prefix = os.path.join(image_dir, image_file_name)
+        #camera_file = image_file_prefix + '.intr'
+        #depth_file = image_file_prefix + '_depth.npz'
+        #depth_image = perception.
 
-def generate_next_state_entry(input_si, expected_outcomei):
-    gripper_pos = np.array(expected_outcomei[0:2] + input_si[0:2])
-    object_pos = np.array(expected_outcomei[2:4] + input_si[2:4])
-    theta_z = np.array([expected_outcomei[4] + input_si[4]])
-    joint_values =np.array(expected_outcomei[5:7] + input_si[5:7])
-    object_id = np.array([input_si[7]])
-    action = np.array([input_si[8]])
-    next_state_entry = np.concatenate((gripper_pos,object_pos,theta_z,joint_values,object_id, action))
-    return next_state_entry
+    def get_training_data(self,action_, object_name_list, data_dir, object_id_mapping_file, image_dir=None, debug = False):
+        ans = self.get_data(object_name_list, data_dir, object_id_mapping_file, debug)
+        input_s = []
+        expected_outcome = []
+        image_input = []
+        pick_success = []
+        for action in ans.keys():
+            #if(action % 2 == 0 or action > 8):
+            if(action ==action_ or (action_ < 0 and action != PICK_ACTION_ID)):
+                for i in range(0,len(ans[action])):
+                    if debug:
+                        if i>2:
+                            break
+                    #print ans[action][i]
+                    input_s_entry = ans[action][i]['init_gripper'][0:2]
+                    input_s_entry = input_s_entry +  ans[action][i]['init_object'][0:2]
+                    (theta_x, theta_y, theta_z) = loiv.quaternion_to_euler_angle(
+                    ans[action][i]['init_object'][6],
+                    ans[action][i]['init_object'][3],
+                    ans[action][i]['init_object'][4],
+                    ans[action][i]['init_object'][5])
+                    input_s_entry = input_s_entry +  [math.radians(theta_z)]
+                    input_s_entry = input_s_entry +  ans[action][i]['init_joint_values']
+                    input_s_entry = input_s_entry +  [ ans[action][i]['object_id']]
+                    if image_dir is not None:
+                        input_s_entry = input_s_entry +  [action]
+                    input_s.append(input_s_entry)
+                    gripper_pos_change = np.array(ans[action][i]['next_gripper'][0:2]) - np.array(ans[action][i]['init_gripper'][0:2])
+                    object_pos_change =  np.array(ans[action][i]['next_object'][0:2]) - np.array(ans[action][i]['init_object'][0:2])
+                    (theta_x, theta_y, theta_z) = loiv.quaternion_to_euler_angle(
+                    ans[action][i]['next_object'][6],
+                    ans[action][i]['next_object'][3],
+                    ans[action][i]['next_object'][4],
+                    ans[action][i]['next_object'][5])
+                    theta_z_change = np.array([math.radians(theta_z) - input_s_entry[4]])
+                    joint_angle_change = np.array(ans[action][i]['next_joint_values']) - np.array(ans[action][i]['init_joint_values'])
+                    touch_values = np.array(ans[action][i]['touch'])
+                    expected_outcome_entry = np.concatenate((gripper_pos_change, object_pos_change, theta_z_change, joint_angle_change, touch_values))
+                    expected_outcome.append(expected_outcome_entry)
+                    if image_dir is not None : #and action != PICK_ACTION_ID:
+                        #image_input_entry = self.get_depth_image(ans[action][i]['next_gripper'][0:3], image_dir, ans[action][i]['image_file_name'])
+                        #image_input.append(image_input_entry.raw_data)
+                        self.get_depth_image(ans[action][i]['next_gripper'][0:3], image_dir, ans[action][i]['image_file_name'])
+                        image_input.append(ans[action][i]['image_file_name'])
+                    if action== PICK_ACTION_ID:
+                        pick_success_entry = 0
+                        if ans[action][i]['reward'] > 0:
+                            pick_success_entry = 1
+                        pick_success.append(pick_success_entry)
 
-def get_training_data_for_observation_model(object_name_list, data_dir, object_id_mapping_file, image_dir, debug = False):
-    input_s, expected_outcome, image_input = get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir, debug)
-    input_s_gen = []
-    image_input_gen = []
-    input_s_existing = []
-    #image_input_existing = []
-    probability = []
-    for i in range(0,input_s.shape[0]):
-        if input_s[i][-1] != PICK_ACTION_ID: #Pick is terminal action
-            input_s_gen_entry = generate_next_state_entry(input_s[i], expected_outcome[i])
-            image_input_gen_entry = image_input[i]
-            for j in range(0,input_s.shape[0]):
-                if input_s[j][-1] == input_s[i][-1]: #Same action
-                    input_s_existing_entry = generate_next_state_entry(input_s[j], expected_outcome[j])
-                    image_input_existing_entry = image_input[j]
+        #print input_s
+        #print expected_outcome
+        if(action == PICK_ACTION_ID):
+            return np.array(input_s),np.array(pick_success)
+        else:
+            return np.array(input_s), np.array(expected_outcome), np.array(image_input)
+
+    def generate_next_state_entry(self,input_si, expected_outcomei):
+        gripper_pos = np.array(expected_outcomei[0:2] + input_si[0:2])
+        object_pos = np.array(expected_outcomei[2:4] + input_si[2:4])
+        theta_z = np.array([expected_outcomei[4] + input_si[4]])
+        joint_values =np.array(expected_outcomei[5:7] + input_si[5:7])
+        object_id = np.array([input_si[7]])
+        #action = np.array([input_si[8]])
+        next_state_entry = np.concatenate((gripper_pos,object_pos,theta_z,joint_values,object_id))
+        return next_state_entry
+
+    def load_cropped_depth_image(self,image_dir,image_file_name):
+        filename_prefix = os.path.join(image_dir,image_file_name)
+        cropped_depth_filename = filename_prefix + '_depth_cropped.npz'
+        depth_im =  perception.DepthImage.open(cropped_depth_filename)
+        return depth_im.raw_data
+
+    def observation_data_generator(self, file_name, image_dir, batch_size):
+        #data_file = open(file_name, 'r')
+        while True:
+            input_s_gen = []
+            image_input_gen = []
+            input_s_existing = []
+            probability = []
+            with open(file_name, 'r') as f:
+                for line in f:
+                    stripped_line = line.strip()
+                    line_components = stripped_line.split('|')
+                    input_s_gen_entry = [float(x) for x in line_components[0].split(' ')]
+                    image_input_gen_entry = self.load_cropped_depth_image(image_dir, line_components[1])
+                    input_s_existing_entry = [float(x) for x in line_components[2].split(' ')]
+                    prob = float(line_components[3])
                     input_s_gen.append(input_s_gen_entry)
                     image_input_gen.append(image_input_gen_entry)
                     input_s_existing.append(input_s_existing_entry)
-                    #image_input_existing.append(image_input_existing_entry)
-                    distance =  np.square(np.subtract(image_input_gen_entry,image_input_existing_entry)).mean()
-                    prob = math.exp(-0.5*distance/(GAUSSIAN_VARIANCE*GAUSSIAN_VARIANCE))
                     probability.append(prob)
-    return np.array(input_s_gen), np.array(image_input_gen), np.array(input_s_existing), np.array(probability)
+                    if len(probability) == batch_size:
+                        yield ([np.array(input_s_gen), np.array(image_input_gen), np.array(input_s_existing), np.array(probability)], None)
+                        input_s_gen = []
+                        image_input_gen = []
+                        input_s_existing = []
+                        probability = []
+                if len(probability) > 0 : #yield last batch
+                    yield ([np.array(input_s_gen), np.array(image_input_gen), np.array(input_s_existing), np.array(probability)], None)
+                    input_s_gen = []
+                    image_input_gen = []
+                    input_s_existing = []
+                    probability = []
 
+    def write_training_data_for_transition_model(self,action,object_name_list,data_dir, object_id_mapping_file, debug = False):
+        input_s_, expected_outcome_, image_input_ = self.get_training_data(action, object_name_list, data_dir, object_id_mapping_file, None, debug)
+        num_samples = input_s_.shape[0]
+        arr = np.arange(num_samples)
+        np.random.shuffle(arr)
+        output_file_name = '../grasping_ros_mico/scripts/transition_model/data/' + repr(action) + '.data'
+        output_file = open(output_file_name, 'w')
+        input_s_shuffled = input_s_[arr[0:num_samples]]
+        expected_outcome_shuffled = expected_outcome_[arr[0:num_samples]]
+        for i in range(0,num_samples):
+            output_file.write(' '.join(str(x) for x in input_s_[i]))
+            output_file.write('|')
+            output_file.write(' '.join(str(x) for x in expected_outcome_[i]))
+            output_file.write('\n')
+        output_file.close()
+
+    def write_training_data_for_observation_model(self,action, object_name_list, data_dir, object_id_mapping_file, image_dir, debug = False):
+        input_s_, expected_outcome_, image_input_ = self.get_training_data(action, object_name_list, data_dir, object_id_mapping_file, image_dir, debug)
+        num_samples = input_s_.shape[0]
+        arr = np.arange(num_samples)
+        np.random.shuffle(arr)
+        output_file_name = '../grasping_ros_mico/scripts/observation_model/data_cluster_size_10/' + repr(action) + '.data'
+        output_file = open(output_file_name, 'w')
+        input_s_shuffled = input_s_[arr[0:num_samples]]
+        expected_outcome_shuffled = expected_outcome_[arr[0:num_samples]]
+        image_input_shuffled = image_input_[arr[0:num_samples]]
+        num_samples = min(150000, num_samples)
+        cluster_size = 10
+        num_clusters = int(1.0*num_samples/cluster_size)
+        if(num_clusters*cluster_size < num_samples):
+            num_clusters = num_clusters + 1
+        input_s_gen = []
+        image_input_gen = []
+        input_s_existing = []
+        #image_input_existing = []
+        probability = []
+        new_image_input = []
+
+        for k in range(0,num_clusters):
+            for i in range(k*cluster_size,min(num_samples,(k+1)*cluster_size)):
+                if input_s_shuffled[i][-1] != PICK_ACTION_ID: #Pick is terminal action
+                    input_s_gen_entry = self.generate_next_state_entry(input_s_shuffled[i], expected_outcome_shuffled[i])
+                    image_input_gen_entry = self.load_cropped_depth_image(image_dir, image_input_shuffled[i])
+                    new_image_input_entry = image_input_shuffled[i]
+                    for j in range(k*cluster_size,min(num_samples,(k+1)*cluster_size)):
+                        if input_s_shuffled[j][-1] == input_s_shuffled[i][-1]: #Same action
+                            input_s_existing_entry = self.generate_next_state_entry(input_s_shuffled[j], expected_outcome_shuffled[j])
+                            image_input_existing_entry = self.load_cropped_depth_image(image_dir, image_input_shuffled[j])
+                            #input_s_gen.append(input_s_gen_entry)
+                            #image_input_gen.append(image_input_gen_entry)
+                            #input_s_existing.append(input_s_existing_entry)
+                            #image_input_existing.append(image_input_existing_entry)
+                            distance =  np.square(np.subtract(image_input_gen_entry,image_input_existing_entry)).mean()
+                            prob = math.exp(-0.5*distance/(GAUSSIAN_VARIANCE*GAUSSIAN_VARIANCE))
+                            #probability.append(prob)
+                            print len(probability)
+                            output_file.write(' '.join(str(x) for x in input_s_gen_entry))
+                            output_file.write('|')
+                            output_file.write(image_input_shuffled[i])
+                            output_file.write('|')
+                            output_file.write(' '.join(str(x) for x in input_s_existing_entry))
+                            output_file.write('|')
+                            output_file.write(str(prob))
+                            output_file.write('\n')
+        #return np.array(input_s_gen), np.array(image_input_gen), np.array(input_s_existing), np.array(probability)
+        output_file.close()
 
 def main():
     object_id_mapping_file = '../grasping_ros_mico/ObjectNameToIdMapping.yaml'
@@ -380,7 +485,21 @@ def main():
     image_dir = '../grasping_ros_mico'
     object_id_mapping = yaml.load(file(object_id_mapping_file, 'r'))
     object_name_list = object_id_mapping.keys()
-    get_training_data(object_name_list, data_dir, object_id_mapping_file, image_dir, True)
+    parser = argparse.ArgumentParser()
+    help_ = "Action name"
+    parser.add_argument("-a",
+                        "--action",
+                        help=help_)
+    help_ = "Task transition or observation"
+    parser.add_argument("-t",
+                        "--task",
+                        help=help_)
+    args = parser.parse_args()
+    #LoadTransitionData().get_training_data(int(args.action), object_name_list, data_dir, object_id_mapping_file, image_dir, True)
+    if args.task == 'o':
+        LoadTransitionData().write_training_data_for_observation_model(int(args.action), object_name_list, data_dir, object_id_mapping_file, image_dir)
+    if args.task == 't':
+        LoadTransitionData().write_training_data_for_transition_model(int(args.action), object_name_list, data_dir, object_id_mapping_file)
     #imProc = StoredDepthAndColorImageProcesser(image_dir)
     #imProc.segment_using_giob('./test_images','sample_depth_im')
     #imProc.mark_gripper_in_depth_image([0.3379, 0.1516, 1.0833], './test_images','sample_depth_im')
