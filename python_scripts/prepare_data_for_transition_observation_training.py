@@ -240,6 +240,7 @@ def get_data_from_line(line):
     ans['action'] = int(sasor[1])
     ans['reward'] = float(sasor[-1 ])
     ans['touch'] = get_float_array(sasor[-2].split('|')[-3].split(' '))
+    ans['vision_movement'] = float(sasor[-2].split('|')[-2].split(' ')[0])
     ans['image_file_name'] = sasor[-2].split('|')[-1].split(' ')[0]
     return ans
 
@@ -359,7 +360,7 @@ class LoadTransitionData():
 
         #print input_s
         #print expected_outcome
-        if(action == PICK_ACTION_ID):
+        if(action_ == PICK_ACTION_ID):
             return np.array(input_s),np.array(pick_success)
         else:
             return np.array(input_s), np.array(expected_outcome), np.array(image_input)

@@ -531,7 +531,7 @@ def keras_functional_transition_model(latent_dim):
     input_dim = 8 #gripper_2D_pos, object_2D_pose, theta z, joint_angles, object_id, action id, removing action_id
     input_s = tf.keras.Input(shape=(input_dim,), name = 'input_state')
     final_s = prepare_state_input_layer(latent_dim, input_s)
-    output_dim = 9 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values
+    output_dim = 9 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values,vision_movement
     intermediate_dim = 32
 
     expected_output = tf.keras.Input(shape=(output_dim,), name='next_state_output')
@@ -781,14 +781,18 @@ def train_observation_model(action_, object_name_list, data_dir, object_id_mappi
     action_samples = {}
     #action_samples[0] = [14136047, 744002]
     action_samples[0] = [1413647, 74402]
+    action_samples[1] = [1412780, 74356]
     action_samples[2] = [1412849, 74360]
+    action_samples[3] = [1412711, 74353]
     action_samples[4] = [1412369, 74335 ]
+    action_samples[5] = [1412199, 74326 ]
     action_samples[6] = [1412849, 74360 ]
+    action_samples[7] = [1413616, 74400 ]
     action_samples[8] = [1425000, 75000 ]
     action_samples[9] = [1413064, 74372]
 
     for action in range(0,10):
-        if(action % 2 == 0 or action > 8):
+        #if(action % 2 == 0 or action > 8):
             if(action==action_ or action_ < 0):
                     #input_s_gen, image_input_gen, input_s_existing, prob = data_loader.get_training_data_for_observation_model(action, object_name_list, data_dir, object_id_mapping_file, '../')
                     training_data_file_name = 'observation_model/data_cluster_size_10/' + repr(action) + '_train.data'
@@ -907,7 +911,7 @@ def save_final_observation_model(action,gpuID, v1=False):
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
     latent_dim = 2
     observation_model_name = 'observation_model/vae_observation_model_' + repr(action) +'.h5'
-    if(action==8):
+    if(action==8 or (action % 2 == 1 and action < 8)):
         vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1)
 
         vae1.load_weights(observation_model_name)
