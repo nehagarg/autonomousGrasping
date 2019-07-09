@@ -108,10 +108,12 @@ def clip_gripper_values(x):
 def get_reward_move_actions(args):
     close_called_input = args[0]
     left_touch,right_touch =  tf.split(args[1],[1,1],1)
+    vision_movement = args[2]
     y = tf.where(left_touch >= 0.35, -0.5*tf.ones_like(left_touch), -1*tf.ones_like(left_touch))
     y1 = tf.where(right_touch >= 0.35, -0.5*tf.ones_like(left_touch), y)
-    y2 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y1)
-    return y2
+    y2 = tf.where(vision_movement > 0.5, -0.5*tf.ones_like(left_touch), y1)
+    y3 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y2)
+    return y3
 def get_reward_close_action(args):
     close_called_input = args[0]
     left_touch,right_touch =  tf.split(args[1],[1,1],1)
@@ -531,7 +533,7 @@ def keras_functional_transition_model(latent_dim):
     input_dim = 8 #gripper_2D_pos, object_2D_pose, theta z, joint_angles, object_id, action id, removing action_id
     input_s = tf.keras.Input(shape=(input_dim,), name = 'input_state')
     final_s = prepare_state_input_layer(latent_dim, input_s)
-    output_dim = 9 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values,vision_movement
+    output_dim = 10 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values,vision_movement
     intermediate_dim = 32
 
     expected_output = tf.keras.Input(shape=(output_dim,), name='next_state_output')
@@ -610,13 +612,13 @@ def keras_functional_transiton_model_with_reward_and_terminal_state(latent_dim,a
     input_s_full = tf.keras.Input(shape=(input_dim_full,), name = 'input_state') #input_s, close_called_input, action id needed to update close_called_input
     input_s,close_called_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1],1), name='split_full_input')(input_s_full)
     final_s = prepare_state_input_layer(latent_dim, input_s)
-    output_dim = 9 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values
+    output_dim = 10 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values, vision movement
     intermediate_dim = 32
     #decoder = construct_decoder(input_s, final_s, output_dim, intermediate_dim, latent_dim)
     latent_inputs = tf.keras.Input(shape=(latent_dim,), name='z_sampling')
     decoder_outputs = decoder([latent_inputs,input_s])
     object_state,object_id= layers.Lambda(lambda x: tf.split(x,[7,1],1), name='split_state')(input_s)
-    object_state_change,touch_values = layers.Lambda(lambda x: tf.split(x,[7,2],1), name='split_output')(decoder_outputs)
+    object_state_change,touch_values,vision_movement = layers.Lambda(lambda x: tf.split(x,[7,2,1],1), name='split_output')(decoder_outputs)
     next_state = layers.Add()([object_state,object_state_change])
     next_state = layers.Lambda(clip_gripper_values, name = 'clip_gripper_values')(next_state)
     if(action_id==8):
@@ -629,7 +631,7 @@ def keras_functional_transiton_model_with_reward_and_terminal_state(latent_dim,a
         reward = layers.Lambda(get_reward_open_action, name = 'open_action_reward')([close_called_input,touch_values])
         close_called_input = layers.Lambda(get_close_called_open_action, name = 'update_close_called_open_action')(close_called_input)
     else:
-        reward = layers.Lambda(get_reward_move_actions, name = 'move_action_reward')([close_called_input,touch_values])
+        reward = layers.Lambda(get_reward_move_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement])
     next_state_full = layers.Concatenate(name='concatenate_next_state_output')([next_state, object_id,close_called_input])
     terminal_state_output = layers.Lambda(get_terminal_value_non_pick, name = 'get_terminal_value_non_pick')(close_called_input)
     full_model = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward], name = 'full_model')
@@ -723,7 +725,7 @@ def train_transition_model(action_,object_name_list, data_dir, object_id_mapping
     sess = K.get_session()
     data_loader = dataProcessor.LoadTransitionData()
     for action in range(0,10):
-        if(action % 2 == 0 or action > 8):
+        #if(action % 2 == 0 or action > 8):
             if(action==action_ or action_ < 0):
                 input_s, expected_outcome, image_input = data_loader.get_training_data(action, object_name_list, data_dir, object_id_mapping_file)
                 latent_dim = 2
@@ -972,7 +974,7 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         observation_model_name = 'observation_model/vae_observation_model_' + repr(action) +'.h5'
         vae1, encoder1, decoder1 = keras_functional_transition_model(latent_dim)
         vae1.load_weights(transition_model_name)
-        if(action==8):
+        if(action==8 or (action % 2 == 1 and action < 8)):
             vae, encoder, decoder,image_decoder,prob_decoder, vae_without_loss, full_model = get_final_observation_model(latent_dim)
             vae.load_weights(observation_model_name)
         else:
@@ -1013,7 +1015,8 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         R = np.array([0.5])
         Y = full_model.predict([X,R])
         #X1 = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0]])
-        X1 = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0]])
+        #X1 = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0]])
+        X1 = np.array([[0.54267, 0.16278, 0.67928, 0.12716, 1.2047, 0.78657, 0.76514, 0 ]])
 
         Y1 = pick_model.predict(X1)
         print Y

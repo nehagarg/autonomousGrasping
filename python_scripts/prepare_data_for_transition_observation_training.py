@@ -345,7 +345,8 @@ class LoadTransitionData():
                     theta_z_change = np.array([math.radians(theta_z) - input_s_entry[4]])
                     joint_angle_change = np.array(ans[action][i]['next_joint_values']) - np.array(ans[action][i]['init_joint_values'])
                     touch_values = np.array(ans[action][i]['touch'])
-                    expected_outcome_entry = np.concatenate((gripper_pos_change, object_pos_change, theta_z_change, joint_angle_change, touch_values))
+                    vision_movement = np.array([ans[action][i]['vision_movement']])
+                    expected_outcome_entry = np.concatenate((gripper_pos_change, object_pos_change, theta_z_change, joint_angle_change, touch_values,vision_movement))
                     expected_outcome.append(expected_outcome_entry)
                     if image_dir is not None : #and action != PICK_ACTION_ID:
                         #image_input_entry = self.get_depth_image(ans[action][i]['next_gripper'][0:3], image_dir, ans[action][i]['image_file_name'])
