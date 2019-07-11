@@ -541,7 +541,7 @@ class ConfigFileGenerator():
         if('headphones_train3' in type):
             self.belief_name = 'headphones_train3'
             self.object_list = get_grasping_object_name_list('headphones_train3')
-            self.filetypes = ['']
+            self.filetypes = ['', 'despotalpha/']
         if('towelstand_train1_version7' in type):
             self.belief_name = 'towelstand_train1'
             self.object_list = get_grasping_object_name_list('cylinder_and_g3db_instances_version7')

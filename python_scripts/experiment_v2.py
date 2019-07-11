@@ -13,17 +13,17 @@ import re
 
 def generate_commands(yaml_config):
     all_commands = []
-    
+
     solver = yaml_config['solver']
     config_file = yaml_config['config_file']
-    output_dir = yaml_config['output_dir'] 
+    output_dir = yaml_config['output_dir']
     file_name = yaml_config['file_name']
-    planning_time = yaml_config['planning_time'] 
-    number_scenarios = yaml_config['number_scenarios'] 
-    horizon = yaml_config['horizon'] 
-    belief_type = yaml_config['belief_type'] 
+    planning_time = yaml_config['planning_time']
+    number_scenarios = yaml_config['number_scenarios']
+    horizon = yaml_config['horizon']
+    belief_type = yaml_config['belief_type']
     additional_params = yaml_config['additional_params']
-    begin_index = yaml_config['begin_index'] 
+    begin_index = yaml_config['begin_index']
     end_index = yaml_config['end_index']
     problem_type = yaml_config['problem_type']
     modified_additional_params = additional_params
@@ -32,11 +32,16 @@ def generate_commands(yaml_config):
         #    modified_additional_params = additional_params + repr(i)
         if additional_params.endswith('='):
              modified_additional_params = additional_params + repr(i)
-        command = "./bin/" + problem_type + " -v3 -t " + repr(planning_time) + " -n "
+        if 'gpuID' in yaml_config.keys():
+            modified_additional_params = modified_additional_params.replace('--GPUID=', '--GPUID='+yaml_config['gpuID'])
+        command = "./bin/" + problem_type
+        if(problem_type == 'grasping_with_vision'):
+            command = "../../../build/devel/lib/hyp_despot/despot_without_display --nobs 10"
+        command = command + " -v3 -t " + repr(planning_time) + " -n "
         command = command + repr(number_scenarios)+ ' -s ' + repr(horizon) + ' --solver=' + solver
         command = command + ' ' + modified_additional_params + ' -m ' + config_file + ' --belief=' + belief_type + ' > '
         command = command + output_dir
-        command = command + "/" + file_name + '_trial_' + repr(i) + '.log 2>&1' 
+        command = command + "/" + file_name + '_trial_' + repr(i) + '.log 2>&1'
         all_commands.append(command)
     return all_commands
 
@@ -56,7 +61,7 @@ def get_default_params(yaml_file = None):
         ans['begin_index'] = 0
         ans['end_index'] = 1000
         ans['file_name_prefix'] = ''
-    
+
 
     return ans
 
@@ -66,10 +71,10 @@ def get_config_file_name_from_experiment_file(file_name):
         config_file_name = config_file_name + 'VrepDataInterface_'
     elif 'vrep-model' in file_name:
         config_file_name = config_file_name + 'VrepInterface_'
-    
+
 def modify_params_file_for_learning_old(file_name, problem_type, ans):
     learning_version, model_name = get_learning_version_from_filename(file_name)
-    
+
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
         if 'output_dir' in ans:
@@ -88,15 +93,17 @@ def modify_params_file_for_learning_old(file_name, problem_type, ans):
     return ans
 
 def modify_params_file_for_learning(file_name, ans):
-       
+
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
-            
+
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
-        
+
     if 'baseline' in file_name:
         ans['solver'] = 'USERDEFINED'
+    if 'despotalpha' in file_name:
+        ans['solver'] = 'BTDESPOTALPHAST'
     return ans
 
 def generate_params_file(file_name, problem_type):
@@ -109,24 +116,24 @@ def generate_params_file(file_name, problem_type):
     ans['end_index'] = 1000
     ans['file_name_prefix'] = ''
     ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0').replace('despot', 'combined_0')
-    
+
     if problem_type == 'despot_without_display':
         #ans['config_file'] = 'config_files/VrepDataInterface.yaml'
         ans['belief_type'] = 'GAUSSIAN_WITH_STATE_IN'
         ans['additional_params'] = '--number=-1 -l CAP'
     if problem_type == 'graspingV4':
-        
+
         ans['belief_type'] = 'DEFAULT'
         ans['additional_params'] = '--number='
         ans['output_dir'] = './results/despot_logs'
         ans['end_index'] = 400
         ans['horizon'] = 90
-        
-        
+
+
         for filetype in ['train', 'test']:
             if filetype in file_name:
                 ans['file_name_prefix'] = 'Toy_' + filetype
-        
+
 
     if problem_type == 'pocman':
         #ans['config_file'] = 'config_files/' + file_name.replace('learning', 'combined_0')
@@ -135,10 +142,10 @@ def generate_params_file(file_name, problem_type):
         ans['output_dir'] = './results'
         ans['horizon'] = 90
         ans['file_name_prefix'] = 'full_pocman_'
-    
-    
+
+
     ans = modify_params_file_for_learning(file_name, problem_type, ans)
-    
+
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm'];
     for filetype in ['combined_0', 'combined_1', 'combined_2', 'combined_0-15', 'combined_0-20', 'combined_3-50', 'combined_4']:
         for interface_type in ["vrep_model", "data_model"]:
@@ -167,7 +174,7 @@ def generate_params_file(file_name, problem_type):
         if 'G3DB' in file_name:
             ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)
             ans['file_name_prefix'] = ans['file_name_prefix'].replace('75mm', G3DB_object_type)
-        
+
     elif 'penalty_100' in file_name:
         new_file_name = file_name
         if 'G3DB' in file_name:
@@ -194,7 +201,7 @@ def generate_params_file(file_name, problem_type):
         if 'G3DB' in file_name:
             ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)
             ans['file_name_prefix'] = ans['file_name_prefix'].replace('75mm', G3DB_object_type)
-            
+
     elif 'fixed_distribution' in file_name:
         new_file_name = file_name
         if 'G3DB' in file_name:
@@ -216,27 +223,27 @@ def generate_params_file(file_name, problem_type):
         if 'G3DB' in file_name:
             ans['config_file'] = ans['config_file'].replace('75mm', G3DB_object_type)
             ans['file_name_prefix'] = ans['file_name_prefix'].replace('75mm', G3DB_object_type)
-         
+
     if 'combined' in file_name:
         ans['solver'] = 'LEARNINGPLANNING'
         if 'combined_4' in file_name:
             ans['solver'] = 'DESPOTWITHLEARNEDPOLICY'
-    
+
         #m = re.search('combined_[0-9]+', file_name)
         #switching_version = int(m.group().split('_')[-1])
         #if switching_version > 2:
-        #    ans['additional_params'] = '--max-policy-simlen=10 ' + ans['additional_params'] 
-        
-    
+        #    ans['additional_params'] = '--max-policy-simlen=10 ' + ans['additional_params']
+
+
     if 'learning' in file_name:
         ans['solver'] = 'DEEPLEARNING'
     if 'baseline' in file_name:
         ans = get_default_params(file_name.replace('_baseline', '') )
         ans['output_dir'] = ans['output_dir']+ "/baseline"
         ans['solver'] = 'USERDEFINED'
-        
-        
-                
+
+
+
     if file_name == 'data_model_9cm_combined_automatic.yaml':
         ans['config_file'] = 'config_files/VrepDataInterface_v4_automatic.yaml'
         ans['file_name_prefix'] = 'Table_scene_9cm_cylinder_v4_automatic'
@@ -265,20 +272,22 @@ def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver7'):
         gsf = cfg.generate_setup_files(ver)
         for filename,filetype,interface_type,object_type in gsf:
             ans = get_default_params()
-            ans['output_dir'] = dir_prefix +  os.path.dirname(filename)           
-            ans['file_name_prefix'] = 'Table_scene_' + object_type 
+            ans['output_dir'] = dir_prefix +  os.path.dirname(filename)
+            ans['file_name_prefix'] = 'Table_scene_' + object_type
             ans['config_file'] = 'config_files/' + filename.replace(cfg.belief_type, "").replace(cfg.distribution_type, "")
             ans['additional_params'] = '--number=-2 -l CAP'
             ans['belief_type'] = belief_type
             if 'fixed_distribution' in filename:
                     ans['additional_params'] = '-l CAP --number='
+            if ver == 'ver8':
+                ans['additional_params'] = '-u TRIVIAL --USEKERAS 1 --GPUID= ' + ans['additional_params']
             if 'horizon90' in filename:
                 ans['horizon'] = 90
             ans = modify_params_file_for_learning(filename, ans)
             output = yaml.dump(ans, Dumper = Dumper)
             f = open(filename, 'w')
             f.write(output)
-    
+
 def generate_cylinder_g3db_mixed_belief_ver5_commands_old(type = '1001-84_weighted'):
     object_list = get_grasping_object_name_list('coffee_yogurt_cup')
     object_list = object_list+['9cm', '8cm']
@@ -290,7 +299,7 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands_old(type = '1001-84_weight
         dir_name = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_cylinder_7_8_9_reward100_penalty10'
         belief_name = 'cylinder_7_8_9'
         object_list = ['9cm', '8cm', '7cm', '75mm', '85mm', 'G3DB84_yogurtcup_final']
-        
+
     if type=='cylinder_1001':
         config_file_name = 'Ver5MultiCylinder-1001'
         config_file_prefix = 'cylinderCup'
@@ -310,7 +319,7 @@ def generate_cylinder_g3db_mixed_belief_ver5_commands_old(type = '1001-84_weight
         dir_name = dir_name + "/icp_score_weighted"
         belief_name = belief_name + "/weighted_belief"
     generate_grasping_params_file(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix)
-    
+
 def generate_grasping_params_file_old(object_list, config_file_name, dir_name, belief_type, belief_name, config_file_prefix):
     for filetype in ['']:
     #for filetype in ['','_learning_v13', '_combined_0_v13']:
@@ -326,19 +335,19 @@ def generate_grasping_params_file_old(object_list, config_file_name, dir_name, b
             dir_extenstion = "/simulator" if 'vrep' in interface_type  else ""
             for object_type in object_list:
                  ans = get_default_params()
-                 ans['output_dir'] = dir_name + dir_extenstion              
-                 ans['file_name_prefix'] = 'Table_scene_' + object_type 
+                 ans['output_dir'] = dir_name + dir_extenstion
+                 ans['file_name_prefix'] = 'Table_scene_' + object_type
                  ans['config_file'] = 'config_files/low_friction_table/vrep_scene_ver5/penalty10/'
-                 ans['config_file'] = ans['config_file']+ config_file_prefix + "/Vrep" +interface_type_ 
+                 ans['config_file'] = ans['config_file']+ config_file_prefix + "/Vrep" +interface_type_
                  ans['config_file'] = ans['config_file']+ "Interface" + config_file_name +"Test"
                  ans['config_file'] = ans['config_file']+ object_type + "_low_friction_table" + filetype + ".yaml"
                  ans['config_file'] = ans['config_file'].replace('learning', 'combined_0')
                  ans['additional_params'] = '--number=-2 -l CAP'
                  ans['belief_type'] = belief_type
                  file_name = filename_prefix + "/" + interface_type + "_multi_object_" + "_".join(belief_name.split('/')) + "_" + object_type + "_low_friction" + filetype + ".yaml"
-                 
-                 
-                 
+
+
+
                  if 'fixed_distribution' in file_name:
                     ans['additional_params'] = '-l CAP --number='
                     ans['output_dir'] = ans['output_dir']+"/fixed_distribution"
@@ -363,8 +372,8 @@ def generate_g3db_belief_despot_commands(ver="", belief='Multi'):
                     ans['output_dir'] = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_1_84_reward100_penalty10' + dir_extenstion
                  else:
                     ans['output_dir'] = './results/despot_logs/low_friction_table/multiObjectType/belief_uniform_g3db_single_reward100_penalty10' + dir_extenstion
-              
-                 ans['file_name_prefix'] = 'Table_scene_' + object_type 
+
+                 ans['file_name_prefix'] = 'Table_scene_' + object_type
                  ans['config_file'] = 'config_files/'+ "Vrep" +interface_type_ + "Interface" + ver + belief + "1001-84Test" + object_type + "_low_friction_table.yaml"
                  ans['additional_params'] = '--number=-2 -l CAP'
                  ans['belief_type'] = 'UNIFORM_WITH_STATE_IN'
@@ -372,7 +381,7 @@ def generate_g3db_belief_despot_commands(ver="", belief='Multi'):
                     file_name = interface_type + "_multi_object_coffee_yogurt_" + object_type + "_low_friction" + filetype + ".yaml"
                  else:
                     file_name = interface_type + "_single_object_coffee_yogurt_" + object_type + "_low_friction" + filetype + ".yaml"
-                  
+
                  if 'fixed_distribution' in file_name:
                     ans['additional_params'] = '-l CAP --number='
                     ans['output_dir'] = ans['output_dir']  + "/fixed_distribution"
@@ -390,7 +399,7 @@ def generate_penalty_100_v10_commands(type = 'G3DB'):
         for interface_type in ["vrep_model_penalty_100_v10", "data_model_penalty_100_v10", "vrep_model_penalty_100_v10_fixed_distribution", "data_model_penalty_100_v10_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')
 
 def generate_penalty_100_v8_uniform_belief_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
@@ -400,7 +409,7 @@ def generate_penalty_100_v8_uniform_belief_commands(type = 'G3DB'):
         for interface_type in ["vrep_model_penalty_100_v8_uniform_belief", "data_model_penalty_100_v8_uniform_belief", "vrep_model_penalty_100_v8_uniform_belief_fixed_distribution", "data_model_penalty_100_v8_uniform_belief_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')
 
 def generate_penalty_100_v8_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
@@ -410,7 +419,7 @@ def generate_penalty_100_v8_commands(type = 'G3DB'):
         for interface_type in ["vrep_model_penalty_100_v8", "data_model_penalty_100_v8", "vrep_model_penalty_100_v8_fixed_distribution", "data_model_penalty_100_v8_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')
 
 def generate_penalty_100_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
@@ -420,7 +429,7 @@ def generate_penalty_100_commands(type = 'G3DB'):
         for interface_type in ["vrep_model_penalty_100", "data_model_penalty_100", "vrep_model_penalty_100_fixed_distribution", "data_model_penalty_100_fixed_distribution"]:
             #generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')
 
 def generate_fixed_distribution_commands(type = 'G3DB'):
     object_list = ['7cm', '8cm', '9cm', '75mm', '85mm']
@@ -430,14 +439,14 @@ def generate_fixed_distribution_commands(type = 'G3DB'):
         for interface_type in ["vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in object_list:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')
 
 def generate_fixed_distribution_3_commands():
     for filetype in  ['_baseline', '_combined_4']: #['_combined_3-50']:
         for interface_type in ["vrep_model", "data_model", "vrep_model_fixed_distribution", "data_model_fixed_distribution"]:
             generate_params_file(interface_type + "_9cm_low_friction" + filetype + ".yaml", 'despot_without_display')
             for object_type in ['7cm', '8cm', '9cm', '75mm', '85mm']:
-                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')       
+                  generate_params_file(interface_type + "_multi_object_" + object_type + "_low_friction" + filetype + ".yaml", 'despot_without_display')
 
 
 def generate_sample_input_command(dir,error_files):
@@ -538,7 +547,7 @@ def correct_log_file_numbering(dir, e = False):
     new_file_list = []
     for file_name in file_list:
         if '.log' in file_name:
-            """ 
+            """
             trial_no = int((file_name.split('_')[-1]).split('.')[0])
             if(trial_no < 245):
                 new_trial_no = (trial_no/49)*81 + (trial_no % 49);
@@ -559,11 +568,11 @@ def correct_log_file_numbering(dir, e = False):
             new_file_name = new_file_name.replace('_n12112_', '_n1280_')
             new_file_name = new_file_name.replace('_n1133_', '_n1280_')
             new_file_list.append(new_file_name)
-            
+
         else:
             new_file_list.append(file_name) #To keep same numbering
-            
-            
+
+
     for i in range(0,len(file_list)):
         if file_list[i] != new_file_list[i]:
             command = 'mv ' + file_list[i] + ' ' + new_file_list[i]
@@ -571,7 +580,7 @@ def correct_log_file_numbering(dir, e = False):
                 os.system(command)
             else:
                 print command
-    """        
+    """
     for i in range(0,len(new_file_list)):
         new_name = new_file_list[i].replace('.log_', '.log')
         command = 'mv ' + new_file_list[i] + ' ' + new_name
@@ -580,9 +589,9 @@ def correct_log_file_numbering(dir, e = False):
         else:
             print command
     """
-            
+
     os.chdir(cur_dir)
-        
+
 def add_learning_pattern(dir, pattern):
     cur_dir = os.getcwd()
     os.chdir(dir)
@@ -604,7 +613,7 @@ def add_learning_pattern(dir, pattern):
                         new_index = new_index - 1
                         #if new_index < index -50:
                         #    break;
-                    print all_text[new_index -1 : index]   
+                    print all_text[new_index -1 : index]
                     new_index2 = new_index -1
                     while all_text[new_index2].isdigit():
                         new_index2 = new_index2 - 1
@@ -626,10 +635,10 @@ def add_learning_pattern(dir, pattern):
                 new_text = all_text.replace(pattern, new_pattern)
             with open(file_name,'w') as f:
                 f.write(new_text)
-    
-    
+
+
     os.chdir(cur_dir)
-    
+
 def correct_log_files_percent_learning_calculation(dir_name = None):
     dir_iterator = get_dir(dir_name)
     for dir in dir_iterator:
@@ -676,7 +685,7 @@ def get_dir(dir_name = None):
                         #    add_learning_pattern(dir,"[['$'")
 def main():
     global LEARNED_MODEL_NAME
-    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:m:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hegt:n:d:s:c:p:m:j:",["dir="])
     output_dir = None
     yaml_file = None
     execute_command = False
@@ -686,6 +695,7 @@ def main():
     start_index = None
     end_index = None
     problem_type = None
+    gpuID = None
     for opt, arg in opts:
       # print opt
       if opt == '-h':
@@ -709,13 +719,15 @@ def main():
           problem_type = arg
       elif opt == '-m':
             LEARNED_MODEL_NAME = arg
+      elif opt == '-j':
+            gpuID = arg
     if len(args) > 0:
         yaml_file = args[0]
-        
+
     if genarate_yaml:
         generate_params_file(yaml_file, problem_type)
         sys.exit()
-        
+
     ans = get_default_params(yaml_file)
     ans['problem_type'] = 'despot_without_display'
     if problem_type is not None:
@@ -726,17 +738,19 @@ def main():
         ans['begin_index'] = start_index
     if end_index is not None:
         ans['end_index'] = end_index
-    
-        
+    if gpuID is not None:
+        ans['gpuID'] = gpuID
+
+
     if ans['solver'] == 'DEEPLEARNING' or ans['solver'] == 'USERDEFINED':
         ans['file_name'] = ans['file_name_prefix']
     else:
-        
+
         ans['planning_time'] = planning_time
         ans['number_scenarios'] = number_scenarios
         ans['output_dir'] = ans['output_dir'] + '/t' + repr(ans['planning_time']) + '_n' + repr(ans['number_scenarios'])
         ans['file_name'] = ans['file_name_prefix'] + '_belief_' + ans['belief_type'].lower() + '_t' + repr(ans['planning_time']) + '_n' + repr(ans['number_scenarios'])
-   
+
     all_commands = generate_commands(ans)
     for command in all_commands:
         print command
@@ -747,7 +761,6 @@ def main():
                 os.mkdir(ans['output_dir'])
             #TODO add automatic directory creation
             os.system(command)
-        
+
 if __name__ == '__main__':
     main()
-    

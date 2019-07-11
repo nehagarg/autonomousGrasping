@@ -24,7 +24,7 @@ generic_scene = False
 port_name_macro = 'PORT_NAME'
 assigned_port = None #Port assigned if true port is already occupied on node
 true_port = None #Intended port
-
+num_gpus = 4
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
     while True:
@@ -46,7 +46,7 @@ def get_gather_data_number(pattern, t):
     else:
         return (int(filter(str.isdigit, pattern))*10) + int(t)
 
-def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix):
+def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_index, command_prefix,gpu_count):
     if(problem_type.startswith('despot_bt')):
         command = "./" + command_prefix + " -v 3 "
         command = command + "--solver=" + pattern + " "
@@ -97,7 +97,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         if len(command_prefix_parts) > 2:
             y_start = int(command_prefix_parts[2])
             y_end = y_start + 1
-        
+
         command = command + ' ' + ",".join(map(str,[begin_index, end_index, y_start, y_end]))
         command = command + ' ' + l
         #if len(command_prefix_parts) > 3:
@@ -121,6 +121,8 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
     actual_command = actual_command + ' -c ' + repr(end_index)
     actual_command = actual_command + ' -t ' + t
     actual_command = actual_command + ' -n ' + n
+    if problem_type == 'grasping_with_vision':
+        actual_command = actual_command + ' -j ' + repr(gpu_count)
     actual_command = actual_command + ' commands/' + command_prefix.replace('pattern', pattern)
 
     if c != 'None':
@@ -132,17 +134,19 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
     actual_command = actual_command + '.yaml'
     return actual_command
 
-def generate_commands_file(file_name, problem_type, work_folder_dir, starting_screen_counter = 1, source_tensorflow = False, separate_ros_vrep_port = False, command_list_file = None):
+def generate_commands_file(file_name, problem_type, work_folder_dir, starting_screen_counter = 1, tensorflow_path_input = '', separate_ros_vrep_port = False, command_list_file = None):
     f = open(file_name, 'w')
     global initial_ros_port
     global max_ros_port
     global vrep_scene_version
     global generic_scene
     global current_ros_port
+    global num_gpus
     starting_ros_port = initial_ros_port
     vrep_ros_port = current_ros_port + 1
 
-    tensorflow_path = '~/tensorflow' #Assumed location of tensorflow dir
+    tensorflow_path = tensorflow_path_input #Assumed location of tensorflow dir
+    source_tensorflow = tensorflow_path != ''
     vrep_dir =  work_folder_dir + '/V-REP_PRO_EDU_V3_3_2_64_Linux'
     problem_dir = work_folder_dir + "/neha_github/autonomousGrasping/" + problem_type
     if problem_type == 'despot_without_display':
@@ -150,6 +154,8 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     if problem_type.startswith('despot_bt'):
         problem_dir = work_folder_dir + "/neha_github/despot_bt/build/examples/cpp_models/"
         problem_dir = problem_dir + problem_type.split('_')[-1]
+    if problem_type == 'grasping_with_vision':
+        problem_dir =  work_folder_dir + "AdaCompNUS/HyP-Despot-LargeObservation-clone-neha-laptop/src/HyP_examples/grasping_ros_mico"
 
     if command_list_file is not None:
         with open(command_list_file, 'r') as ff:
@@ -213,16 +219,18 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     if index_step_input:
         index_step = int(index_step_input)
 
-
     for l in learning_versions:
         for c in combined_policy_versions:
             for t in time_steps:
                 for n in sampled_scenarios:
                     for p in pattern_list:
                       for b_index in range(begin_index, end_index, index_step):
-
-                        actual_command = 'cd ' + problem_dir + ';' + generate_despot_command(t, n, l, c, problem_type, p, b_index, b_index + index_step, command_prefix)
-                        despot_screen_name = repr(starting_screen_counter)+ '_' + problem_type
+                        gpu_count = (starting_screen_counter) % num_gpus
+                        actual_command = 'cd ' + problem_dir + ';' + generate_despot_command(t, n, l, c, problem_type, p, b_index, b_index + index_step, command_prefix,gpu_count)
+                        gpu_screen_name = ''
+                        if problem_type ==  'grasping_with_vision':
+                            gpu_screen_name = repr(gpu_count) + '_'
+                        despot_screen_name = repr(starting_screen_counter)+ '_' +gpu_screen_name +  problem_type
                         if separate_ros_vrep_port:
                             starting_ros_port = vrep_ros_port
                             despot_screen_name = repr(starting_screen_counter)+ '_' + problem_type + '_' + repr(starting_ros_port)
@@ -290,12 +298,18 @@ def get_screen_counter_from_command(command):
 
 def get_screen_counter_port_from_screen_name(screen_name):
     screen_counter = int(screen_name.split('_')[0])
+    gpu_port = -1
+
+    try:
+        gpu_port = int(screen_name.split('_')[1])
+    except ValueError:
+        pass
     ros_port = -1
     try:
         ros_port = int(screen_name.split('_')[-1])
     except ValueError:
         pass
-    return(screen_counter, ros_port)
+    return(screen_counter, ros_port, gpu_port)
 
 def add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node_name, screen_name):
     if node_name in running_nodes_to_screen:
@@ -321,7 +335,10 @@ def update_running_nodes(running_node_file, running_nodes_to_screen, running_scr
             add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node_name, screen_name)
     return ans
 
-def port_running_on_node(screen_port, node):
+def GPU_running_on_node(screen_GPU, node):
+    return port_running_on_node(screen_GPU, node, True)
+
+def port_running_on_node(screen_port, node, check_gpu_port = False):
     global running_nodes_to_screen
     global stopped_nodes_to_screen
     if node in running_nodes_to_screen.keys():
@@ -330,19 +347,25 @@ def port_running_on_node(screen_port, node):
             for screen_name in stopped_nodes_to_screen[node]:
                 screen_name_list.remove(screen_name)
         for screen_name in screen_name_list:
-            (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
-            if screen_port == ros_port:
-                return True
+            (screen_counter, ros_port,gpu_port) = get_screen_counter_port_from_screen_name(screen_name)
+            if(check_gpu_port):
+                if(screen_port == gpu_port):
+                    return True
+                else:
+                    if screen_port == ros_port:
+                        return True
     return False
 def get_maximum_load_for_node(node):
     if 'ncl' in node:
         return 20
     if 'eagle' in node:
         return 28
+    if 'unicorn0' in node:
+        return 28
     return 4
 
 def assign_node(node_list, screen_name, running_node_file):
-    
+
     global initial_ros_port
     global max_ros_port
     global running_nodes_to_screen
@@ -350,12 +373,18 @@ def assign_node(node_list, screen_name, running_node_file):
     global stopped_nodes_to_screen
     global stopped_screen_to_nodes
     global last_assigned_node
-    global assigned_port 
+    global assigned_port
     global true_port
-    
+    global num_gpus
+    global true_GPU
+    global assigned_GPU
+
     true_port = None
     assigned_port = None
-    (screen_counter, screen_port) = get_screen_counter_port_from_screen_name(screen_name)
+    (screen_counter, screen_port, screen_GPU) = get_screen_counter_port_from_screen_name(screen_name)
+    true_GPU = None
+    assigned_GPU = None
+
 
     node_start_index = 0
     if last_assigned_node is not None:
@@ -392,15 +421,28 @@ def assign_node(node_list, screen_name, running_node_file):
                         break
                 if assigned_port is None:
                     continue;
-        elif 'despot_without_display' in screen_name:
+        elif 'despot_without_display' in screen_name or 'grasping_with_vision' in screen_name:
             true_port = None
             do_roscore_setup([node])
+
+        if screen_GPU > 0:
+            true_GPU = screen_GPU
+            if GPU_running_on_node(screen_GPU, node):
+                for possible_GPU in range(0,num_gpus): #Search for a free GPU
+                    if not GPU_running_on_node(possible_GPU, node):
+                        assigned_GPU = possible_GPU
+                        break
+                if assigned_GPU is None:
+                    continue
 
         #update ans
         #update file containing screen_counters and node
         new_screen_name = screen_name
         if true_port is not None and assigned_port is not None:
             new_screen_name = re.sub(repr(true_port)+'$', repr(assigned_port), screen_name)
+        if true_GPU is not None and assigned_GPU is None:
+            new_screen_name = re.sub('_'+repr(true_GPU)+ '_', '_'+repr(assigned_GPU)+ '_', screen_name)
+
         add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node, new_screen_name)
         with open(running_node_file, 'a' ) as f:
             f.write(node + " " + new_screen_name + "\n")
@@ -415,10 +457,14 @@ def assign_node(node_list, screen_name, running_node_file):
 def run_command_on_node(command, node = None):
     global true_port
     global assigned_port
-    
+    global true_GPU
+    global assigned_GPU
+
     if node is not None:
         if true_port is not None and assigned_port is not None:
             command = command.replace(repr(true_port) + ' ', repr(assigned_port) + ' ')
+        if true_GPU is not None and assigned_GPU is not None:
+            command = command.replacce('-j ' + repr(true_GPU) + ' ', '-j ' + repr(assigned_GPU) + ' ')
         command = 'ssh ' + node + ' "' + command.replace('"', '\\"') + ' "'
     ans = None
     try:
@@ -700,7 +746,7 @@ def generate_error_re_run_commands(command_file, problem_type, work_folder_dir, 
                 current_ros_port = initial_ros_port
 
 def main():
-    opts, args = getopt.getopt(sys.argv[1:],"hefrgkv:td:p:s:",["dir="])
+    opts, args = getopt.getopt(sys.argv[1:],"hefrgkv:t:d:p:s:",["dir="])
     work_folder_dir = None
     command_file = None
     execute_command_file = False
@@ -733,7 +779,7 @@ def main():
          if(int(arg) == 1):
              generic_scene = True
       elif opt == '-t':
-         source_tensorflow = True
+         source_tensorflow = arg
       elif opt == '-p':
           problem_type = arg
       elif opt == '-s':
@@ -741,6 +787,7 @@ def main():
       elif opt in ("-d", "--dir"):
          work_folder_dir = arg
 
+    print problem_type
     command_list_file = None
     if len(args) > 0:
         command_file = args[0]
