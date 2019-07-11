@@ -600,7 +600,7 @@ def keras_functional_transition_model_pick_action():
     pick_output_ = pick_model(input_s_breakup)
     pick_reward = layers.Lambda(get_reward_pick_action, name = 'pick_action_reward')([random_number_input,pick_output_,close_called_input])
     terminal_state_output = layers.Lambda(get_terminal_value_pick, name = 'get_terminal_value_pick')(close_called_input)
-    pick_model_with_reward = tf.keras.Model([input_s_full, random_number_input], [terminal_state_output,pick_reward], name='pick_reward_model')
+    pick_model_with_reward = tf.keras.Model([input_s_full, random_number_input], [terminal_state_output,pick_reward,pick_output_], name='pick_reward_model')
     return pick_model,pick_model_with_reward
 
 
@@ -1016,7 +1016,9 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         Y = full_model.predict([X,R])
         #X1 = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0]])
         #X1 = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0]])
-        X1 = np.array([[0.54267, 0.16278, 0.67928, 0.12716, 1.2047, 0.78657, 0.76514, 0 ]])
+        X1 = np.array([[0.51267, 0.16278, 0.67928, 0.12716, 1.2047, 0.78657, 0.76514, 0 ]])
+        X1 = np.array([[0.52122, 0.14432, 0.71663, 0.15111, 0.92371, 0.69064, 0.67595, 0]])
+        X1 = np.array([[0.47137, 0.12947, 0.62862, 0.12996, 0.69688, 0.5232, 0.48833, 0]])
 
         Y1 = pick_model.predict(X1)
         print Y
