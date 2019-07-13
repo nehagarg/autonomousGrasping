@@ -24,6 +24,8 @@ generic_scene = False
 port_name_macro = 'PORT_NAME'
 assigned_port = None #Port assigned if true port is already occupied on node
 true_port = None #Intended port
+true_GPU = None #Intended GPU
+assigned_GPU = None #GPU assigned if true port is already occupied on node
 num_gpus = 4
 #Copied from plot_despot_results to avoid importing the modeules it is dependent on
 def get_list_input(sampled_scenarios, command):
@@ -117,6 +119,8 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         command = command + ' -d data_for_regression > ' + out_file_name
         return command
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
+    if problem_type == 'grasping_with_vision':
+        actual_command = ' python python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
     actual_command = actual_command + ' -c ' + repr(end_index)
     actual_command = actual_command + ' -t ' + t
@@ -155,7 +159,7 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
         problem_dir = work_folder_dir + "/neha_github/despot_bt/build/examples/cpp_models/"
         problem_dir = problem_dir + problem_type.split('_')[-1]
     if problem_type == 'grasping_with_vision':
-        problem_dir =  work_folder_dir + "AdaCompNUS/HyP-Despot-LargeObservation-clone-neha-laptop/src/HyP_examples/grasping_ros_mico"
+        problem_dir =  work_folder_dir + "/AdaCompNUS/HyP-Despot-LargeObservation-clone-neha-laptop/src/HyP_examples/grasping_ros_mico"
 
     if command_list_file is not None:
         with open(command_list_file, 'r') as ff:
@@ -293,8 +297,8 @@ def get_screen_counter_from_command(command):
     if command_parts[0] == 'screen' and command_parts[1] == '-S':
         screen_name = command_parts[2]
     if screen_name is not None:
-        (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
-    return (screen_name, screen_counter, ros_port)
+        (screen_counter, ros_port,gpu_port) = get_screen_counter_port_from_screen_name(screen_name)
+    return (screen_name, screen_counter, ros_port, gpu_port)
 
 def get_screen_counter_port_from_screen_name(screen_name):
     screen_counter = int(screen_name.split('_')[0])
@@ -329,7 +333,7 @@ def update_running_nodes(running_node_file, running_nodes_to_screen, running_scr
             values = line.strip().split()
             node_name = values[0]
             screen_name = values[1]
-            (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
+            (screen_counter, ros_port, gpu_port) = get_screen_counter_port_from_screen_name(screen_name)
             if screen_counter > ans:
                 ans = screen_counter
             add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node_name, screen_name)
@@ -425,7 +429,7 @@ def assign_node(node_list, screen_name, running_node_file):
             true_port = None
             do_roscore_setup([node])
 
-        if screen_GPU > 0:
+        if screen_GPU >= 0:
             true_GPU = screen_GPU
             if GPU_running_on_node(screen_GPU, node):
                 for possible_GPU in range(0,num_gpus): #Search for a free GPU
@@ -440,7 +444,7 @@ def assign_node(node_list, screen_name, running_node_file):
         new_screen_name = screen_name
         if true_port is not None and assigned_port is not None:
             new_screen_name = re.sub(repr(true_port)+'$', repr(assigned_port), screen_name)
-        if true_GPU is not None and assigned_GPU is None:
+        if true_GPU is not None and assigned_GPU is not None:
             new_screen_name = re.sub('_'+repr(true_GPU)+ '_', '_'+repr(assigned_GPU)+ '_', screen_name)
 
         add_entry_to_running_nodes(running_nodes_to_screen, running_screen_to_nodes, node, new_screen_name)
@@ -464,7 +468,8 @@ def run_command_on_node(command, node = None):
         if true_port is not None and assigned_port is not None:
             command = command.replace(repr(true_port) + ' ', repr(assigned_port) + ' ')
         if true_GPU is not None and assigned_GPU is not None:
-            command = command.replacce('-j ' + repr(true_GPU) + ' ', '-j ' + repr(assigned_GPU) + ' ')
+            command = command.replace('-j ' + repr(true_GPU) + ' ', '-j ' + repr(assigned_GPU) + ' ')
+            command = command.replace('_'+repr(true_GPU)+ '_', '_'+repr(assigned_GPU)+ '_')
         command = 'ssh ' + node + ' "' + command.replace('"', '\\"') + ' "'
     ans = None
     try:
@@ -496,7 +501,7 @@ def check_finished_processes(stopped_node_file):
         run_command_on_node(command, node_name)
         output = run_command_on_node(command, node_name)
         if output is None: #screen stopped
-            (screen_counter, ros_port) = get_screen_counter_port_from_screen_name(screen_name)
+            (screen_counter, ros_port,gpu_port) = get_screen_counter_port_from_screen_name(screen_name)
             if ros_port > initial_ros_port :
                 #stop vrep and roscore screens
                 vrep_screen_name = '_'.join([repr(screen_counter), "vrep", repr(ros_port)])
@@ -603,7 +608,7 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     with open(command_file_name) as f:
         for line in f:
             command = line.strip()
-            (screen_name, screen_counter, screen_port) = get_screen_counter_from_command(command)
+            (screen_name, screen_counter, screen_port, gpu_port) = get_screen_counter_from_command(command)
             if not line_number_found:
                 #print screen_counter
                 if screen_counter != next_screen_counter(start_screen_counter_list, existing_screen_counter):
