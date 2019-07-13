@@ -449,6 +449,18 @@ def keras_function_observation_model_without_image_prob_decoder(latent_dim):
     #final_decoder_image = tf.Keras.Model([latent_inputs,input_s, input_s1], [vae_outputs, image_output,prob_output], name = 'final_decoder')
 
     return vae, encoder, decoder, vae_without_loss #, image_decoder, prob_decoder #, final_decoder, final_decoder_image
+
+
+def get_image_encoder_model():
+    image_h = 184
+    image_w = 208
+    output_dim = 8
+    image_input = tf.keras.Input(shape=(image_h,image_w,1,), name = 'input_image')
+    image_input_flatten = layers.Flatten()(image_input)
+    encoded_image =  get_image_input_layer(image_input, output_dim)
+    image_encoder_model = tf.keras.Model(image_input, encoded_image, name='image_encoder_model')
+    return image_encoder_model
+
 def keras_function_observation_model(latent_dim):
     decoder_intermediate_dimension = 32
     image_h = 184
@@ -907,7 +919,80 @@ def load_observation_model(action,gpuID):
     #print "Printing decoder weights aaaaaaaaaaaaaaaaaaaaaaaaaaa"
     #print decoder.get_weights()
 
+#v1 flag does not make any difference for encoder model
+#action makes difference because taining is done end to end for observation model
+def save_observation_encoder_model(action,gpuID, v1 = False):
+    K.set_learning_phase(0)
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
+    latent_dim = 2
+    observation_model_name = 'observation_model/vae_observation_model_' + repr(action) +'.h5'
+    image_encoder_model = get_image_encoder_model()
+    if(action==8 or (action % 2 == 1 and action < 8)):
+        vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1)
 
+        vae1.load_weights(observation_model_name)
+        for layer in  encoder1.layers :
+            print [layer.name,layer.input_shape,layer.output_shape]
+        for layer in image_encoder_model.layers :
+            print [layer.name,layer.input_shape,layer.output_shape]
+        layer_name_mapping = {}
+        layer_name_mapping['conv2d'] = 'conv2d_3'
+        layer_name_mapping['max_pooling2d'] = 'max_pooling2d_3'
+        layer_name_mapping['conv2d_1'] = 'conv2d_4'
+        layer_name_mapping['max_pooling2d_1'] = 'max_pooling2d_4'
+        layer_name_mapping['conv2d_2'] = 'conv2d_5'
+        layer_name_mapping['max_pooling2d_2'] = 'max_pooling2d_5'
+        layer_name_mapping['dense'] = 'dense_2'
+        layer_name_mapping['dense_1'] = 'dense_3'
+
+        intermediate_layer_model = tf.keras.Model(inputs=encoder1.input,
+                                     outputs=encoder1.get_layer('dense_3').output, name = 'inter_model')
+    else:
+        vae, encoder, decoder, vae_without_loss = keras_function_observation_model_without_image_prob_decoder(latent_dim)
+        vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1)
+        vae.load_weights(observation_model_name)
+
+        encoder1.set_weights(encoder.get_weights())
+
+        for layer in  encoder1.layers :
+            print [layer.name,layer.input_shape,layer.output_shape]
+        for layer in image_encoder_model.layers :
+            print [layer.name,layer.input_shape,layer.output_shape]
+        layer_name_mapping = {}
+        layer_name_mapping['conv2d'] = 'conv2d_10'
+        layer_name_mapping['max_pooling2d'] = 'max_pooling2d_6'
+        layer_name_mapping['conv2d_1'] = 'conv2d_11'
+        layer_name_mapping['max_pooling2d_1'] = 'max_pooling2d_7'
+        layer_name_mapping['conv2d_2'] = 'conv2d_12'
+        layer_name_mapping['max_pooling2d_2'] = 'max_pooling2d_8'
+        layer_name_mapping['dense'] = 'dense_7'
+        layer_name_mapping['dense_1'] = 'dense_8'
+        intermediate_layer_model = tf.keras.Model(inputs=encoder1.input,
+                                     outputs=encoder1.get_layer('dense_8').output, name = 'inter_model')
+
+
+
+    for layer_name in layer_name_mapping.keys():
+        layer_name1 = layer_name_mapping[layer_name]
+        image_encoder_model.get_layer(layer_name).set_weights(encoder1.get_layer(layer_name1).get_weights())
+
+    im_input = np.array([np.random.rand(184,208,1)])
+    s_input = np.array([np.random.rand(8)])
+
+    encoder_output = image_encoder_model.predict(im_input)
+    print encoder_output
+
+
+    intermediate_output = intermediate_layer_model.predict([s_input,im_input])
+    print intermediate_output
+
+    print image_encoder_model.outputs
+    print image_encoder_model.inputs
+    frozen_graph = freeze_session(K.get_session(),
+                          output_names=[out.op.name for out in image_encoder_model.outputs])
+    tf.train.write_graph(frozen_graph, ".", 'observation_model/observation_encoder_model_' + repr(action) +'.pb', as_text=False)
+
+#v1 takes encoded observation as an input
 def save_final_observation_model(action,gpuID, v1=False):
     K.set_learning_phase(0)
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
@@ -1155,6 +1240,8 @@ if __name__ == '__main__':
         save_final_observation_model(int(args.action),args.gpuID)
     if(args.train == 'st'): #save transition model
         save_transiton_model_with_reward_graph(int(args.action),args.gpuID)
+    if(args.train == 'se'): #save observation encoder model
+        save_observation_encoder_model(int(args.action),args.gpuID)
     if(args.train == 'sov1'): #save observation model
         save_final_observation_model(int(args.action),args.gpuID,True)
     if(args.train == 'stv1'): #save transition model
