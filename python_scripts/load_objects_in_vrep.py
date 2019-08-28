@@ -27,7 +27,7 @@ def get_object_properties(object_id, object_property_dir, object_mesh_dir="g3db_
         #object_properties_filename = (object_property_dir + "/" + object_id + '.yaml')
         with open(object_properties_filename,'r') as stream:
             mesh_properties = yaml.load(stream)
-    mesh_properties['mesh_dir'] = object_mesh_dir 
+    mesh_properties['mesh_dir'] = object_mesh_dir
     return mesh_properties
 
 def get_default_object_properties(object_id):
@@ -41,13 +41,13 @@ def get_object_properties_for_pure_shape(object_id_str):
     ans['signal_name'] = 'pure_shape'
     ans['mesh_name'] = object_id_str.split('_')[0]
     object_id = int(object_id_str.split('_')[1])
-    
+
     if(object_id <=10):
         object_id = object_id*10.0
     #ans['size_xyz'] = [object_id/100.0, object_id/100.0, 1.0] #scaling factor
     #ans['size_xyz'] = [i/0.10 for i in ans['size_xyz']]
     ans['actions'] = [{'set_size' : [object_id/100.0, object_id/100.0, 1.0]}, 'set_mass', 'move_to_table']
-    
+
     return ans
 def update_size_action(action, action_value):
     mp = {}
@@ -55,7 +55,7 @@ def update_size_action(action, action_value):
     object_size = mp['object_size']
     print object_size
     action_ans = 'set_size'
-    
+
     action_value_ans = [1.0 for x in object_size]
 
     j= None
@@ -65,7 +65,7 @@ def update_size_action(action, action_value):
         j = 1
     if(action.split('_')[-1] == 'z'):
         j = 2
-        
+
     if('set_size_abs_xyz_' in action):
         val = action_value/object_size[j]
         action_value_ans = [val,val,val]
@@ -83,11 +83,11 @@ def update_size_action(action, action_value):
     elif('set_size_min_' in action):
         if action_value > object_size[j]:
            val = action_value/object_size[j]
-           action_value_ans[j] = val 
+           action_value_ans[j] = val
     else:
         action_ans = action
         action_value_ans = action_value
-        
+
     return (action_ans, action_value_ans)
 
 def update_object(action_, mesh_properties):
@@ -103,7 +103,7 @@ def update_object(action_, mesh_properties):
             action,action_value = update_size_action(action,action_value)
     else:
         action = action_
-       
+
     if(action == 'get_collision_info'):
         try:
             #6 is for customization script
@@ -112,7 +112,7 @@ def update_object(action_, mesh_properties):
             mesh_properties["collisions"] = resp1.outputInts[0]
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            
+
     if(action == 'get_size'):
         try:
             #6 is for customization script
@@ -139,7 +139,7 @@ def update_object(action_, mesh_properties):
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  [], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-    
+
     if(action == 'set_object_pose'):
         try:
             #6 is for customization script
@@ -154,28 +154,31 @@ def update_object(action_, mesh_properties):
             mesh_properties["object_pose"] = resp1.outputFloats
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            
+
     if(action == 'set_object_name'):
         try:
             #6 is for customization script
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  [action_value], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-    
+
     if(action == 'set_object_color'):
         try:
             #6 is for customization script
             resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], action_value,  [], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-    
+
     if(action == 'load_object'):
         mesh_path = mesh_properties['mesh_name']
         if('mesh_dir' in mesh_properties.keys()):
             mesh_path = os.path.abspath(mesh_properties['mesh_dir']) + "/" + mesh_properties['mesh_name']
+            if ('HyP-Despot' in mesh_path): #Teprary hack when v-rep is runnign on eagle but code is runnign on unicorn
+                mesh_path = "../g3db_meshes/obj_files/" + mesh_properties['mesh_name']
         try:
             #6 is for customization script
-            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],  
+            print mesh_path
+            resp1 = call_function('rosUpdateObject@TheAlmighty', 6, [], [],
             [mesh_properties['signal_name'], mesh_path], action)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
@@ -191,7 +194,7 @@ def save_point_cloud(object_id, object_property_dir, object_mesh_dir, point_clou
     start_stop_simulation('Start')
     assert('pick_point' in mesh_properties.keys())
     if for_classifier:
-        file_dir = point_cloud_dir + "/" + object_id.replace('.yaml', "") 
+        file_dir = point_cloud_dir + "/" + object_id.replace('.yaml', "")
         if os.path.exists(file_dir):
             save_object_file(point_cloud_dir + "/" + object_id.replace('.yaml', "") + "/" + repr(object_loc_id), False)
     else:
@@ -203,23 +206,23 @@ def update_object_from_action_value(action, value):
     action_ = {action: value}
     update_object(action_, {})
     return ""
-    
+
 def add_object_in_scene(object_id, object_property_dir, object_mesh_dir="g3db_meshes/"):
-    
+
     mesh_properties = get_object_properties(object_id, object_property_dir, object_mesh_dir)
     update_object('load_object', mesh_properties)
     add_object_from_properties(mesh_properties)
     return mesh_properties
-    
+
 def add_object_from_properties(mesh_properties, set_grasp=False):
-    
+
     #load_object(mesh_location, signal_name)
     print mesh_properties
     for action in mesh_properties['actions']:
         print action
         #a = raw_input("Proceed?")
         update_object(action, mesh_properties)
-    
+
     if "object_initial_pose_z" not in mesh_properties.keys():
         update_object("get_object_pose", mesh_properties)
     if "object_min_z" not in mesh_properties.keys():
@@ -244,11 +247,11 @@ def object_graspable(mesh_properties, version_name = ""):
                 else:
                     ans = True
     return ans
-    
+
 def get_object_pick_point(object_id, object_property_dir):
     mesh_properties = add_object_in_scene(object_id, object_property_dir)
     get_object_characteristics(mesh_properties)
-    
+
 def get_object_pick_point(mesh_properties):
     object_pose = list(mesh_properties["object_pose"][0:3])
     hack_value_x = 0.07
@@ -274,7 +277,7 @@ def get_object_pick_point(mesh_properties):
     #start_stop_simulation('Stop')
     #update_object({'set_object_pose': object_pose}, mesh_properties)
     """
-    #If collision is resolved, find the x,y position for grasp        
+    #If collision is resolved, find the x,y position for grasp
     if 'collision_not_resolved' not in mesh_properties.keys():
         #start simulation
         #start_stop_simulation('Start')
@@ -297,7 +300,7 @@ def get_object_pick_point(mesh_properties):
             pick_point[0] = pick_point[0]- hack_value_x
             print pick_point
             mesh_properties['pick_point'] = pick_point
-        
+
 
 def check_for_object_collision(mesh_properties):
     object_pose = place_object_at_initial_location(mesh_properties)
@@ -318,14 +321,14 @@ def check_for_object_collision(mesh_properties):
             object_pose_new[1] = object_pose[1] + y
             update_object({'set_object_pose': object_pose_new}, {})
     mesh_properties['colliding_with_gripper'] = collision_detected
-   
+
 def check_for_object_stability(mesh_properties):
     object_pose = place_object_at_initial_location(mesh_properties)
     object_stable = True
-    
+
     for x in range(0,19):
         start_stop_simulation('Start')
-        for i in range(0,x): 
+        for i in range(0,x):
             move_gripper([0.01, 0.0,0.0])
         for i in range(0,8):
             move_gripper([0, 0.01,0.0])
@@ -337,7 +340,7 @@ def check_for_object_stability(mesh_properties):
         start_stop_simulation('Stop')
         time.sleep(1)
         start_stop_simulation('Start')
-        for i in range(0, x): 
+        for i in range(0, x):
             move_gripper([0.01, 0.0,0.0])
         for i in range(0,7):
             move_gripper([0, -0.01,0.0])
@@ -364,7 +367,7 @@ def check_gripper_point_cloud_clipping():
     start_stop_simulation('Start')
     x_range = (max_x_i-min_x_i)/0.01
     y_range = (max_y_i-min_y_i)/0.01
-    x_offset = 0.03 
+    x_offset = 0.03
     for i in range(0,int(x_range)):
         for j in range(0,int(y_range)):
             y = 0.01
@@ -412,9 +415,9 @@ def move_gripper(move_pos):
     current_pos[2]= mico_target_pose.pose.pose.position.z + move_pos[2]
     set_any_object_position('Mico_target', current_pos)
     time.sleep(1)
-    
+
 def place_object_at_initial_location(mesh_properties, set_grasp=False):
-    
+
     object_pose = (list(mesh_properties["object_pose"]))[0:3]
     if('pick_point' in mesh_properties.keys()):
         IDEAL_PICK_POINT_X = object_pose[0] -0.03
@@ -432,28 +435,28 @@ def place_object_at_initial_location(mesh_properties, set_grasp=False):
             pick_point_new[1] = pick_point_new[1] + y_diff
             set_grasp_point(pick_point_new)
     return object_pose
-  
+
 def has_object_fallen(mesh_properties, use_quaternion = True):
     temp = {}
     update_object("get_object_pose", temp)
     object_pose = temp["object_pose"][0:3]
-    
+
     if(use_quaternion):
         (X,Y,Z) = quaternion_to_euler_angle(temp["object_pose"][6], temp["object_pose"][3], temp["object_pose"][4], temp["object_pose"][5])
         print repr(X) + " " + repr(Y) + " " + repr(Z)
         return abs(X) > 45 or abs(Y) > 45
     else: #use height
         return (object_pose[2] < mesh_properties["object_min_z"])
-        
-    
 
-    
+
+
+
 def set_grasp_point(pick_point):
     set_any_object_position('GraspPoint', pick_point)
 
 def get_mico_target_frame_pose():
     return get_any_object_pose('MicoTargetFrame')
-    
+
 def set_any_object_position(object_name, object_position):
     rospy.wait_for_service('/vrep/simRosGetObjectHandle')
     try:
@@ -462,14 +465,14 @@ def set_any_object_position(object_name, object_position):
         #return resp1.sum
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-        
+
     rospy.wait_for_service('/vrep/simRosCallScriptFunction')
     try:
         call_function = rospy.ServiceProxy('/vrep/simRosCallScriptFunction', simRosCallScriptFunction)
         resp1 = call_function('rosSetObjectPosition@TheAlmighty', 6, [resp1.handle], object_position,  [], '')
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-        
+
 def get_any_object_pose(object_name):
     rospy.wait_for_service('/vrep/simRosGetObjectHandle')
     try:
@@ -478,7 +481,7 @@ def get_any_object_pose(object_name):
         #return resp1.sum
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-        
+
     rospy.wait_for_service('/vrep/simRosGetObjectPose')
     try:
         get_object_pose = rospy.ServiceProxy('/vrep/simRosGetObjectPose', simRosGetObjectPose)
@@ -486,7 +489,7 @@ def get_any_object_pose(object_name):
         return resp2
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-        
+
 def start_stop_simulation(service_type = 'Start'):
     service_name = '/vrep/simRos' + service_type + 'Simulation'
     rospy.wait_for_service(service_name)
@@ -502,22 +505,22 @@ def start_stop_simulation(service_type = 'Start'):
 
 def quaternion_to_euler_angle(w, x, y, z):
 	ysqr = y * y
-	
+
 	t0 = +2.0 * (w * x + y * z)
 	t1 = +1.0 - 2.0 * (x * x + ysqr)
 	X = math.degrees(math.atan2(t0, t1))
-	
+
 	t2 = +2.0 * (w * y - z * x)
 	t2 = +1.0 if t2 > +1.0 else t2
 	t2 = -1.0 if t2 < -1.0 else t2
 	Y = math.degrees(math.asin(t2))
-	
+
 	t3 = +2.0 * (w * z + x * y)
 	t4 = +1.0 - 2.0 * (ysqr + z * z)
 	Z = math.degrees(math.atan2(t3, t4))
-	
-	return X, Y, Z        
-#If the object is already there, this function will first remove the object 
+
+	return X, Y, Z
+#If the object is already there, this function will first remove the object
 #deprecated use the update_object function instead
 def load_object(object_file_name, signal_name = 'mesh_location'):
     rospy.wait_for_service('/vrep/simRosSetStringSignal')
@@ -549,7 +552,7 @@ def remove_object():
         #return resp1.sum
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
-    
+
     """
     ros_command = 'rosservice call /vrep/simRosGetObjectHandle "objectName: '
     ros_command = ros_command + "'Cup'" + '"'
@@ -557,4 +560,3 @@ def remove_object():
     ros_command = 'rosservice call /vrep/simRosRemoveObject "' + var + '"'
     os.system(ros_command)
     """
-    
