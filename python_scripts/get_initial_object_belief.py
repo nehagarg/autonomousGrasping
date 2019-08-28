@@ -237,7 +237,7 @@ class GetInitialObjectBelief():
         return (camera_intrinsics, T_camera_world)
 
     def get_world_point_cloud(self, depth_image = None, camera_intrinsics = None, T_camera_world = None):
-        
+
         (camera_intrinsics,T_camera_world) = self.get_camera_instrinsincs_and_t_cam_world(camera_intrinsics, T_camera_world)
 
         if depth_image is None:
@@ -265,9 +265,9 @@ class GetInitialObjectBelief():
         #inpainted_color_image = color_image.inpaint(rescale_factor=self.config['inpaint_rescale_factor'])
         #color_im = inpainted_color_image
         camera_intr = camera_intrinsics
-        
+
         return (color_image, camera_intr)
-        
+
     def get_segmented_point_cloud_world(self, cfg, point_cloud_world ):
         # read params
 
@@ -477,7 +477,7 @@ def get_current_rgb_image(debug = False, start_node=True, env = 'simulator'):
         vis.imshow(color_im_seg)
         vis.show()
     return (depth_im_seg, color_im_seg, camera_intr)
-        
+
 def save_current_rgb_image(filename_dir, debug = False, start_node=True, env = 'simulator'):
     (depth_im_seg, color_im_seg, camera_intr) = get_current_rgb_image(debug, start_node, env)
     file_name = filename_dir + socket.gethostname()+ "-" + repr(os.getpid()) + "-" + time.strftime("%Y%m%d-%H%M%S")
@@ -490,7 +490,7 @@ def save_current_rgb_image(filename_dir, debug = False, start_node=True, env = '
     depth_im_seg.save(filename + "_depth" + ".npz")
     camera_intr.save(filename  + '.intr')
     return filename
-    
+
 def get_current_point_cloud(debug = False, start_node=True, env = 'simulator'):
     giob = GetInitialObjectBelief(None, debug, start_node, env)
     (depth_im_seg,_) = giob.get_object_point_cloud_from_sensor()
@@ -604,6 +604,14 @@ def get_belief_for_objects_old(object_group_name, object_file_dir, debug = False
 def get_belief_for_real_objects(env, object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, debug = False, start_node=True):
     print "Getting Belief for real objects"
     return get_belief_for_objects(object_group_name, object_file_dir, clip_objects , keras_model_name , baseline_results_dir, env, debug, start_node)
+
+def get_cropped_depth_image_for_keras_models(gripper_3D_pose_x,gripper_3D_pose_y, gripper_3D_pose_z,image_name, image_dir):
+    import prepare_data_for_transition_observation_training as dataProcessor
+    gripper_3D_pose = [gripper_3D_pose_x,gripper_3D_pose_y, gripper_3D_pose_z]
+    data_loader = dataProcessor.LoadTransitionData()
+    data_loader.get_depth_image(gripper_3D_pose, image_dir,image_name)
+    raw_image = data_loader.load_cropped_depth_image(image_dir,image_name)
+    return list(raw_image.flatten())
 
 #object_file_dir = point clod dir when not using keras model
 #object_file_dir = keras model dir when using keras model
