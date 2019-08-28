@@ -13,7 +13,7 @@ from grasping_object_list import get_grasping_object_name_list
 
 PROBLEM_NAME = "vrep"
 def get_mean_std_for_array(a, sum2 = None):
-    
+
     if sum2 is None:
         sum2 = sum([x*x for x in a ])
     if(len(a) == 0):
@@ -29,18 +29,18 @@ def get_mean_std_for_array(a, sum2 = None):
             value1 = 0
         std2 = math.sqrt(value1)   #stderr
     return (mean, std, std2)
-    
+
 def get_mean_std_for_numbers_in_file(filename):
-    
+
     a = []
     sum2 = 0.0
     with open(filename, 'r') as f:
         for line in f:
-          a.append(float(line)) 
+          a.append(float(line))
           sum2 = sum2+ a[-1]*a[-1]
     if(len(a) == 0):
         print filename
-    
+
     (mean, std, std2) = get_mean_std_for_array(a, sum2)
     #print mean
     #print std
@@ -61,23 +61,58 @@ def generate_reward_file(dir_name, pattern_list, reward_file_size, reward_file_n
         out_str = '>>'
         if i == 0:
             out_str = '>'
-        system_command = "grep 'Total undiscounted reward = ' "
+        system_command = "grep 'Total discounted reward = ' "
         system_command = system_command  + new_pattern + " | cut -d'=' -f2 "
         system_command = system_command + out_str + " " + reward_file_name
         subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
         #os.system(system_command)
         i = i+1
-    
+
     a = int(os.popen("cat " + reward_file_name + " | wc -l").read())
     if(a!=reward_file_size):
-        print a 
+        print a
         print reward_file_size
         print dir_name
         print reward_file_name
         #assert(False)
     os.chdir(prev_path)
 
+
+
 def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_file_name, reward_value, end_index):
+    prev_path = os.getcwd()
+    os.chdir(dir_name)
+    i = 0
+    number_pattern = get_regex_from_number_range(0, end_index - 1)
+    for pattern in pattern_list:
+        new_pattern = pattern.replace('.log', number_pattern + '.log')
+        out_str = '>>'
+        if i == 0:
+            out_str = '>'
+        #grep 'Total undiscounted' *.log | awk '$5 > 0' | cut -d':' -f1 | xargs -i grep -B 2 'final_state' {} | grep Step
+        system_command = "grep 'Total undiscounted' "
+        system_command = system_command + new_pattern + " | awk '$5 "
+        if(reward_value > 0):
+                system_command = system_command + ">0 ' "
+        else:
+                system_command = system_command + "< 0' "
+        system_command = system_command + " | cut -d':' -f1 | xargs -i grep -B 2 'final_state' {} | grep 'Step' | cut -d' ' -f4 | cut -d'-' -f1 "
+        system_command = system_command + out_str + " " + reward_file_name
+        subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
+
+        #os.system(system_command)
+        i = i+1
+
+    a = int(os.popen("cat " + reward_file_name + " | wc -l").read())
+    if(a!=reward_file_size):
+        print a
+        print reward_file_size
+        print dir_name
+        print reward_file_name
+        #assert(False)
+    os.chdir(prev_path)
+
+def generate_average_step_file_old(dir_name, pattern_list, reward_file_size, reward_file_name, reward_value, end_index):
     prev_path = os.getcwd()
     os.chdir(dir_name)
     i = 0
@@ -93,13 +128,13 @@ def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_
         system_command = system_command + "grep 'Simulation terminated in' | cut -d' ' -f4 "
         system_command = system_command + out_str + " " + reward_file_name
         subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
-            
+
         #os.system(system_command)
         i = i+1
-    
+
     a = int(os.popen("cat " + reward_file_name + " | wc -l").read())
     if(a!=reward_file_size):
-        print a 
+        print a
         print reward_file_size
         print dir_name
         print reward_file_name
@@ -109,17 +144,17 @@ def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_
 def get_highest_number(start_number, i):
     m = int(math.pow(10,i))
     return ((int(start_number/m) + 1)*m) -1
-    
+
 def get_regex_from_number_range(start_number, end_number):
-    
+
     end_number_string = str(end_number)
     start_number_string = str(start_number)
     num_digits_end_number = len(str(end_number_string))
     num_digits_start_number = len(str(start_number_string))
-    
+
     pattern = '_@'
     i = 0
-    intermediate_start_number = get_highest_number(start_number, i+1) 
+    intermediate_start_number = get_highest_number(start_number, i+1)
     while intermediate_start_number <=end_number:
         #print intermediate_start_number
         #print start_number_string
@@ -127,7 +162,7 @@ def get_regex_from_number_range(start_number, end_number):
             pattern = pattern + '('
         else:
             pattern = pattern + '|'
-      
+
         for j in range(0 , num_digits_start_number -(i + 1)):
             pattern = pattern+ start_number_string[j]
         pattern = pattern + "[" + start_number_string[num_digits_start_number -(i + 1)] + "-9]"
@@ -137,7 +172,7 @@ def get_regex_from_number_range(start_number, end_number):
         start_number_string = str(intermediate_start_number + 1)
         intermediate_start_number = get_highest_number(intermediate_start_number + 1, i+1)
         num_digits_start_number = len(str(start_number_string))
-    
+
     #Number of digit in intermediate start number same as number of digits in end number
     intermediate_start_number = int(start_number_string)
     i = 0
@@ -153,19 +188,18 @@ def get_regex_from_number_range(start_number, end_number):
                 pattern = pattern + "[0-9]"
             intermediate_start_number = intermediate_start_number + (int(end_number_string[i]) - int(start_number_string[i]))*int(math.pow(10,num_digits_end_number - (i+1)))
             start_number_string = str(intermediate_start_number)
-        i = i +1 
+        i = i +1
     if intermediate_start_number == end_number:
         pattern = pattern + "|" + end_number_string
-    
+
     pattern = pattern + ')'
-        
+
     #for i in range(0,num_digits_end_number-num_digits_start_number):
     #    pattern = pattern + '?([0-'+end_number_string[i]+'])'
     #for i in range(num_digits_end_number-num_digits_start_number, num_digits_end_number):
     #    pattern = pattern + '[' + start_number_string[i-(num_digits_end_number-num_digits_start_number)] + '-' + end_number_string[i] + ']'
     return pattern
-    
-def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, end_index , checkPick = False):
+def generate_success_failure_case_file(dir_name, pattern_list, file_name, index_step, end_index , checkPick = False):
     prev_path = os.getcwd()
     os.chdir(dir_name)
     all_cases = []
@@ -182,7 +216,58 @@ def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, 
             if checkPick:
                 system_command = "grep -B 11 'Simulation terminated in' "
                 system_command = system_command + new_pattern + " | grep -A 6 'PICK' | grep 'Reward = "
-                
+
+            system_command = system_command + repr(reward_value) + "' | wc -l"
+            success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
+    os.chdir(prev_path)
+
+def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, end_index , checkPick = False):
+    prev_path = os.getcwd()
+    os.chdir(dir_name)
+    all_cases = []
+    num_iterations = end_index/index_step
+    for i in range(0, num_iterations):
+        start_number = i*index_step + 0
+        end_number = (i+1)*index_step -1
+        number_pattern = get_regex_from_number_range(start_number, end_number)
+        #print number_pattern
+        cases=[]
+        for pattern in pattern_list:
+            new_pattern = pattern.replace('.log', number_pattern + '.log')
+            system_command = "grep 'Total undiscounted ' "
+            system_command = system_command + new_pattern + " | awk '$5 "
+            if checkPick:
+                system_command = "grep -B 13 'Total undiscounted ' "
+                system_command = system_command + new_pattern + " | grep -A 12 'PICK' | grep 'Total undiscounted ' |  awk '$5 "
+
+            if(reward_value > 0):
+                system_command = system_command + ">0 ' | wc -l"
+            else:
+                system_command = system_command + "< 0' | wc -l"
+            success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
+            cases.append(float(success_cases))
+        all_cases.append(cases)
+    os.chdir(prev_path)
+    return all_cases
+
+def get_success_failure_cases_old(dir_name, pattern_list, reward_value, index_step, end_index , checkPick = False):
+    prev_path = os.getcwd()
+    os.chdir(dir_name)
+    all_cases = []
+    num_iterations = end_index/index_step
+    for i in range(0, num_iterations):
+        start_number = i*index_step + 0
+        end_number = (i+1)*index_step -1
+        number_pattern = get_regex_from_number_range(start_number, end_number)
+        cases=[]
+        for pattern in pattern_list:
+            new_pattern = pattern.replace('.log', number_pattern + '.log')
+            system_command = "grep -B 5 'Simulation terminated in' "
+            system_command = system_command + new_pattern + " | grep 'Reward = "
+            if checkPick:
+                system_command = "grep -B 11 'Simulation terminated in' "
+                system_command = system_command + new_pattern + " | grep -A 6 'PICK' | grep 'Reward = "
+
             system_command = system_command + repr(reward_value) + "' | wc -l"
             success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
             cases.append(float(success_cases))
@@ -225,7 +310,7 @@ def plot_bar_graph_with_std_error(means, stds, colors):
     N = len(means[0])               # number of data entries
     ind = np.arange(N)              # the x locations for the groups
     width = 0.35                    # bar width
-    
+
     fig, ax = plt.subplots()
     rects = []
     for i in (0,len(means)):
@@ -236,7 +321,7 @@ def plot_bar_graph_with_std_error(means, stds, colors):
                 error_kw={'ecolor':'Black',    # error-bars colour
                           'linewidth':2})       # error-bar width
         rects.append(rects1)
-    
+
     axes = plt.gca()
     axes.set_ylim([0, 100])             # y-axis bounds
 
@@ -255,7 +340,7 @@ def plot_bar_graph_with_std_error(means, stds, colors):
 
 
 def plot_line_graph_with_std_error(fig_name, means,stds,title, legend, xlabel, colors = None):
-  
+
     if colors is None:
         colors = ['blue', 'red', 'yellow', 'teal', 'magenta', 'cyan', 'hotpink', 'lightblue', 'pink']
         colors = ['blue', 'red', 'yellow', 'green', 'magenta', 'cyan', 'black']
@@ -286,11 +371,11 @@ def plot_scatter_graph(y,x, colors, alph):
     plt.xlabel('y')
     plt.ylabel('x')
     #plt.title('Time step 20 sec')
-    
+
 
 
 def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index):
-    
+
     max_reward = 100
     min_reward = -10
     if PROBLEM_NAME == 'toy':
@@ -306,13 +391,13 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     else:
         object_list = get_grasping_object_name_list(test_pattern)
         patterns = ['*' + t + '_*.log' for t in object_list]
-    
+
     reward_file_size = end_index * len(patterns)
     max_success_cases = index_step *  len(patterns)
-    
+
     average_step_file_name = 'average_step_' + test_pattern
     reward_file_name = 'reward_' + test_pattern +'.txt'
-    
+
     reward_csv_file = csv_files[0]
     success_csv_file = csv_files[1]
     av_step_success_file = csv_files[2]
@@ -324,28 +409,28 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
     fraction_dummy_learning_calls_file = csv_files[8]
     if PROBLEM_NAME == 'vrep':
         pick_failure_file = csv_files[9]
-    
+
     mean=-1
     stddev=-1
     stderr=-1
     if(os.path.exists(new_dir_name)):
         success_cases_array = get_success_failure_cases(new_dir_name,patterns, max_reward, index_step, end_index)
         success_cases_per_index_step = [sum(x) for x in success_cases_array]
-        (mean, stddev, stderr) = get_mean_std_for_array(success_cases_per_index_step)        
+        (mean, stddev, stderr) = get_mean_std_for_array(success_cases_per_index_step)
     success_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-    
+
     if(os.path.exists(new_dir_name)):
         success_cases = sum(success_cases_per_index_step)
         generate_average_step_file(new_dir_name, patterns, success_cases, average_step_file_name + '_success.txt' , max_reward, end_index)
         (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + average_step_file_name + '_success.txt')
     av_step_success_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-    
+
     if(os.path.exists(new_dir_name)):
         failure_cases_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index)
         failure_cases_per_index_step =  [sum(x) for x in failure_cases_array]
-        (mean, stddev, stderr) = get_mean_std_for_array(failure_cases_per_index_step)        
+        (mean, stddev, stderr) = get_mean_std_for_array(failure_cases_per_index_step)
     failure_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-    
+
     if(os.path.exists(new_dir_name)):
         failure_cases = sum(failure_cases_per_index_step)
         generate_average_step_file(new_dir_name, patterns, failure_cases, average_step_file_name + '_failure.txt' , min_reward, end_index)
@@ -354,35 +439,35 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
 
     if(os.path.exists(new_dir_name)):
         stuck_cases_per_index_step = [(max_success_cases - x - y) for x,y in zip(success_cases_per_index_step, failure_cases_per_index_step) ]
-        (mean, stddev, stderr) = get_mean_std_for_array(stuck_cases_per_index_step)        
+        (mean, stddev, stderr) = get_mean_std_for_array(stuck_cases_per_index_step)
     stuck_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-    
+
     if(os.path.exists(new_dir_name)):
         generate_reward_file(new_dir_name, patterns, reward_file_size, reward_file_name, end_index)
         (mean, stddev, stderr) = get_mean_std_for_numbers_in_file(new_dir_name + "/" + reward_file_name)
     reward_csv_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-    
+
     if(os.path.exists(new_dir_name)):
         learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec', patterns, index_step, end_index)
         learning_calls_per_index_step = [sum(x) for x in learning_calls_array]
         total_calls_array = get_number_of_learning_calls(new_dir_name, 'Step ', patterns, index_step, end_index)
         total_calls_per_index_step = [sum(x) for x in total_calls_array]
         fraction_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(learning_calls_per_index_step, total_calls_per_index_step)]
-        (mean, stddev, stderr) = get_mean_std_for_array(fraction_learning_calls_per_index_step)        
+        (mean, stddev, stderr) = get_mean_std_for_array(fraction_learning_calls_per_index_step)
     fraction_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-    
+
     if(os.path.exists(new_dir_name)):
         dummy_learning_calls_array = get_number_of_learning_calls(new_dir_name, 'Before calling exec dummy', patterns, index_step, end_index)
         dummy_learning_calls_per_index_step = [sum(x) for x in dummy_learning_calls_array]
         fraction_dummy_learning_calls_per_index_step = [float(x)/float(y) for x,y in zip(dummy_learning_calls_per_index_step, total_calls_per_index_step)]
-        (mean, stddev, stderr) = get_mean_std_for_array(fraction_dummy_learning_calls_per_index_step)        
+        (mean, stddev, stderr) = get_mean_std_for_array(fraction_dummy_learning_calls_per_index_step)
     fraction_dummy_learning_calls_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
 
     num_failed_calls = -1
     num_Error_calls = -1
     num_ERROR_calls = -1
     num_error_calls = -1
-    
+
     if(os.path.exists(new_dir_name)):
         num_failed_calls = sum(get_number_of_learning_calls(new_dir_name, 'failed', patterns, end_index, end_index)[0])
         num_Error_calls = sum(get_number_of_learning_calls(new_dir_name, 'Error', patterns, end_index, end_index)[0])
@@ -394,13 +479,13 @@ def write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_s
             pick_failure_calls_array = get_success_failure_cases(new_dir_name,patterns, min_reward, index_step, end_index, True)
             pick_failure_calls_per_index_step = [sum(x) for x in pick_failure_calls_array]
             fraction_pick_failures_per_index_step = [0 if y==0 else float(x)/float(y) for x,y in zip(pick_failure_calls_per_index_step, failure_cases_per_index_step)]
-            (mean, stddev, stderr) = get_mean_std_for_array(fraction_pick_failures_per_index_step) 
+            (mean, stddev, stderr) = get_mean_std_for_array(fraction_pick_failures_per_index_step)
         pick_failure_file.write("," + repr(mean) + ":" + repr(stddev)+":" + repr(stderr))
-        
+
 def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_scenarios, learning_versions, combined_policy_versions, begin_index, end_index, index_step):
     if dir_name is None:
-        dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"    
-    
+        dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
+
     #means = []
     #stds = []
     csv_files = []
@@ -425,7 +510,7 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     if PROBLEM_NAME == 'vrep':
         pick_failure_file = open(csv_file_name[9], 'w')
         csv_files.append(pick_failure_file)
-    
+
     reward_csv_file.write("Average undiscounted reward")
     success_csv_file.write("Success cases")
     av_step_success_file.write("Average Steps Success")
@@ -437,18 +522,18 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
     av_dummy_learning_calls_file.write("Dummy Leaning calls fraction")
     if PROBLEM_NAME == 'vrep':
         pick_failure_file.write("Fractin pick failures")
-    
+
     for n in sampled_scenarios:
         for csv_file in csv_files:
           csv_file.write(",n" +  n)
-    
+
     for csv_file in csv_files:
         csv_file.write("\n")
-    
+
     for t in time_steps:
         for csv_file in csv_files:
             csv_file.write("T" + t)
-        
+
         #means.append([])
         #stds.append([])
         for n in sampled_scenarios:
@@ -456,42 +541,42 @@ def generate_csv_file(csv_file_name, dir_name, test_pattern, time_steps,sampled_
             write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
         for csv_file in csv_files:
             csv_file.write("\n")
-        
-        
+
+
     for l in learning_versions:
         for csv_file in csv_files:
             csv_file.write("L" + l)
-        
+
         for n in sampled_scenarios:
             new_dir_name = dir_name + "/learning/version" + l
             write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
-        for csv_file in csv_files:    
+        for csv_file in csv_files:
             csv_file.write("\n")
-        
+
         for c in combined_policy_versions:
             for t in time_steps[0:1]:
-                for csv_file in csv_files:    
+                for csv_file in csv_files:
                     csv_file.write("L" + l + "T" + t + "S" + c)
-                
+
                 #means.append([])
                 #stds.append([])
                 for n in sampled_scenarios:
                     new_dir_name = dir_name + "/learning/version" + l + "/combined_" + c+"/t" + t+ "_n" + n
-                    write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)                
-                
-                for csv_file in csv_files: 
+                    write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
+
+                for csv_file in csv_files:
                     csv_file.write("\n")
     a = time_steps + sampled_scenarios + learning_versions + combined_policy_versions
     #if 'baseline' in dir_name:
     if not a:
-        for csv_file in csv_files: 
+        for csv_file in csv_files:
             csv_file.write(os.path.basename(dir_name))
         new_dir_name = dir_name
         write_statistics_to_csv_files(new_dir_name, test_pattern, csv_files, index_step, end_index)
-        for csv_file in csv_files: 
+        for csv_file in csv_files:
             csv_file.write("\n")
- 
-   
+
+
 def generate_latex_table(means,stds, legend, xlabels, csv_file):
     latex_table_file_name = csv_file.split('.')[0] + '.tex'
     ans = raw_input('Show standard deviation [y or n]?')
@@ -508,12 +593,12 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
         line = line + "\\\\ "
         lines.append(line)
         lines.append("\hline")
-    
+
     for i in range(0,NR):
         line = legend[i].replace('L7', 'L1').replace('L8', 'L1') + " "
         if ('T5S' in line) or ('T10S' in line):
             continue
-        
+
         if 'dummy' in csv_file and 'S3' not in line:
             continue
         for j in range(0, NC):
@@ -529,27 +614,27 @@ def generate_latex_table(means,stds, legend, xlabels, csv_file):
         lines.append(line)
     lines.append("\hline")
     lines.append("\end{tabular}")
-    
+
     with open(latex_table_file_name, 'w') as f:
         f.write('\n'.join(lines))
-      
+
 
 def generate_combined_csv(base_dir, dir_list, pattern, out_dir ):
-    
+
     patterns=[]
     if('|' in pattern):
         pattern = pattern.strip('|')
-        patterns = [pattern] 
+        patterns = [pattern]
     if('#' in pattern):
         pattern = pattern.strip('#')
         patterns = []
-    
+
     patterns = patterns + get_grasping_object_name_list(pattern)
     data_types = get_data_types()
     combined_csv_data = {}
     csv_name_prefix = 'a'
     for data_type in data_types:
-        
+
         policy_names = []
         pattern_data = {}
         for p in patterns:
@@ -587,11 +672,11 @@ def generate_combined_csv(base_dir, dir_list, pattern, out_dir ):
                 for p_data in pattern_data[p]:
                     out_file.write(","+p_data)
                 out_file.write("\n")
-        
-            
+
+
     return combined_csv_data
-                        
-        
+
+
 def plot_graph_from_csv(csv_file, plt_error):
     plt_title = None
     xlabels = None
@@ -623,7 +708,7 @@ def plot_graph_from_csv(csv_file, plt_error):
     if ans=='y':
         generate_latex_table(means,stds, legend, xlabels, csv_file)
     plot_line_graph_with_std_error(fig_name, means, stds, plt_title, legend, xlabels)
-    
+
 
 def get_data_types():
     data_types = ['reward', 'success_cases', 'av_step_success', 'av_step_failure', 'failure_cases', 'stuck_cases', 'percent_learning_calls']
@@ -634,8 +719,8 @@ def get_data_types():
     return data_types
 
 def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern, inputs = None):
-    
-    
+
+
     #data_type = 'reward'
     #input_data_type = raw_input("Data type: reward or success_cases ?")
     data_types = get_data_types()
@@ -651,11 +736,11 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
     #if data_type == 'success_cases':
     #    csv_file_names.append(csv_name_prefix + '_' + 'av_step_success' + '_' + pattern + '.csv')
     #    csv_file_names.append(csv_name_prefix + '_' + 'av_step_failure' + '_' + pattern + '.csv')
-    
-    
+
+
     file_name_begin_range = 0
     file_name_end_range = len(csv_file_names)
-    if plot_graph == 'yes': 
+    if plot_graph == 'yes':
         raw_input_message = "Plot "
         for i in range(0,len(data_types)):
             raw_input_message = raw_input_message + data_types[i] + '[' + repr(i) + '] '
@@ -666,11 +751,11 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
             plot_type = int(inputs[-1])
         file_name_begin_range = plot_type
         file_name_end_range = plot_type + 1
-       
-    
+
+
     csv_file_names_for_generation = csv_file_names[:]
     generate_csv = False
-    
+
     for i  in range(file_name_begin_range, file_name_end_range):
         if os.path.exists(csv_file_names[i]):
             if inputs is None:
@@ -682,10 +767,10 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
             else:
                 #generate_csv = False and generate_csv
                 csv_file_names_for_generation[i] = 'dummy'+ repr(i)+'.csv'
-            
-                
+
+
         else:
-            generate_csv = True  
+            generate_csv = True
 
 
 
@@ -721,22 +806,22 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
             begin_index_input = inputs[6]
             end_index_input = inputs[7]
             index_step_input = inputs[8]
-            
+
         begin_index = 0
         end_index = 1000
         index_step = 1000
-        
+
         if begin_index_input:
             begin_index = int(begin_index_input)
-            
+
         if end_index_input:
             end_index = int(end_index_input)
-        
-                
+
+
         if index_step_input:
             index_step = int(index_step_input)
-        
-        
+
+
         print "dir_name is: " + dir_name
         print inputs
         #if data_type == 'reward':
@@ -749,7 +834,7 @@ def get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, p
         if plot_type > 0:
             plt_error = False
         plot_graph_from_csv(csv_file_names[plot_type], plt_error)
-    
+
 
 
 def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
@@ -759,7 +844,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
         from yaml import CDumper as Dumper
     except ImportError:
         from yaml import Dump
-    
+
     dir_list = dir_names.split(',')
     if(plot_graph == 'yes'):
         fig, ax = plt.subplots(3,len(dir_list))
@@ -772,7 +857,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
                 overwrite_file = raw_input("File " + yaml_file_name + " already exists. Shall I overwrite?[y|n]")
                 if overwrite_file != 'y':
                     compute_data = False
-        if compute_data:    
+        if compute_data:
             iteration_data = get_and_plot_success_failure_cases_for_vrep_inner(dir_list[i], pattern+ "_")
             output = dump(iteration_data, Dumper=Dumper)
             f = open(yaml_file_name, 'w')
@@ -781,7 +866,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
             if(plot_graph == 'yes'):
                 with open(yaml_file_name,'r') as stream:
                     iteration_data = yaml.load(stream)
-        if(plot_graph == 'yes'):        
+        if(plot_graph == 'yes'):
             num_iterations = len(iteration_data.keys())
             plot_no = i+1
             plot_tot = len(dir_list)
@@ -794,7 +879,7 @@ def get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_names, pattern):
         plt.show()
 
 def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern):
-    
+
     min_x_o = 0.4586  #range for object location
     max_x_o = 0.5517; #range for object location
     min_y_o = 0.0829; #range for object location
@@ -803,9 +888,98 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern):
     min_reward = -10
     if 'penalty100' in dir_name:
         min_reward = -10
-    
+
     #time_step = raw_input('Time step?')
-    
+
+    #scenarios = raw_input('Sccenarios?')
+    #time_scenario_string = 't'+ time_step + '_n' + scenarios
+    #if time_step != 'None':
+    #    dir_name = dir_name +'/' +time_scenario_string
+    print dir_name
+    cur_dir = os.getcwd()
+    os.chdir(dir_name)
+    num_cases = 90
+    num_iterations = 3
+    #fig, ax = plt.subplots(1,1)
+    iteration_data = {}
+    for j in range(0,num_iterations):
+        x = []
+        y = []
+        colors = [[],[],[]]
+        for ii in range(0, num_cases):
+            i = j*num_cases + ii
+            a = '_'+repr(i)+ '.log'
+
+            #file_list = [f for f in os.listdir('.')]
+            #print file_list
+            file_list = [f for f in os.listdir('.') if (os.path.isfile(f) and (pattern in f) and (a in f)) ]
+            log_filename = file_list[0]
+            #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+            #log_filename = dir_name +'/' +time_scenario_string + '/TableScene_cylinder_'+ pattern +'_gaussian_belief_with_state_in_belief_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+            #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+            #log_filename = dir_name +'/' +time_scenario_string + '/Table_scene_low_friction_'+ pattern +'_cylinder_belief_gaussian_with_state_in_' + time_scenario_string + '_trial_' + repr(i) + '.log'
+
+
+            #fullData =  ParseLogFile(log_filename, 'vrep', 0, 'vrep').getFullDataWithoutBelief()
+            #simple parser for new log file
+            total_discounted_reward = 0
+            pick_action = False
+            f = open(log_filename, 'r')
+            while True:
+                line = f.readline()
+                if not line:
+                    break;
+                if 'Total discounted ' in line:
+                    values = ParseLogFile.rx.findall(line)
+                    total_discounted_reward = float(values[0])
+                if 'PICK' in line:
+                    pick_action = True
+
+
+            x.append(ii % 9)
+            y.append(ii / 9)
+            if total_discounted_reward > 0:
+
+                    colors[0].append('green')
+                    colors[1].append('white')
+                    colors[2].append('white')
+
+            elif total_discounted_reward < 0:
+                print "Red " + repr(i % num_cases)
+
+                if(pick_action):
+                    colors[1].append('red')
+                else:
+                    colors[1].append('blue')
+
+                colors[0].append('white')
+                colors[2].append('white')
+            else:
+                print "Yellow " + repr(i % num_cases)
+
+                colors[2].append('yellow')
+                colors[0].append('white')
+                colors[1].append('white')
+        iteration_data[j] = (x[:],y[:],[colors[0][:], colors[1][:],colors[2][:]])
+
+    os.chdir(cur_dir)
+    return iteration_data
+    #plt.show()
+    #fig.savefig("figure_1.png")
+
+def get_and_plot_success_failure_cases_for_vrep_inner_old(dir_name, pattern):
+
+    min_x_o = 0.4586  #range for object location
+    max_x_o = 0.5517; #range for object location
+    min_y_o = 0.0829; #range for object location
+    max_y_o = 0.2295; #range for object location
+    max_reward = 100
+    min_reward = -10
+    if 'penalty100' in dir_name:
+        min_reward = -10
+
+    #time_step = raw_input('Time step?')
+
     #scenarios = raw_input('Sccenarios?')
     #time_scenario_string = 't'+ time_step + '_n' + scenarios
     #if time_step != 'None':
@@ -839,36 +1013,35 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern):
             x.append(fullData['roundInfo']['state'].o_x)
             y.append(fullData['roundInfo']['state'].o_y)
             if fullData['stepInfo'][-1]['reward'] == max_reward:
-                
+
                     colors[0].append('green')
                     colors[1].append('white')
                     colors[2].append('white')
-                    
+
             elif fullData['stepInfo'][-1]['reward'] == min_reward:
                 print "Red " + repr(i % num_cases)
-                
+
                 if('PICK' in fullData['stepInfo'][-1]['action']):
                     colors[1].append('red')
                 else:
                     colors[1].append('blue')
-                
+
                 colors[0].append('white')
                 colors[2].append('white')
             else:
                 print "Yellow " + repr(i % num_cases)
-                
+
                 colors[2].append('yellow')
                 colors[0].append('white')
                 colors[1].append('white')
         iteration_data[j] = (x[:],y[:],[colors[0][:], colors[1][:],colors[2][:]])
-        
+
     os.chdir(cur_dir)
     return iteration_data
     #plt.show()
     #fig.savefig("figure_1.png")
-    
-        
-    
+
+
 def get_list_input(sampled_scenarios, command):
     while True:
         input = raw_input(command + " are " + " ".join(map(str, sampled_scenarios)) + " To add type a <no>. To remove type r <no>. To stop type s.")
@@ -882,23 +1055,23 @@ def get_list_input(sampled_scenarios, command):
             a = input.split(' ')[1]
             if a in sampled_scenarios:
                 sampled_scenarios.remove(a)
-    return sampled_scenarios        
+    return sampled_scenarios
 def get_csv_name_prefix(data_dir):
     if PROBLEM_NAME == 'vrep':
         split_string = 'grasping_ros_mico'
         csv_file_path = 'grasping_ros_mico' + data_dir.split(split_string)[-1]
         if not(os.path.exists("unicorn_csv_files/" + csv_file_path)):
             os.makedirs("unicorn_csv_files/" + csv_file_path)
-        
+
         csv_file_prefix = csv_file_path + "/a"
         return "unicorn_csv_files/" + csv_file_prefix
-        
+
 def main():
     plot_graph = 'no'
     csv_name_prefix = None
     plot_sucess_failure_cases=False
     dir_name = "/home/neha/WORK_FOLDER/ncl_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/results/despot_logs/multiObjectType/belief_cylinder_7_8_9_reward100_penalty10"
-    global PROBLEM_NAME    
+    global PROBLEM_NAME
     opts, args = getopt.getopt(sys.argv[1:],"hpqt:d:f:",["dir=","csv_prefix="])
     #print opts
     for opt, arg in opts:
@@ -916,11 +1089,11 @@ def main():
          csv_name_prefix = arg
       elif opt=='-t':
           PROBLEM_NAME = arg
-         
+
     if(csv_name_prefix is None):
         #get csv name prefix from data dir
         csv_name_prefix = get_csv_name_prefix(dir_name)
-        
+
     #else :
     #    print "Invalid pattern. Setting pattern as test"
     input_file = None
@@ -939,11 +1112,11 @@ def main():
                         if('|' in pattern):
                             pattern = pattern.strip('|')
                             patterns = [pattern] + get_grasping_object_name_list(pattern)
-                   
+
                         if('#' in pattern):
                             pattern = pattern.strip('#')
                             patterns = []
-    
+
                         patterns = patterns + get_grasping_object_name_list(pattern)
                         for p in patterns:
                             if(plot_sucess_failure_cases):
@@ -966,11 +1139,11 @@ def main():
             get_and_plot_success_failure_cases_for_vrep(plot_graph, dir_name, pattern)
         else:
             get_params_and_generate_or_plot_csv(plot_graph, csv_name_prefix, dir_name, pattern)
-            
-        
+
+
 
 if __name__ == '__main__':
-    main()    
+    main()
 """
 #Performance toy problem
 L2PT10Train = [0,0,0,0,0]
@@ -1021,10 +1194,10 @@ rects1 = ax.bar(ind, trainMeans,                  # data
                 error_kw={'ecolor':'Black',    # error-bars colour
                           'linewidth':2})       # error-bar width
 
-rects2 = ax.bar(ind + width, testMeans, 
-                width, 
-                color='Tomato', 
-                yerr=testStd, 
+rects2 = ax.bar(ind + width, testMeans,
+                width,
+                color='Tomato',
+                yerr=testStd,
                 error_kw={'ecolor':'Black',
                           'linewidth':2})
 
@@ -1067,19 +1240,19 @@ l = len(lfp.stepInfo_[0]['belief'])
 for i in range(0, l):
     x.append(lfp.stepInfo_[0]['belief'][i]['state'].o_x)
     y.append(lfp.stepInfo_[0]['belief'][i]['state'].o_y)
-    
-"""    
-     
+
+"""
+
 """
 for i in range(0,10):
     for j in range(0,10):
         count = len(x)
-        filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/ros/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_t20_n10_state_' 
+        filename = '/home/neha/WORK_FOLDER/phd2013/phdTopic/ros/apc/rosmake_ws/despot_vrep_glue/results/despot_logs/VrepData_t20_n10_state_'
         filename = filename  + repr(count) + '.log'
         txt = open(filename).read()
         x.append(min_x_o + (i*(max_x_o - min_x_o)/9.0))
         y.append(min_y_o + (j*(max_y_o - min_y_o)/9.0))
-        
+
         if 'Reward = 20' in txt :
             colors.append('green')
         elif 'Reward = -100' in txt  :
@@ -1089,7 +1262,3 @@ for i in range(0,10):
         else:
             colors.append(0)
 """
-
-
-
-
