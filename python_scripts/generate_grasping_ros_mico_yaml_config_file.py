@@ -536,6 +536,7 @@ class ConfigFileGenerator():
         self.use_probabilistic_neighbour_step = False
         self.use_discrete_observation_in_update = False
         self.use_discrete_observation_in_step = False
+        self.use_point_five_for_pick = False
 
         self.filetypes = [''] #Con contain learning and combined policy dir paths
         if('headphones_train3' in type):
@@ -607,6 +608,8 @@ class ConfigFileGenerator():
             self.use_discrete_observation_in_update = True
         if('discrete_observation_in_step' in type):
             self.use_discrete_observation_in_step = True
+        if('point_five_for_pick' in type):
+            self.use_point_five_for_pick = True
         if get_config:
             self.belief_type=""
             self.distribution_type = ""
@@ -648,6 +651,8 @@ class ConfigFileGenerator():
                         file_prefix = file_prefix + "/use_classifier/" + self.keras_model_name
                     if(self.clip_objects):
                         file_prefix = file_prefix + "/clip-" + self.num_clip
+                    if(self.use_point_five_for_pick):
+                        file_prefix = file_prefix + "/use_point_five_for_pick"
                     file_prefix = file_prefix + "/" + interface_type
                     file_prefix = file_prefix + self.distribution_type
                     file_prefix = file_prefix+filetype
@@ -718,6 +723,7 @@ def get_hand_defined_actions(type):
 #type = 'baseline_wider_workspace_<no>'
 #type = 'g3db_instances_train3_version7_discretize_weighted_classifier_kmeans_label_3_binary_touch_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_discrete_observation_in_step'
 #type ='headphones_train3'
+#type = 'headphones_train3_point_five_for_pick'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)
@@ -758,6 +764,8 @@ def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weig
             ans["use_discrete_observation_in_update"] = True
         if cfg.use_discrete_observation_in_step:
             ans["use_discrete_observation_in_step"] = True
+        if cfg.use_point_five_for_pick :
+            ans["use_point_five_for_pick"] = True
         if 'baseline' in filename:
             ans["object_mapping"] = [object_type]
             ans["belief_object_ids"] = []
