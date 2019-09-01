@@ -145,6 +145,36 @@ def get_terminal_value_non_pick(x):
 def get_terminal_value_pick(x):
     return tf.ones_like(x)
 
+def get_combined_prob(args):
+    prob_output = args[0]
+    observable_state_output = args[1]
+    input_s_full1 = args[2]
+    ones_array = tf.ones_like(prob_output)
+    gripper_pose_x,gripper_pose_y,object_pose,gripper_joint_angles_0,gripper_joint_angles_1,object_id,close_called_input,touch_values_0,touch_values_1,vision_movement = tf.split(input_s_full1,[1,1,3,1,1,1,1,1,1,1],1)
+    gripper_pose_observed_x,gripper_pose_observed_y,gripper_joint_angles_0_observed,gripper_joint_angles_1_observed,close_called_input_observed,touch_values_0_observed,touch_values_1_observed,vision_movement_observed = tf.split(observable_state_output,[1,1,1,1,1,1,1,1],1)
+    gripper_distance_a = tf.sqrt(tf.squared_difference(gripper_pose_x,gripper_pose_observed_x) + tf.squared_difference(gripper_pose_y,gripper_pose_observed_y))
+    gripper_distance_b = tf.where(gripper_distance_a > 0.015, 2*ones_array, gripper_distance_a)
+    gripper_distance = tf.where(gripper_distance_b < 0.005, 0*ones_array, gripper_distance_b)
+
+    vision_movement_binary = tf.where(vision_movement > 0.5, ones_array, 0*ones_array)
+    vision_movement_observed_binary = tf.where(vision_movement_observed > 0.5, ones_array, 0*ones_array)
+    vision_movement_distance = tf.abs(vision_movement_binary - vision_movement_observed_binary)
+
+    touch_values_0_binary = tf.where(touch_values_0 > 0.35, ones_array, 0*ones_array)
+    touch_values_1_binary = tf.where(touch_values_1 > 0.35, ones_array, 0*ones_array)
+    touch_values_0_observed_binary = tf.where(touch_values_0_observed > 0.35, ones_array, 0*ones_array)
+    touch_values_1_observed_binary = tf.where(touch_values_1_observed > 0.35, ones_array, 0*ones_array)
+
+    touch_distance = 0.5*(tf.abs(touch_values_0_binary-touch_values_0_observed_binary) + tf.abs(touch_values_1_binary-touch_values_1_observed_binary))
+
+    finger_distance = 0.5*(tf.abs(gripper_joint_angles_0-gripper_joint_angles_0_observed) + tf.abs(gripper_joint_angles_1-gripper_joint_angles_1_observed))
+    total_distance_without_close = (1*finger_distance + 4*touch_distance + 2*vision_movement_distance + 2*gripper_distance )/9.0
+    total_distance_with_close = (2*finger_distance + 4*touch_distance + 1*vision_movement_distance + 2*gripper_distance )/9.0
+    total_distance = tf.where(close_called_input > 0.5, total_distance_with_close,total_distance_without_close)
+    prob_due_to_state = tf.pow(0.5*ones_array,5*total_distance)
+    return tf.multiply(prob_output,prob_due_to_state)
+
+
 # reparameterization trick
 # instead of sampling from Q(z|X), sample epsilon = N(0,I)
 # z = z_mean + sqrt(var) * epsilon
@@ -459,6 +489,7 @@ def get_image_encoder_model():
     image_input_flatten = layers.Flatten()(image_input)
     encoded_image =  get_image_input_layer(image_input, output_dim)
     image_encoder_model = tf.keras.Model(image_input, encoded_image, name='image_encoder_model')
+
     return image_encoder_model
 
 def keras_function_observation_model(latent_dim):
@@ -606,9 +637,9 @@ def keras_functional_transition_model_pick_action():
           metrics=['accuracy'])
 
     random_number_input = tf.keras.Input(shape=(1,), name = 'random_number')
-    input_dim_full = 8 + 1
+    input_dim_full = 8 + 1+3
     input_s_full = tf.keras.Input(shape=(input_dim_full,), name = 'input_state') #input_s, close_called_input, action id needed to update close_called_input
-    input_s_breakup,close_called_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1],1), name='split_full_input')(input_s_full)
+    input_s_breakup,close_called_input,touch_vision_movement_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1,3],1), name='split_full_input')(input_s_full)
     pick_output_ = pick_model(input_s_breakup)
     pick_reward = layers.Lambda(get_reward_pick_action, name = 'pick_action_reward')([random_number_input,pick_output_,close_called_input])
     terminal_state_output = layers.Lambda(get_terminal_value_pick, name = 'get_terminal_value_pick')(close_called_input)
@@ -620,9 +651,9 @@ def keras_functional_transiton_model_with_reward_and_terminal_state(latent_dim,a
     vae, encoder, decoder = keras_functional_transition_model(latent_dim)
     #create reward and next state outputs
     input_dim = 8
-    input_dim_full = 8 + 1
+    input_dim_full = 8 + 1+3
     input_s_full = tf.keras.Input(shape=(input_dim_full,), name = 'input_state') #input_s, close_called_input, action id needed to update close_called_input
-    input_s,close_called_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1],1), name='split_full_input')(input_s_full)
+    input_s,close_called_input,initial_touch_vision_movement = layers.Lambda(lambda x: tf.split(x,[input_dim,1,3],1), name='split_full_input')(input_s_full)
     final_s = prepare_state_input_layer(latent_dim, input_s)
     output_dim = 10 #delta gripper_2D_pos, delta object_2D_pose, delta theta z, delta joint_angles, touch values, vision movement
     intermediate_dim = 32
@@ -644,7 +675,7 @@ def keras_functional_transiton_model_with_reward_and_terminal_state(latent_dim,a
         close_called_input = layers.Lambda(get_close_called_open_action, name = 'update_close_called_open_action')(close_called_input)
     else:
         reward = layers.Lambda(get_reward_move_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement])
-    next_state_full = layers.Concatenate(name='concatenate_next_state_output')([next_state, object_id,close_called_input])
+    next_state_full = layers.Concatenate(name='concatenate_next_state_output')([next_state, object_id,close_called_input,touch_values,vision_movement])
     terminal_state_output = layers.Lambda(get_terminal_value_non_pick, name = 'get_terminal_value_non_pick')(close_called_input)
     full_model = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward], name = 'full_model')
     return decoder,full_model
@@ -679,40 +710,55 @@ def keras_functional_transiton_model_with_reward_and_terminal_state_old(latent_d
     full_model = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward], name = 'full_model')
     return decoder,full_model
 
-def get_final_observation_model(latent_dim, v1=False):
+def get_final_observation_model(latent_dim, v1=False,compute_prob_from_touch=False):
     vae, encoder, decoder,image_decoder,prob_decoder, vae_without_loss = keras_function_observation_model(latent_dim)
     input_dim = 8
-    input_dim_full = 8 + 1
+    input_dim_full = 8 + 1 + 3
     input_s_full1 = tf.keras.Input(shape=(input_dim_full,), name = 'input_state1') #input_s, close_called_input, action id needed to update close_called_input
-    input_s1,close_called_input1 = layers.Lambda(lambda x: tf.split(x,[input_dim,1],1), name='split_full_input1')(input_s_full1)
+    input_s1,close_called_input1,touch_vision_movement_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1,3],1), name='split_full_input1')(input_s_full1)
     if v1:
         decoder_output_dim = 8
-        decoder_outputs = tf.keras.Input(shape=(decoder_output_dim,), name = 'obs_input')
+        full_obs_output_dim = 8 + 2 + 2 + 1 + 3 #gripper pose, joint angles, close called input, touch, vision movement
+        full_obs_output = tf.keras.Input(shape=(full_obs_output_dim,), name = 'obs_input')
+        decoder_outputs,observable_state_output = layers.Lambda(lambda x: tf.split(x,[decoder_output_dim,full_obs_output_dim-decoder_output_dim],1), name='split_full_obs')(full_obs_output)
     else:
         input_s_full = tf.keras.Input(shape=(input_dim_full,), name = 'input_state') #input_s, close_called_input, action id needed to update close_called_input
-        input_s,close_called_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1],1), name='split_full_input')(input_s_full)
+        input_s,close_called_input,touch_vision_movement_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1,3],1), name='split_full_input')(input_s_full)
         latent_inputs = tf.keras.Input(shape=(latent_dim,), name='z_sampling')
         decoder_outputs = decoder([latent_inputs,input_s])
 
 
     prob_output = prob_decoder([input_s1,decoder_outputs])
-    if v1:
-        full_model = tf.keras.Model([input_s_full1,decoder_outputs], prob_output, name = 'full_prob_model')
+    if compute_prob_from_touch:
+        if v1:
+            combined_prob_output = layers.Lambda(get_combined_prob,name='get_combined_prob')([prob_output,observable_state_output,input_s_full1])
+            full_model = tf.keras.Model([input_s_full1,full_obs_output], combined_prob_output, name = 'full_prob_model')
+        else:
+            gripper_pose,object_pose,gripper_joint_angles,object_id,close_called_input,touch_values,vision_movement = layers.Lambda(lambda x: tf.split(x,[2,3,2,1,1,2,1],1), name='split_next_state')(input_s_full)
+            observable_state_output = layers.Concatenate(name='concatenate_obs_output')([gripper_pose,gripper_joint_angles,close_called_input,touch_values,vision_movement])
+
+            combined_prob_output = layers.Lambda(get_combined_prob,name='get_combined_prob')([prob_output,observable_state_output,input_s_full1])
+            full_model = tf.keras.Model([input_s_full,input_s_full1,latent_inputs], combined_prob_output, name = 'full_prob_model')
     else:
-        full_model = tf.keras.Model([input_s_full,input_s_full1,latent_inputs], prob_output, name = 'full_prob_model')
+        if v1:
+            full_model = tf.keras.Model([input_s_full1,decoder_outputs], prob_output, name = 'full_prob_model')
+        else:
+            full_model = tf.keras.Model([input_s_full,input_s_full1,latent_inputs], prob_output, name = 'full_prob_model')
     return vae, encoder, decoder,image_decoder,prob_decoder, vae_without_loss, full_model
 
 def keras_functional_transiton_model_with_reward_and_terminal_state_v1(latent_dim,action_id):
     vae, encoder, decoder,image_decoder,prob_decoder, vae_without_loss = keras_function_observation_model(latent_dim)
     decoder1,full_model = keras_functional_transiton_model_with_reward_and_terminal_state(latent_dim,action_id)
     input_dim = 8
-    input_dim_full = 8 + 1
+    input_dim_full = 8 + 1 + 3
     input_s_full = tf.keras.Input(shape=(input_dim_full,), name = 'input_state') #input_s, close_called_input, action id needed to update close_called_input
-    input_s,close_called_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1],1), name='split_full_input')(input_s_full)
+    input_s,close_called_input,touch_vision_movement_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1,3],1), name='split_full_input')(input_s_full)
     latent_inputs = tf.keras.Input(shape=(latent_dim,), name='z_sampling')
     [next_state_full,terminal_state_output,reward] = full_model([input_s_full,latent_inputs])
     obs_output = decoder([latent_inputs,input_s])
-    full_model_v1 = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward,obs_output], name = 'full_model_v1')
+    gripper_pose,object_pose,gripper_joint_angles,object_id,close_called_input,touch_values,vision_movement = layers.Lambda(lambda x: tf.split(x,[2,3,2,1,1,2,1],1), name='split_next_state')(next_state_full)
+    obs_output_with_touch_vision_gripper_state = layers.Concatenate(name='concatenate_obs_output')([obs_output, gripper_pose,gripper_joint_angles,close_called_input,touch_values,vision_movement])
+    full_model_v1 = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward,obs_output_with_touch_vision_gripper_state], name = 'full_model_v1')
     return decoder, decoder1, full_model_v1
 
 
@@ -971,7 +1017,7 @@ def save_observation_encoder_model(action,gpuID, v1 = False):
                                      outputs=encoder1.get_layer('dense_8').output, name = 'inter_model')
 
 
-
+    image_encoder_model.summary()
     for layer_name in layer_name_mapping.keys():
         layer_name1 = layer_name_mapping[layer_name]
         image_encoder_model.get_layer(layer_name).set_weights(encoder1.get_layer(layer_name1).get_weights())
@@ -993,18 +1039,18 @@ def save_observation_encoder_model(action,gpuID, v1 = False):
     tf.train.write_graph(frozen_graph, ".", 'observation_model/observation_encoder_model_' + repr(action) +'.pb', as_text=False)
 
 #v1 takes encoded observation as an input
-def save_final_observation_model(action,gpuID, v1=False):
+def save_final_observation_model(action,gpuID, v1=False, get_obs_prob_from_state=True):
     K.set_learning_phase(0)
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
     latent_dim = 2
     observation_model_name = 'observation_model/vae_observation_model_' + repr(action) +'.h5'
     if(action==8 or (action % 2 == 1 and action < 8)):
-        vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1)
+        vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1,get_obs_prob_from_state)
 
         vae1.load_weights(observation_model_name)
     else:
         vae, encoder, decoder, vae_without_loss = keras_function_observation_model_without_image_prob_decoder(latent_dim)
-        vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1)
+        vae1, encoder1, decoder1,image_decoder1,prob_decoder1, vae_without_loss1, full_model = get_final_observation_model(latent_dim,v1,get_obs_prob_from_state)
         vae.load_weights(observation_model_name)
 
         encoder1.set_weights(encoder.get_weights())
@@ -1042,13 +1088,19 @@ def save_final_observation_model(action,gpuID, v1=False):
         print full_model.inputs
         frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in full_model.outputs])
-        tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_v1_' + repr(action) +'.pb', as_text=False)
+        if get_obs_prob_from_state:
+            tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_v1_v2_' + repr(action) +'.pb', as_text=False)
+        else:
+            tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_v1_' + repr(action) +'.pb', as_text=False)
     else:
         print full_model.outputs
         print prob_decoder1.inputs
         frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in full_model.outputs])
-        tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_' + repr(action) +'.pb', as_text=False)
+        if get_obs_prob_from_state:
+            tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_v2_' + repr(action) +'.pb', as_text=False)
+        else:
+            tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_' + repr(action) +'.pb', as_text=False)
 
 def save_transiton_model_with_reward_graph_v1(action,gpuID):
     K.set_learning_phase(0)
@@ -1060,7 +1112,7 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         vae1, encoder1, decoder1 = keras_functional_transition_model(latent_dim)
         vae1.load_weights(transition_model_name)
         if(action==8 or (action % 2 == 1 and action < 8)):
-            vae, encoder, decoder,image_decoder,prob_decoder, vae_without_loss, full_model = get_final_observation_model(latent_dim)
+            vae, encoder, decoder,image_decoder,prob_decoder, vae_without_loss, full_model_ = get_final_observation_model(latent_dim)
             vae.load_weights(observation_model_name)
         else:
             vae, encoder, decoder, vae_without_loss = keras_function_observation_model_without_image_prob_decoder(latent_dim)
@@ -1075,14 +1127,23 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         print full_model.outputs
         print full_model.inputs
         #X = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0, 1.0]])
-        X = np.array([[0.33738 ,0.15156 ,0.55902 ,0.11335, -0.031684, 1.0613, 1.061, 0 ,1]])
-        X1 = np.array([[0.33738 ,0.15156 ,0.55902 ,0.11335, -0.031684, 1.0613, 1.061, 0]])
+        X = np.array([[0.44792, 0.16161,0.57633, 0.13667,1.1741839,-0.00023365,5.1975e-05, 2, 0,0,0,0]])
+        X1 = np.array([[0.44792, 0.16161,0.57633, 0.13667,1.1741839,-0.00023365,5.1975e-05, 2]])
+
         #X = np.array([[0.33738 ,0.15156 ,0.55902 ,0.11335, -0.031684, 0.00001, 0.0002, 0 ,0]])
         #X1 = np.array([[0.33738 ,0.15156 ,0.55902 ,0.11335, -0.031684, 0.00001, 0.0002, 0]])
         R = np.array([np.random.normal(0,1,latent_dim)])
+        #n = 30
+        #grid_x = np.linspace(-4, 4, n)
+        #grid_y = np.linspace(-4, 4, n)[::-1]
+        print X
+        #for i, yi in enumerate(grid_y):
+        #    for j, xi in enumerate(grid_x):
+        #        R = np.array([[xi, yi]])
+        print R
         Y = full_model.predict([X,R])
         Y1 = decoder1_.predict([R,X1])
-        print X
+
         print Y1
         print Y
         frozen_graph = freeze_session(K.get_session(),
@@ -1096,7 +1157,7 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         print full_model.outputs
         print full_model.inputs
         #X = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0, 1.0]])
-        X = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0, 1.0]])
+        X = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0, 1.0,0,0,0]])
         R = np.array([0.5])
         Y = full_model.predict([X,R])
         #X1 = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0]])
@@ -1104,7 +1165,8 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         X1 = np.array([[0.51267, 0.16278, 0.67928, 0.12716, 1.2047, 0.78657, 0.76514, 0 ]])
         X1 = np.array([[0.52122, 0.14432, 0.71663, 0.15111, 0.92371, 0.69064, 0.67595, 0]])
         X1 = np.array([[0.47137, 0.12947, 0.62862, 0.12996, 0.69688, 0.5232, 0.48833, 0]])
-
+        X1 = np.array([[0.44801125,  0.1615794 ,  0.59486026,  0.14691669,  0.92039025, 0.7565701 ,  0.73769093,  2.]])
+        X1 = np.array([[0.44801125,  0.1615794 ,  0.61486026,  0.16691669,  0.52039025, 1.07 ,  1.07,  2.]])
         Y1 = pick_model.predict(X1)
         print Y
         print Y1
@@ -1246,6 +1308,8 @@ if __name__ == '__main__':
         save_final_observation_model(int(args.action),args.gpuID,True)
     if(args.train == 'stv1'): #save transition model
         save_transiton_model_with_reward_graph_v1(int(args.action),args.gpuID)
+    if(args.train == 'sov2'): #save observation model
+        save_final_observation_model(int(args.action),args.gpuID,True,True)
     #keras_functional_transition_model(2)
     #print "Creating observation model"
     #keras_function_observation_model(2)
