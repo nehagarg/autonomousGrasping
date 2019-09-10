@@ -90,16 +90,21 @@ def generate_average_step_file(dir_name, pattern_list, reward_file_size, reward_
         if i == 0:
             out_str = '>'
         #grep 'Total undiscounted' *.log | awk '$5 > 0' | cut -d':' -f1 | xargs -i grep -B 2 'final_state' {} | grep Step
-        system_command = "grep 'Total undiscounted' "
-        system_command = system_command + new_pattern + " | awk '$5 "
-        if(reward_value > 0):
-                system_command = system_command + ">0 ' "
-        else:
-                system_command = system_command + "< 0' "
-        system_command = system_command + " | cut -d':' -f1 | xargs -i grep -B 2 'final_state' {} | grep 'Step' | cut -d' ' -f4 | cut -d'-' -f1 "
+        #system_command = "grep 'Total undiscounted' "
+        #system_command = system_command + new_pattern + " | awk '$5 "
+        #if(reward_value > 0):
+        #        system_command = system_command + ">0 ' "
+        #else:
+        #        system_command = system_command + "< 0' "
+        system_command = "grep -e 'discounted /' -e 'Total und' "
+        system_command = system_command + new_pattern + " | grep -B 1 'Total und' | awk '{print$1, $NF}' | sed -e 's/:Total/:/g' | awk '!/--/' | awk 'NR>1{print $1 $NF-p} {p=$NF}' | awk 'NR%2==1' | grep -e ':"
+        system_command = system_command + repr(reward_value) + "'"
+
+        #system_command = system_command + " | cut -d':' -f1 | xargs -i grep -B 2 'final_state' {} | grep 'Step' | cut -d' ' -f4 | cut -d'-' -f1 "
+        system_command = system_command + " | cut -d':' -f1 | xargs -i awk '/Step /{a=$0}END{print a}' {} | cut -d' ' -f4 | cut -d'-' -f1 "
         system_command = system_command + out_str + " " + reward_file_name
         subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
-
+        #print system_command
         #os.system(system_command)
         i = i+1
 
@@ -234,16 +239,26 @@ def get_success_failure_cases(dir_name, pattern_list, reward_value, index_step, 
         cases=[]
         for pattern in pattern_list:
             new_pattern = pattern.replace('.log', number_pattern + '.log')
-            system_command = "grep 'Total undiscounted ' "
-            system_command = system_command + new_pattern + " | awk '$5 "
-            if checkPick:
-                system_command = "grep -B 13 'Total undiscounted ' "
-                system_command = system_command + new_pattern + " | grep -A 12 'PICK' | grep 'Total undiscounted ' |  awk '$5 "
+            #system_command = "grep 'Total undiscounted ' "
+            #system_command = system_command + new_pattern + " | awk '$5 "
+            #if checkPick:
+            #    system_command = "grep -B 13 'Total undiscounted ' "
+            #    system_command = system_command + new_pattern + " | grep -A 12 'PICK' | grep 'Total undiscounted ' |  awk '$5 "
 
-            if(reward_value > 0):
-                system_command = system_command + ">0 ' | wc -l"
-            else:
-                system_command = system_command + "< 0' | wc -l"
+            #if(reward_value > 0):
+            #    system_command = system_command + ">0 ' | wc -l"
+            #else:
+            #    system_command = system_command + "< 0' | wc -l"
+            system_command = "grep -e 'discounted /' -e 'Total und' "
+            system_command = system_command + new_pattern + " | grep -B 1 'Total und' | rev | cut -d' ' -f1 | rev |awk '!/--/' | awk 'NR>1{print $1-p} {p=$1}' | awk 'NR%2==1' | grep -e '"
+            if checkPick:
+                system_command = "grep -e 'discounted /' -B 13 -e 'Total und' "
+                system_command = system_command + new_pattern + " | grep -B 3 -A 12 'PICK' | grep -e 'discounted /' -e 'Total und' | grep -B 1 'Total und' | rev | cut -d' ' -f1 | rev |awk '!/--/' | awk 'NR>1{print $1-p} {p=$1}' | awk 'NR%2==1' | grep -e '"
+
+
+            system_command = system_command + repr(reward_value) + "' | wc -l"
+
+            #print system_command
             success_cases = subprocess.check_output(["bash", "-O", "extglob", "-c", system_command])
             cases.append(float(success_cases))
         all_cases.append(cases)
@@ -929,22 +944,25 @@ def get_and_plot_success_failure_cases_for_vrep_inner(dir_name, pattern):
                 line = f.readline()
                 if not line:
                     break;
-                if 'Total discounted ' in line:
+                if 'discounted /' in line:
                     values = ParseLogFile.rx.findall(line)
-                    total_discounted_reward = float(values[0])
+                    undiscounted_reward_prev_step = float(values[1])
+                if 'Total undiscounted ' in line:
+                    values = ParseLogFile.rx.findall(line)
+                    total_undiscounted_reward = float(values[0])
                 if 'PICK' in line:
                     pick_action = True
 
-
+            reward_last_action = total_undiscounted_reward - undiscounted_reward_prev_step
             x.append(ii % 9)
             y.append(ii / 9)
-            if total_discounted_reward > 0:
+            if reward_last_action == max_reward:
 
                     colors[0].append('green')
                     colors[1].append('white')
                     colors[2].append('white')
 
-            elif total_discounted_reward < 0:
+            elif reward_last_action == min_reward:
                 print "Red " + repr(i % num_cases)
 
                 if(pick_action):
