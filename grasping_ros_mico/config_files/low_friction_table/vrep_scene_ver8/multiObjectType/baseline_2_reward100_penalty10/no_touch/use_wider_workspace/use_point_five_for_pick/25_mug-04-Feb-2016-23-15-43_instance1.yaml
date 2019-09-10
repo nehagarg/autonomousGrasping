@@ -1,0 +1,16 @@
+auto_load_object: true
+belief_object_ids: []
+check_touch: false
+hand_defined_actions: 1 0 0 0 0 8 10
+interface_type: 1
+invalid_state_penalty: -10
+low_friction_table: true
+num_belief_particles: 1000
+object_mapping: [25_mug-04-Feb-2016-23-15-43_instance1]
+pick_penalty: -10
+pick_reward: 100
+separate_close_reward: true
+test_object_id: 0
+use_point_five_for_pick: true
+use_wider_workspace: true
+version8: true
