@@ -18,6 +18,8 @@ running_nodes_to_screen = {}
 running_screen_to_nodes = {}
 stopped_nodes_to_screen = {}
 stopped_screen_to_nodes = {}
+reserved_nodes_to_screen = {}
+reserved_screen_to_nodes = {}
 last_assigned_node = None
 vrep_scene_version = "7"
 generic_scene = False
@@ -354,11 +356,15 @@ def GPU_running_on_node(screen_GPU, node):
 def port_running_on_node(screen_port, node, check_gpu_port = False):
     global running_nodes_to_screen
     global stopped_nodes_to_screen
+    global reserved_nodes_to_screen
     if node in running_nodes_to_screen.keys():
         screen_name_list = list(running_nodes_to_screen[node])
         if node in stopped_nodes_to_screen.keys():
             for screen_name in stopped_nodes_to_screen[node]:
                 screen_name_list.remove(screen_name)
+        if node in reserved_nodes_to_screen.keys():
+            for screen_name in reserved_nodes_to_screen[node]:
+                screen_name_list.append(screen_name)
         for screen_name in screen_name_list:
             (screen_counter, ros_port,gpu_port) = get_screen_counter_port_from_screen_name(screen_name)
             if(check_gpu_port):
@@ -480,7 +486,7 @@ def run_command_on_node(command, node = None):
             command = command.replace(repr(true_port) + ' ', repr(assigned_port) + ' ')
         if true_GPU is not None and assigned_GPU is not None:
             command = command.replace('-j ' + repr(true_GPU) + ' ', '-j ' + repr(assigned_GPU) + ' ')
-            command = command.replace('_'+repr(true_GPU)+ '_', '_'+repr(assigned_GPU)+ '_')
+            command = command.replace('_'+repr(true_GPU)+ '_g', '_'+repr(assigned_GPU)+ '_g') #Added g for baseline_<no>_ commands
 
         if unicorn_eagle:
             #print true_GPU
@@ -600,7 +606,7 @@ def all_processes_stopped():
 
     return set(running_screens) == set(stopped_screens)
 
-def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file, force_counter):
+def run_command_file(command_file_name, node_file_name, running_node_file, stopped_node_file, current_screen_counter_file, screen_counter_list_file, force_counter, reserved_node_file):
     nodes = update_nodes(node_file_name)
 
     #update ports on each node
@@ -608,8 +614,11 @@ def run_command_file(command_file_name, node_file_name, running_node_file, stopp
     global running_screen_to_nodes
     global stopped_nodes_to_screen
     global stopped_screen_to_nodes
+    global reserved_nodes_to_screen
+    global reserved_screen_to_nodes
     start_screen_counter = update_running_nodes(running_node_file, running_nodes_to_screen, running_screen_to_nodes)
     update_running_nodes(stopped_node_file, stopped_nodes_to_screen, stopped_screen_to_nodes)
+    update_running_nodes(reserved_node_file, reserved_nodes_to_screen, reserved_screen_to_nodes)
 
     start_screen_counter_list = None
     if screen_counter_list_file is not None:
@@ -856,10 +865,13 @@ def main():
         counter_list_file = None
         if os.path.exists(counter_list_file_name):
             counter_list_file = counter_list_file_name
+        reserved_nodes_file = "run_txt_files/reserved_nodes.txt"
+        if not os.path.exists(reserved_nodes_file):
+            os.system('touch ' + reserved_nodes_file)
 
 
         while True:
-            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file, force_counter)
+            run_command_file(command_file, "run_txt_files/node_list.txt",running_nodes_file, stopped_nodes_file , current_screen_counter_file, counter_list_file, force_counter, reserved_nodes_file)
             force_counter = False
             with open(current_screen_counter_file, 'r') as f:
                 new_screen_counter = int(f.readline())
@@ -871,10 +883,10 @@ def main():
                     #awk 'NR==FNR{a[$0];next} !($0 in a)' stopped_nodes.txt running_nodes.txt
                     #ps axf | grep experiment_v2 | grep -v grep | awk '{print "kill -9 " $1}' | bash
                     #cat run_txt_files/stopped_nodes.txt | cut -d' ' -f2 | cut -d'_' -f1 | sort -n | awk '$1!=p+1{print p+1"-"$1-1}{p=$1}'
-        while(not all_processes_stopped()):
-            print "Sleeping before checking process status..."
-            run_command_on_node('sleep 600')
-            check_finished_processes(stopped_nodes_file)
+        #while(not all_processes_stopped()):
+        #    print "Sleeping before checking process status..."
+        #    run_command_on_node('sleep 600')
+        #    check_finished_processes(stopped_nodes_file)
 
 
 if __name__ == '__main__':
@@ -917,3 +929,9 @@ if __name__ == '__main__':
 
 #compress pdf file
 #gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=CoRlDraft6ByNeha-compressed.pdf CoRlDraft6ByNeha.pdf
+
+#command to generate command file for grasping with vision
+#POMDPWORLD
+#python experiment_v3.py -p grasping_with_vision -t ~/tensorflow_source_build/ -d /data/neha/WORK_FOLDER/ run_txt_files/headphones_train3_despot_fixed_distribution_horizon_90_pick_point_5_combined_prob.txt
+#VREP World
+#python experiment_v3.py -p grasping_with_vision -t ~/tensorflow_source_build/ -v 2 -d /data/neha/WORK_FOLDER/ run_txt_files/headphones_train3_despot_fixed_distribution_horizon_90_pick_point_5_combined_prob.txt
