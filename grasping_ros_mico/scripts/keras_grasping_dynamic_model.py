@@ -109,11 +109,62 @@ def get_reward_move_actions(args):
     close_called_input = args[0]
     left_touch,right_touch =  tf.split(args[1],[1,1],1)
     vision_movement = args[2]
+
     y = tf.where(left_touch >= 0.35, -0.5*tf.ones_like(left_touch), -1*tf.ones_like(left_touch))
     y1 = tf.where(right_touch >= 0.35, -0.5*tf.ones_like(left_touch), y)
     y2 = tf.where(vision_movement > 0.5, -0.5*tf.ones_like(left_touch), y1)
     y3 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y2)
+
     return y3
+def get_reward_increase_x_actions(args):
+    close_called_input = args[0]
+    left_touch,right_touch =  tf.split(args[1],[1,1],1)
+    vision_movement = args[2]
+    initial_gripper_x, initial_gripper_y, rem = tf.split(args[3],[1,1,5],1)
+    y = tf.where(left_touch >= 0.35, -0.5*tf.ones_like(left_touch), -1*tf.ones_like(left_touch))
+    y1 = tf.where(right_touch >= 0.35, -0.5*tf.ones_like(left_touch), y)
+    y2 = tf.where(vision_movement > 0.5, -0.5*tf.ones_like(left_touch), y1)
+    y3 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y2)
+    y4 = tf.where(initial_gripper_x > 0.5279 - 0.005, -1000*tf.ones_like(left_touch), y3)
+
+    return y4
+def get_reward_decrease_x_actions(args):
+    close_called_input = args[0]
+    left_touch,right_touch =  tf.split(args[1],[1,1],1)
+    vision_movement = args[2]
+    initial_gripper_x, initial_gripper_y, rem = tf.split(args[3],[1,1,5],1)
+    y = tf.where(left_touch >= 0.35, -0.5*tf.ones_like(left_touch), -1*tf.ones_like(left_touch))
+    y1 = tf.where(right_touch >= 0.35, -0.5*tf.ones_like(left_touch), y)
+    y2 = tf.where(vision_movement > 0.5, -0.5*tf.ones_like(left_touch), y1)
+    y3 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y2)
+    y4 = tf.where(initial_gripper_x < 0.3379 + 0.005, -1000*tf.ones_like(left_touch), y3)
+
+    return y4
+def get_reward_increase_y_actions(args):
+    close_called_input = args[0]
+    left_touch,right_touch =  tf.split(args[1],[1,1],1)
+    vision_movement = args[2]
+    initial_gripper_x, initial_gripper_y, rem = tf.split(args[3],[1,1,5],1)
+    y = tf.where(left_touch >= 0.35, -0.5*tf.ones_like(left_touch), -1*tf.ones_like(left_touch))
+    y1 = tf.where(right_touch >= 0.35, -0.5*tf.ones_like(left_touch), y)
+    y2 = tf.where(vision_movement > 0.5, -0.5*tf.ones_like(left_touch), y1)
+    y3 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y2)
+    y4 = tf.where(initial_gripper_y > 0.2316 - 0.005, -1000*tf.ones_like(left_touch), y3)
+
+    return y4
+def get_reward_decrease_y_actions(args):
+    close_called_input = args[0]
+    left_touch,right_touch =  tf.split(args[1],[1,1],1)
+    vision_movement = args[2]
+    initial_gripper_x, initial_gripper_y, rem = tf.split(args[3],[1,1,5],1)
+    y = tf.where(left_touch >= 0.35, -0.5*tf.ones_like(left_touch), -1*tf.ones_like(left_touch))
+    y1 = tf.where(right_touch >= 0.35, -0.5*tf.ones_like(left_touch), y)
+    y2 = tf.where(vision_movement > 0.5, -0.5*tf.ones_like(left_touch), y1)
+    y3 = tf.where(close_called_input > 0.5, -1000*tf.ones_like(left_touch), y2)
+    y4 = tf.where(initial_gripper_y < 0.0816 + 0.005, -1000*tf.ones_like(left_touch), y3)
+
+    return y4
+
 def get_reward_close_action(args):
     close_called_input = args[0]
     left_touch,right_touch =  tf.split(args[1],[1,1],1)
@@ -673,8 +724,15 @@ def keras_functional_transiton_model_with_reward_and_terminal_state(latent_dim,a
 
         reward = layers.Lambda(get_reward_open_action, name = 'open_action_reward')([close_called_input,touch_values])
         close_called_input = layers.Lambda(get_close_called_open_action, name = 'update_close_called_open_action')(close_called_input)
-    else:
-        reward = layers.Lambda(get_reward_move_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement])
+    elif(action_id == 0 or action_id == 1):
+        reward = layers.Lambda(get_reward_increase_x_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement,object_state])
+    elif(action_id == 2 or action_id == 3):
+        reward = layers.Lambda(get_reward_decrease_x_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement,object_state])
+    elif(action_id == 4 or action_id == 5):
+        reward = layers.Lambda(get_reward_increase_y_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement,object_state])
+    elif(action_id == 6 or action_id == 7):
+        reward = layers.Lambda(get_reward_decrease_y_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement,object_state])
+        #reward = layers.Lambda(get_reward_move_actions, name = 'move_action_reward')([close_called_input,touch_values,vision_movement,object_state])
     next_state_full = layers.Concatenate(name='concatenate_next_state_output')([next_state, object_id,close_called_input,touch_values,vision_movement])
     terminal_state_output = layers.Lambda(get_terminal_value_non_pick, name = 'get_terminal_value_non_pick')(close_called_input)
     full_model = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward], name = 'full_model')
@@ -1102,7 +1160,10 @@ def save_final_observation_model(action,gpuID, v1=False, get_obs_prob_from_state
         else:
             tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_' + repr(action) +'.pb', as_text=False)
 
-def save_transiton_model_with_reward_graph_v1(action,gpuID):
+def test_transiton_model_with_reward_graph_v1(action,gpuID):
+    save_transiton_model_with_reward_graph_v1(action,gpuID, False)
+
+def save_transiton_model_with_reward_graph_v1(action,gpuID, save_model = True):
     K.set_learning_phase(0)
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
     latent_dim = 2
@@ -1127,9 +1188,10 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         print full_model.outputs
         print full_model.inputs
         #X = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0, 1.0]])
-        X = np.array([[0.44792, 0.16161,0.57633, 0.13667,1.1741839,-0.00023365,5.1975e-05, 2, 0,0,0,0]])
-        X1 = np.array([[0.44792, 0.16161,0.57633, 0.13667,1.1741839,-0.00023365,5.1975e-05, 2]])
-
+        #X = np.array([[0.44792, 0.16161,0.57633, 0.13667,1.1741839,-0.00023365,5.1975e-05, 2, 0,0,0,0]])
+        #X1 = np.array([[0.44792, 0.16161,0.57633, 0.13667,1.1741839,-0.00023365,5.1975e-05, 2]])
+        X = np.array([[0.51728, 0.094975, 0.67581, 0.1258, 3.2505, -0.016933, 0.00072957, 1, 0, 0.28825, 0.12184, -0.078051]])
+        X1 = np.array([[0.51728, 0.094975, 0.67581, 0.1258, 3.2505, -0.016933, 0.00072957, 1]])
         #X = np.array([[0.33738 ,0.15156 ,0.55902 ,0.11335, -0.031684, 0.00001, 0.0002, 0 ,0]])
         #X1 = np.array([[0.33738 ,0.15156 ,0.55902 ,0.11335, -0.031684, 0.00001, 0.0002, 0]])
         R = np.array([np.random.normal(0,1,latent_dim)])
@@ -1146,9 +1208,10 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
 
         print Y1
         print Y
-        frozen_graph = freeze_session(K.get_session(),
+        if save_model:
+            frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in full_model.outputs])
-        tf.train.write_graph(frozen_graph, ".", 'transition_model/full_transition_model_v1_' + repr(action) +'.pb', as_text=False)
+            tf.train.write_graph(frozen_graph, ".", 'transition_model/full_transition_model_v1_' + repr(action) +'.pb', as_text=False)
 
     if action == 10:
         transition_model_name = 'transition_model/pick_transition_model_' + repr(action) +'.h5'
@@ -1170,9 +1233,10 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID):
         Y1 = pick_model.predict(X1)
         print Y
         print Y1
-        frozen_graph = freeze_session(K.get_session(),
+        if save_model:
+            frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in full_model.outputs])
-        tf.train.write_graph(frozen_graph, ".", 'transition_model/full_transition_model_v1_' + repr(action) +'.pb', as_text=False)
+            tf.train.write_graph(frozen_graph, ".", 'transition_model/full_transition_model_v1_' + repr(action) +'.pb', as_text=False)
 def save_transiton_model_with_reward_graph(action,gpuID):
     K.set_learning_phase(0)
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
@@ -1310,6 +1374,8 @@ if __name__ == '__main__':
         save_transiton_model_with_reward_graph_v1(int(args.action),args.gpuID)
     if(args.train == 'sov2'): #save observation model
         save_final_observation_model(int(args.action),args.gpuID,True,True)
+    if(args.train == 'ttv1'): #save transition model
+        test_transiton_model_with_reward_graph_v1(int(args.action),args.gpuID)
     #keras_functional_transition_model(2)
     #print "Creating observation model"
     #keras_function_observation_model(2)
