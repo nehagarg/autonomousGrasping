@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 from gqcnn import Visualizer as vis
 from autolab_core import YamlConfig
 from autolab_core import RigidTransform, Point, Box
+import pickle
+from sklearn.decomposition import PCA, IncrementalPCA
+from time import time
 #import get_initial_object_belief as giob
 PICK_ACTION_ID = 10
 OPEN_ACTION_ID = 9
@@ -26,11 +29,11 @@ initial_gripper_pose_index_y = 7;
 
 class StoredDepthAndColorImageProcesser():
     def __init__(self,config_dir):
-        print config_dir
+        #print config_dir
         self.CAM_FRAME = 'kinect2_ir_optical_frame'
         self.WORLD_FRAME = 'world'
         self.config_path = os.path.join(config_dir,'config_files/dexnet_config/')
-        print self.config_path
+        #print self.config_path
         self.config = YamlConfig(self.config_path + 'mico_control_node.yaml')
         if self.config['kinect_sensor_cfg']['color_topic']:
             COLOR_TOPIC = self.config['kinect_sensor_cfg']['color_topic']
@@ -105,8 +108,9 @@ class StoredDepthAndColorImageProcesser():
 
     def mark_gripper_in_depth_image(self,gripper_3D_pose, image_dir, image_file_name, debug = True):
         #self.load_stored_depth_im('/home/neha/WORK_FOLDER/unicorn_dir_mount/neha_github/autonomousGrasping/grasping_ros_mico/point_clouds/56_headphones_final-16-Nov-2015-11-29-41_instance0.yaml')
-        print gripper_3D_pose
-        print image_file_name
+        if debug:
+            print gripper_3D_pose
+            print image_file_name
         #g = giob.GetInitialObjectBelief(None, True, True)
         filename_prefix = os.path.join(image_dir,image_file_name)
         cropped_depth_filename = filename_prefix + '_depth_cropped.npz'
@@ -134,13 +138,15 @@ class StoredDepthAndColorImageProcesser():
 
         x_diff = min_x_i - gripper_3D_pose[0]
         #x_diff = -0.03
-        print x_diff
+        if debug:
+            print x_diff
         if x_diff > 0:
             x_diff = 0.0
 
         y_diff = min_y_i + 0.01*initial_gripper_pose_index_y - gripper_3D_pose[1]
         #y_diff = -0.03
-        print y_diff
+        if debug:
+            print y_diff
 
         print point_cloud_world.x_coords.shape
         for i in range(0,point_cloud_world.x_coords.shape[0]):
@@ -248,6 +254,7 @@ def get_data_from_line(line):
 def load_data(object_name_list, data_dir, object_id_mapping_file, debug = True):
     object_id_mapping = yaml.load(file(object_id_mapping_file, 'r'))
     ans = {}
+    print object_name_list
     for object_name in object_name_list:
         final_data_dir = os.path.join(data_dir , object_name)
         print final_data_dir
@@ -288,7 +295,41 @@ def load_data(object_name_list, data_dir, object_id_mapping_file, debug = True):
         #print ans
     return ans
 
+def plot_gallery(images, titles, h, w, n_row=3, n_col=4):
+    """Helper function to plot a gallery of portraits"""
+    plt.figure(figsize=(1.8 * n_col, 2.4 * n_row))
+    plt.subplots_adjust(bottom=0, left=.01, right=.99, top=.90, hspace=.35)
+    for i in range(n_row * n_col):
+        plt.subplot(n_row, n_col, i + 1)
+        plt.imshow(images[i].reshape((h, w)), cmap=plt.cm.gray)
+        plt.title(titles[i], size=12)
+        plt.xticks(())
+        plt.yticks(())
 
+class GraspObject():
+    def __init__(self,object_id):
+        self.simulation_data_current_state = {}
+        self.simulation_data_expected_outcome = {}
+        self.simulation_data_image_output = {}
+        self.discretizedSimulationDataInitState = {}
+        self.discretizedSimulationDataNextState = {}
+        self.simulation_data_image_pca = {}
+        self.object_id = object_id
+    @staticmethod
+    def get_discretized_index(x,y,theta_z): #theta_z is in radians
+        discretization_step = 0.01
+        discretization_angle = 10
+        x_index = (int)(round(x/discretization_step))
+        y_index = (int)(round(y/discretization_step))
+        theta_z_degree =  theta_z*180/3.14
+        while theta_z_degree < -180:
+            theta_z_degree = theta_z_degree + 360
+        while theta_z_degree > 180:
+            theta_z_degree = theta_z_degree - 360
+        theta_z_index = int(round(theta_z/10.0))
+        if theta_z_index == -18:
+            theta_z_index = 18
+        return (x_index,y_index,theta_z_index)
 class LoadTransitionData():
     def __init__(self):
         self.ans = None
@@ -308,7 +349,7 @@ class LoadTransitionData():
         #depth_file = image_file_prefix + '_depth.npz'
         #depth_image = perception.
 
-    def get_training_data(self,action_, object_name_list, data_dir, object_id_mapping_file, image_dir=None, debug = False):
+    def get_training_data(self,action_, object_name_list, data_dir, object_id_mapping_file, image_dir=None, observation_model_data = True, debug = False):
         ans = self.get_data(object_name_list, data_dir, object_id_mapping_file, debug)
         input_s = []
         expected_outcome = []
@@ -332,7 +373,7 @@ class LoadTransitionData():
                     input_s_entry = input_s_entry +  [math.radians(theta_z)]
                     input_s_entry = input_s_entry +  ans[action][i]['init_joint_values']
                     input_s_entry = input_s_entry +  [ ans[action][i]['object_id']]
-                    if image_dir is not None:
+                    if image_dir is not None and observation_model_data:
                         input_s_entry = input_s_entry +  [action]
                     input_s.append(input_s_entry)
                     gripper_pos_change = np.array(ans[action][i]['next_gripper'][0:2]) - np.array(ans[action][i]['init_gripper'][0:2])
@@ -415,7 +456,7 @@ class LoadTransitionData():
                     probability = []
 
     def write_training_data_for_transition_model(self,action,object_name_list,data_dir, object_id_mapping_file, debug = False):
-        input_s_, expected_outcome_, image_input_ = self.get_training_data(action, object_name_list, data_dir, object_id_mapping_file, None, debug)
+        input_s_, expected_outcome_, image_input_ = self.get_training_data(action, object_name_list, data_dir, object_id_mapping_file, None, False, debug)
         num_samples = input_s_.shape[0]
         arr = np.arange(num_samples)
         np.random.shuffle(arr)
@@ -429,9 +470,265 @@ class LoadTransitionData():
             output_file.write(' '.join(str(x) for x in expected_outcome_[i]))
             output_file.write('\n')
         output_file.close()
+    def structure_training_data_for_transition_model(self,action_,object_name_list,data_dir, object_id_mapping_file, image_dir, debug = False):
+        graspObjects = {}
+        for object_name in object_name_list:
+            self.ans = None  #Load object specific data
+            print object_name
+            action_start = action_
+            action_end = action_+1
+            if action_ == -1:
+                action_start = 0
+                action_end = PICK_ACTION_ID+1
+            for action in range(action_start,action_end):
+                print action
+                grasp_object_filename = image_dir + "/scripts/structure_data_model/" + object_name + "_" + repr(action) + '.pkl'
+                if os.path.exists(grasp_object_filename):
+                    with open(grasp_object_filename,'rb') as f:
+                        graspObject = pickle.load(f)
+                else:
+                    graspObject = GraspObject(object_name)
+                    graspObject.simulation_data_current_state[action] = None
+                    graspObject.simulation_data_expected_outcome[action] = None
+                    graspObject.simulation_data_image_output[action] = None
+                    graspObject.discretizedSimulationDataInitState[action] = {}
+                    graspObject.discretizedSimulationDataNextState[action] = {}
+                    if action == PICK_ACTION_ID:
+                        graspObject.simulation_data_current_state[action],graspObject.simulation_data_expected_outcome[action] = self.get_training_data(action, [object_name], data_dir, object_id_mapping_file, image_dir, False, debug)
+                    else:
+                        graspObject.simulation_data_current_state[action],graspObject.simulation_data_expected_outcome[action] , graspObject.simulation_data_image_output[action] = self.get_training_data(action, [object_name], data_dir, object_id_mapping_file, image_dir, False, debug)
+                    num_samples = graspObject.simulation_data_current_state[action].shape[0]
+                    print num_samples
+                    for j in range(0,num_samples):
+                        x = graspObject.simulation_data_current_state[action][j][2] - graspObject.simulation_data_current_state[action][j][0]
+                        y = graspObject.simulation_data_current_state[action][j][3] - graspObject.simulation_data_current_state[action][j][1]
+                        theta_z = graspObject.simulation_data_current_state[action][j][4]
+                        index_tuple = GraspObject.get_discretized_index(x,y,theta_z)
+                        if index_tuple in graspObject.discretizedSimulationDataInitState[action].keys():
+                            graspObject.discretizedSimulationDataInitState[action][index_tuple].append(j)
+                        else:
+                            graspObject.discretizedSimulationDataInitState[action][index_tuple] = [j]
+                        if action != PICK_ACTION_ID:
+                            x = x + graspObject.simulation_data_expected_outcome[action][j][2] - graspObject.simulation_data_expected_outcome[action][j][0]
+                            y = y + graspObject.simulation_data_expected_outcome[action][j][3] - graspObject.simulation_data_expected_outcome[action][j][1]
+                            theta_z = theta_z + graspObject.simulation_data_expected_outcome[action][j][4]
+                            index_tuple = GraspObject.get_discretized_index(x,y,theta_z)
+                            if index_tuple in graspObject.discretizedSimulationDataNextState[action].keys():
+                                graspObject.discretizedSimulationDataNextState[action][index_tuple].append(j)
+                            else:
+                                graspObject.discretizedSimulationDataNextState[action][index_tuple] = [j]
+                    with open(grasp_object_filename, 'wb') as f:
+                        pickle.dump(graspObject,f)
+                graspObjects[object_name + "_" + repr(action)] = graspObject
+            #size_of_grasp_object = sys.getsizeof(graspObject)
+            #print size_of_grasp_object
+            #break
+        return graspObjects
+    def do_pca_for_images(self,action_,object_name_list,data_dir, object_id_mapping_file, image_dir, debug = False):
+        pca_file_name = image_dir + "/scripts/structure_data_model/pca_action" + "_" + repr(action_) + '.pkl'
+        image_h = 184
+        image_w = 208
+        images = np.array([])
+        #Load relevant grasp objects
+        for object_name in object_name_list:
+            self.ans = None  #Load object specific data
+            print object_name
+            action_list = [action_]
+            if action_ == -8:
+                action_list = range(0,8)
+                action_list.append(9)
+            for action in action_list:
+                print action
+                grasp_object_filename = image_dir + "/scripts/structure_data_model/" + object_name + "_" + repr(action) + '.pkl'
+                if os.path.exists(grasp_object_filename):
+                    with open(grasp_object_filename,'rb') as f:
+                        graspObject = pickle.load(f)
+                else:
+                    print "File not found"
+                num_images = graspObject.simulation_data_image_output[action].shape[0]
+                num_sampled_images = num_images/4
+                if action == 8:
+                    num_sampled_images = num_images/8
+                print num_sampled_images
+                arr = np.arange(num_images)
+                np.random.shuffle(arr)
+                sampled_images = graspObject.simulation_data_image_output[action][arr[0:num_sampled_images]]
+                images = np.concatenate((images,sampled_images))
+
+        print images.shape
+        num_samples = images.shape[0]
+        arr = np.arange(num_samples)
+        np.random.shuffle(arr)
+        images_shuffled = images[arr[0:num_samples]]
+
+
+        if not os.path.exists(pca_file_name):
+            actual_images = []
+            for image_name in images_shuffled:
+                image_input_gen_entry = self.load_cropped_depth_image(image_dir, image_name)
+                actual_images.append(image_input_gen_entry.flatten())
+                if len(actual_images) % 1000 == 0:
+                    print len(actual_images)
+
+
+            print("Extracting the from %d faces"% (num_samples))
+            t0 = time()
+            #pca = PCA(n_components='mle').fit(np.array(actual_images))
+            pca = IncrementalPCA(n_components=150, batch_size = 1000).fit(np.array(actual_images))
+            print("done in %0.3fs" % (time() - t0))
+            print(pca.explained_variance_ratio_)
+            print(pca.singular_values_)
+            print pca.n_components_
+            with open(pca_file_name, 'wb') as f:
+                pickle.dump(pca,f)
+
+        with open(pca_file_name,'rb') as f:
+            pca = pickle.load(f)
+        print(pca.explained_variance_ratio_)
+        t = 0
+        for i in range(0,len(pca.explained_variance_ratio_)):
+            t = t + pca.explained_variance_ratio_[i]
+            print t
+            if t > 0.85:
+                break
+        print "Num components " + repr(i)
+        eigenfaces = pca.components_.reshape((150, image_h, image_w))
+        eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
+        plot_gallery(eigenfaces, eigenface_titles, image_h, image_w,5,5)
+
+
+        n_components_required =150
+        actual_images = []
+        #transformed_images = []
+        actual_images_titles = []
+        transfored_images_titles = []
+        num_test_samples = 12
+        for i in range(0,num_test_samples):
+            image_input_gen_entry = self.load_cropped_depth_image(image_dir, images_shuffled[i])
+            actual_images.append(image_input_gen_entry.flatten())
+            actual_images_titles.append('actual ' + repr(i))
+            transfored_images_titles.append('pca ' + repr(i))
+        actual_images_np = np.array(actual_images)
+        pca_tranform = pca.transform(actual_images_np)
+        print pca_tranform.shape
+        pca_tranform[:,n_components_required:] = 0
+        transformed_images = pca.inverse_transform(pca_tranform)
+
+        plot_gallery(actual_images_np.reshape((num_test_samples, image_h, image_w)), actual_images_titles, image_h, image_w,3,4)
+        plot_gallery(transformed_images.reshape((num_test_samples, image_h, image_w)), transfored_images_titles, image_h, image_w,3,4)
+
+
+
+
+        plt.show()
+        return pca
+
+    def generate_default_pca_file_per_action(self,action_,image_dir):
+        action_list = [action_]
+        default_image = []
+        image_input_gen_entry = self.load_cropped_depth_image("image_for_default_observation/89/2b","892b45719a3bc152f5d050fa7b3533a68525f7a8")
+        default_image.append(image_input_gen_entry.flatten())
+        for action in action_list:
+            pca_file_name = image_dir + "/scripts/structure_data_model/pca_action" + "_" + repr(action_) + '.pkl'
+            default_image_file_name = image_dir + "/scripts/structure_data_model/default_image_pca" + "_" + repr(action_) + '.txt'
+            with open(pca_file_name,'rb') as f:
+                pca = pickle.load(f)
+            pca_transform = pca.transform(default_image)
+            with open(default_image_file_name, 'w') as f:
+                f.write(' '.join(str(x) for x in pca_transform[0]) + " ")
+                f.write('\n')
+
+    def structure_training_data_for_transition_observation_model(self,action_,object_name_list,data_dir, object_id_mapping_file, image_dir, debug = False):
+        for object_name in object_name_list:
+            print object_name
+            action_list = [action_]
+            for action in action_list:
+                grasp_object_filename = image_dir + "/scripts/structure_data_model/" + object_name + "_" + repr(action) + '.pkl'
+                pca_file_name = image_dir + "/scripts/structure_data_model/pca_action" + "_" + repr(action_) + '.pkl'
+                grasp_object_pca_filename = image_dir + "/scripts/structure_data_model/with_pca_" + object_name + "_" + repr(action) + '.pkl'
+                grasp_object_pca_filename_txt = image_dir + "/scripts/structure_data_model/with_pca_" + object_name + "_" + repr(action) + '.txt'
+                if not os.path.exists(grasp_object_pca_filename) and action!=PICK_ACTION_ID:
+                    with open(grasp_object_filename,'rb') as f:
+                            graspObjectOld = pickle.load(f)
+                    with open(pca_file_name,'rb') as f:
+                        pca = pickle.load(f)
+                    graspObject = GraspObject(object_name)
+                    graspObject.simulation_data_current_state[action] = graspObjectOld.simulation_data_current_state[action]
+                    graspObject.simulation_data_expected_outcome[action] = graspObjectOld.simulation_data_expected_outcome[action]
+                    graspObject.simulation_data_image_output[action] = graspObjectOld.simulation_data_image_output[action]
+                    graspObject.discretizedSimulationDataInitState[action] = graspObjectOld.discretizedSimulationDataInitState[action]
+                    graspObject.discretizedSimulationDataNextState[action] = graspObjectOld.discretizedSimulationDataNextState[action]
+                    graspObject.simulation_data_image_pca[action] = []
+                    for i in range(0,len(graspObject.simulation_data_image_output[action])):
+                        actual_images = []
+                        image_input_gen_entry = self.load_cropped_depth_image(image_dir, graspObject.simulation_data_image_output[action][i])
+                        actual_images.append(image_input_gen_entry.flatten())
+                        actual_images_np = np.array(actual_images)
+                        pca_tranform = pca.transform(actual_images_np)
+                        graspObject.simulation_data_image_pca[action].append(pca_tranform[0])
+                        #if i % 1000 == 0:
+                        #    print np.array(graspObject.simulation_data_image_pca[action]).shape
+                    print  np.array(graspObject.simulation_data_image_pca[action]).shape
+                    with open(grasp_object_pca_filename, 'wb') as f:
+                        pickle.dump(graspObject,f)
+                if not os.path.exists(grasp_object_pca_filename_txt):
+                    if action == PICK_ACTION_ID:
+                        with open(grasp_object_filename,'rb') as f:
+                            graspObject = pickle.load(f)
+                    else:
+                        with open(grasp_object_pca_filename,'rb') as f:
+                                graspObject = pickle.load(f)
+                    with open(grasp_object_pca_filename_txt, 'w') as f:
+                        num_samples = len(graspObject.simulation_data_current_state[action])
+                        print num_samples
+                        f.write(repr(num_samples) + '\n')
+                        for i in range(0,num_samples):
+                            f.write(repr(graspObject.simulation_data_current_state[action][i][0]) + " " +
+                            repr(graspObject.simulation_data_current_state[action][i][1]) + " ")
+                            f.write(repr(graspObject.simulation_data_current_state[action][i][2]) + " " +
+                            repr(graspObject.simulation_data_current_state[action][i][3]) + " ")
+                            f.write(repr(graspObject.simulation_data_current_state[action][i][5]) + " " +
+                            repr(graspObject.simulation_data_current_state[action][i][5]) + " " +
+                            repr(graspObject.simulation_data_current_state[action][i][6]) + " " +
+                            repr(graspObject.simulation_data_current_state[action][i][6]) + " " )
+                            f.write(repr(action)+" ")
+                            if action != PICK_ACTION_ID:
+                                next_state_entry = self.generate_next_state_entry(graspObject.simulation_data_current_state[action][i],graspObject.simulation_data_expected_outcome[action][i])
+                                f.write(repr(next_state_entry[0]) + " " +
+                                repr(next_state_entry[1]) + " ")
+                                f.write(repr(next_state_entry[2]) + " " + repr(next_state_entry[3]) + " ")
+                                f.write(repr(next_state_entry[5]) + " " +
+                                repr(next_state_entry[5]) + " " +
+                                repr(next_state_entry[6]) + " " +
+                                repr(next_state_entry[6]) + " " )
+                                f.write(repr(graspObject.simulation_data_expected_outcome[action][i][7]) + " " +
+                                repr(graspObject.simulation_data_expected_outcome[action][i][8]) + " " +
+                                repr(graspObject.simulation_data_expected_outcome[action][i][9]) + " ")
+                                f.write(repr(graspObject.simulation_data_current_state[action][i][4]*180/3.14) + " " +
+                                repr(next_state_entry[4]*180/3.14) + " ")
+                                f.write(graspObject.simulation_data_image_output[action][i] + " ")
+                                f.write(' '.join(str(x) for x in graspObject.simulation_data_image_pca[action][i]) + " ")
+                                f.write("\n")
+                            else:
+                                f.write(repr(graspObject.simulation_data_current_state[action][i][4]*180/3.14) + " " )
+                                f.write(repr(graspObject.simulation_data_expected_outcome[action][i]))
+                                f.write("\n")
+                        f.write(repr(len(graspObject.discretizedSimulationDataInitState[action].keys())) + '\n')
+                        for (rel_x,rel_y,theta) in graspObject.discretizedSimulationDataInitState[action].keys():
+                            f.write(repr(rel_x) + " " + repr(rel_y) + " " + repr(theta) + " ")
+                            f.write(repr(len(graspObject.discretizedSimulationDataInitState[action][(rel_x,rel_y,theta)])) + " ")
+                            f.write(' '.join(str(x) for x in graspObject.discretizedSimulationDataInitState[action][(rel_x,rel_y,theta)]))
+                            f.write('\n')
+                        if action != PICK_ACTION_ID:
+                            f.write(repr(len(graspObject.discretizedSimulationDataNextState[action].keys())) + '\n')
+                            for (rel_x,rel_y,theta) in graspObject.discretizedSimulationDataNextState[action].keys():
+                                f.write(repr(rel_x) + " " + repr(rel_y) + " " + repr(theta) + " ")
+                                f.write(repr(len(graspObject.discretizedSimulationDataNextState[action][(rel_x,rel_y,theta)])) + " ")
+                                f.write(' '.join(str(x) for x in graspObject.discretizedSimulationDataNextState[action][(rel_x,rel_y,theta)]))
+                                f.write('\n')
 
     def write_training_data_for_observation_model(self,action, object_name_list, data_dir, object_id_mapping_file, image_dir, debug = False):
-        input_s_, expected_outcome_, image_input_ = self.get_training_data(action, object_name_list, data_dir, object_id_mapping_file, image_dir, debug)
+        input_s_, expected_outcome_, image_input_ = self.get_training_data(action, object_name_list, data_dir, object_id_mapping_file, image_dir, True, debug)
         num_samples = input_s_.shape[0]
         arr = np.arange(num_samples)
         np.random.shuffle(arr)
@@ -502,6 +799,15 @@ def main():
         LoadTransitionData().write_training_data_for_observation_model(int(args.action), object_name_list, data_dir, object_id_mapping_file, image_dir)
     if args.task == 't':
         LoadTransitionData().write_training_data_for_transition_model(int(args.action), object_name_list, data_dir, object_id_mapping_file)
+    if args.task == 'structure':
+        LoadTransitionData().structure_training_data_for_transition_model(int(args.action), object_name_list, data_dir, object_id_mapping_file, image_dir)
+    if args.task == 'pca':
+        LoadTransitionData().do_pca_for_images(int(args.action), object_name_list, data_dir, object_id_mapping_file, image_dir)
+    if args.task == 'pca_structure':
+        LoadTransitionData().structure_training_data_for_transition_observation_model(int(args.action), object_name_list, data_dir, object_id_mapping_file, image_dir)
+    if args.task == 'pca_default_image':
+        LoadTransitionData().generate_default_pca_file_per_action(int(args.action),image_dir)
+
     #imProc = StoredDepthAndColorImageProcesser(image_dir)
     #imProc.segment_using_giob('./test_images','sample_depth_im')
     #imProc.mark_gripper_in_depth_image([0.3379, 0.1516, 1.0833], './test_images','sample_depth_im')
