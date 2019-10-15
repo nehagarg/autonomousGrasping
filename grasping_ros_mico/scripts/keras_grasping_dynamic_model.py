@@ -15,6 +15,7 @@ from tensorflow.keras.losses import mse, binary_crossentropy
 sys.path.append('../../python_scripts')
 
 import prepare_data_for_transition_observation_training as dataProcessor
+from prepare_data_for_transition_observation_training import GraspObject
 #from grasping_dynamic_model import get_float_array
 import math
 import argparse
@@ -813,7 +814,8 @@ def keras_functional_transiton_model_with_reward_and_terminal_state_v1(latent_di
     input_s,close_called_input,touch_vision_movement_input = layers.Lambda(lambda x: tf.split(x,[input_dim,1,3],1), name='split_full_input')(input_s_full)
     latent_inputs = tf.keras.Input(shape=(latent_dim,), name='z_sampling')
     [next_state_full,terminal_state_output,reward] = full_model([input_s_full,latent_inputs])
-    obs_output = decoder([latent_inputs,input_s])
+    next_state_s,_ = layers.Lambda(lambda x: tf.split(x,[input_dim,4],1), name='split_next_state_input')(next_state_full)
+    obs_output = decoder([latent_inputs,next_state_s])
     gripper_pose,object_pose,gripper_joint_angles,object_id,close_called_input,touch_values,vision_movement = layers.Lambda(lambda x: tf.split(x,[2,3,2,1,1,2,1],1), name='split_next_state')(next_state_full)
     obs_output_with_touch_vision_gripper_state = layers.Concatenate(name='concatenate_obs_output')([obs_output, gripper_pose,gripper_joint_angles,close_called_input,touch_values,vision_movement])
     full_model_v1 = tf.keras.Model([input_s_full,latent_inputs], [next_state_full,terminal_state_output,reward,obs_output_with_touch_vision_gripper_state], name = 'full_model_v1')
@@ -1160,9 +1162,78 @@ def save_final_observation_model(action,gpuID, v1=False, get_obs_prob_from_state
         else:
             tf.train.write_graph(frozen_graph, ".", 'observation_model/full_observation_model_' + repr(action) +'.pb', as_text=False)
 
-def test_transiton_model_with_reward_graph_v1(action,gpuID):
-    save_transiton_model_with_reward_graph_v1(action,gpuID, False)
+def test_transiton_model_with_reward_graph_v1(action,object_name_list, data_dir, object_id_mapping_file,gpuID):
+    data_loader = dataProcessor.LoadTransitionData()
+    object_id_mapping = yaml.load(file(object_id_mapping_file, 'r'))
+    if action < 10:
+        full_model, decoder1_ = save_transiton_model_with_reward_graph_v1(action,gpuID, False)
+        #X = np.array([[0.51728, 0.094975, 0.67581, 0.1258, 3.2505, -0.016933, 0.00072957, 1, 0, 0.28825, 0.12184, -0.078051]])
+        #X1 = np.array([[0.51728, 0.094975, 0.67581, 0.1258, 3.2505, -0.016933, 0.00072957, 1]])
+        object_id = 2
+        R = np.array([np.random.normal(0,1,2)])
+        X = np.array([[0.41792, 0.14163, 0.55737, 0.09948, -0.19, -0.00045919, -0.00026989, object_id, 0, 0.11, 0.11, 0.0]])
+        X1 = np.array([[0.41792, 0.14163, 0.55737, 0.09948, -0.19, -0.00045919, -0.00026989, object_id]])
 
+        print X
+        print R
+
+        Y = full_model.predict([X,R])
+        Y1 = decoder1_.predict([R,X1])
+
+        print Y1
+        print Y
+
+
+        n = 10
+        grid_x = np.linspace(-4, 4, n)
+        grid_y = np.linspace(-4, 4, n)[::-1]
+        print X
+        for i, yi in enumerate(grid_y):
+            for j, xi in enumerate(grid_x):
+                R = np.array([[xi, yi]])
+                print R
+                Y = full_model.predict([X,R])
+                Y1 = decoder1_.predict([R,X1])
+
+                print Y1
+                print Y
+        print object_id
+        object_name = ""
+        for object_name_ in object_name_list:
+            if object_id_mapping[object_name_] == object_id:
+                object_name = object_name_
+        graspObjects = data_loader.structure_training_data_for_transition_model(action,[object_name],data_dir, object_id_mapping_file, '../')
+        graspObject = graspObjects[object_name+ "_" + repr(action)]
+        x = X[0][2] - X[0][0]
+        y = X[0][3] - X[0][1]
+        theta_z = X[0][4]
+        index_tuple = graspObject.get_discretized_index(x,y,theta_z)
+        print index_tuple
+        if index_tuple in graspObject.discretizedSimulationDataInitState[action].keys():
+            for j in graspObject.discretizedSimulationDataInitState[action][index_tuple] :
+                print repr(j) + ":----------------------------------------------------"
+                print graspObject.simulation_data_current_state[action][j]
+                print data_loader.generate_next_state_entry(graspObject.simulation_data_current_state[action][j],graspObject.simulation_data_expected_outcome[action][j])
+                print graspObject.simulation_data_expected_outcome[action][j][7:]
+                print "----------------------------------------------------"
+        else:
+            print "Data not in table"
+            print len(graspObject.discretizedSimulationDataInitState[action].keys())
+    if action  == 10:
+        full_model, pick_model = save_transiton_model_with_reward_graph_v1(action,gpuID, False)
+        X = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0, 1.0,0,0,0]])
+        R = np.array([0.5])
+        Y = full_model.predict([X,R])
+        #X1 = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0]])
+        #X1 = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0]])
+        X1 = np.array([[0.51267, 0.16278, 0.67928, 0.12716, 1.2047, 0.78657, 0.76514, 0 ]])
+        X1 = np.array([[0.52122, 0.14432, 0.71663, 0.15111, 0.92371, 0.69064, 0.67595, 0]])
+        X1 = np.array([[0.47137, 0.12947, 0.62862, 0.12996, 0.69688, 0.5232, 0.48833, 0]])
+        X1 = np.array([[0.44801125,  0.1615794 ,  0.59486026,  0.14691669,  0.92039025, 0.7565701 ,  0.73769093,  2.]])
+        X1 = np.array([[0.44801125,  0.1615794 ,  0.61486026,  0.16691669,  0.52039025, 1.07 ,  1.07,  2.]])
+        Y1 = pick_model.predict(X1)
+        print Y
+        print Y1
 def save_transiton_model_with_reward_graph_v1(action,gpuID, save_model = True):
     K.set_learning_phase(0)
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
@@ -1198,21 +1269,21 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID, save_model = True):
         #n = 30
         #grid_x = np.linspace(-4, 4, n)
         #grid_y = np.linspace(-4, 4, n)[::-1]
-        print X
+        #print X
         #for i, yi in enumerate(grid_y):
         #    for j, xi in enumerate(grid_x):
         #        R = np.array([[xi, yi]])
-        print R
-        Y = full_model.predict([X,R])
-        Y1 = decoder1_.predict([R,X1])
+        #print R
+        #Y = full_model.predict([X,R])
+        #Y1 = decoder1_.predict([R,X1])
 
-        print Y1
-        print Y
+        #print Y1
+        #print Y
         if save_model:
             frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in full_model.outputs])
             tf.train.write_graph(frozen_graph, ".", 'transition_model/full_transition_model_v1_' + repr(action) +'.pb', as_text=False)
-
+        return full_model, decoder1_
     if action == 10:
         transition_model_name = 'transition_model/pick_transition_model_' + repr(action) +'.h5'
         pick_model, full_model = keras_functional_transition_model_pick_action()
@@ -1222,7 +1293,7 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID, save_model = True):
         #X = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0, 1.0]])
         X = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0, 1.0,0,0,0]])
         R = np.array([0.5])
-        Y = full_model.predict([X,R])
+        #Y = full_model.predict([X,R])
         #X1 = np.array([[0.387915, 0.091614, 0.601582, 0.0546314, -1.04977531092, -0.00016737, -0.000296831, 1.0]])
         #X1 = np.array([[0.5279, 0.1516, 0.52742, 0.109544, 0, -0.00016737, -0.000296831, 0.0]])
         X1 = np.array([[0.51267, 0.16278, 0.67928, 0.12716, 1.2047, 0.78657, 0.76514, 0 ]])
@@ -1230,13 +1301,14 @@ def save_transiton_model_with_reward_graph_v1(action,gpuID, save_model = True):
         X1 = np.array([[0.47137, 0.12947, 0.62862, 0.12996, 0.69688, 0.5232, 0.48833, 0]])
         X1 = np.array([[0.44801125,  0.1615794 ,  0.59486026,  0.14691669,  0.92039025, 0.7565701 ,  0.73769093,  2.]])
         X1 = np.array([[0.44801125,  0.1615794 ,  0.61486026,  0.16691669,  0.52039025, 1.07 ,  1.07,  2.]])
-        Y1 = pick_model.predict(X1)
-        print Y
-        print Y1
+        #Y1 = pick_model.predict(X1)
+        #print Y
+        #print Y1
         if save_model:
             frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in full_model.outputs])
             tf.train.write_graph(frozen_graph, ".", 'transition_model/full_transition_model_v1_' + repr(action) +'.pb', as_text=False)
+        return full_model, pick_model
 def save_transiton_model_with_reward_graph(action,gpuID):
     K.set_learning_phase(0)
     os.environ["CUDA_VISIBLE_DEVICES"] = gpuID
@@ -1375,7 +1447,7 @@ if __name__ == '__main__':
     if(args.train == 'sov2'): #save observation model
         save_final_observation_model(int(args.action),args.gpuID,True,True)
     if(args.train == 'ttv1'): #save transition model
-        test_transiton_model_with_reward_graph_v1(int(args.action),args.gpuID)
+        test_transiton_model_with_reward_graph_v1(int(args.action),object_name_list, data_dir, object_id_mapping_file,args.gpuID)
     #keras_functional_transition_model(2)
     #print "Creating observation model"
     #keras_function_observation_model(2)
