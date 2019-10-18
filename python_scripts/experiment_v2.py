@@ -35,7 +35,7 @@ def generate_commands(yaml_config):
         if 'gpuID' in yaml_config.keys():
             modified_additional_params = modified_additional_params.replace('--GPUID=', '--GPUID='+yaml_config['gpuID'])
         command = "./bin/" + problem_type
-        if(problem_type == 'grasping_with_vision'):
+        if('grasping_with_vision' in problem_type):
             command = "../../../build/devel/lib/hyp_despot/despot_without_display --nobs 10"
         command = command + " -v3 -t " + repr(planning_time) + " -n "
         command = command + repr(number_scenarios)+ ' -s ' + repr(horizon) + ' --solver=' + solver
@@ -280,7 +280,8 @@ def generate_grasping_command_files(type = 'cylinder_discretize', ver='ver7'):
             if 'fixed_distribution' in filename:
                     ans['additional_params'] = '-l CAP --number='
             if ver == 'ver8':
-                ans['additional_params'] = '-u TRIVIAL --USEKERAS 1 --GPUID= ' + ans['additional_params']
+                if not 'use_discretized_data' in filename:
+                    ans['additional_params'] = '-u TRIVIAL --USEKERAS 1 --GPUID= ' + ans['additional_params']
             if 'horizon90' in filename:
                 ans['horizon'] = 90
             ans = modify_params_file_for_learning(filename, ans)

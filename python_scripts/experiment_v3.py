@@ -167,6 +167,8 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
         problem_dir = problem_dir + problem_type.split('_')[-1]
     if problem_type == 'grasping_with_vision':
         problem_dir =  work_folder_dir + "/AdaCompNUS/HyP-Despot-LargeObservation-clone-neha-laptop/src/HyP_examples/grasping_ros_mico"
+    if 'grasping_with_vision_table' in problem_type:
+        problem_dir =  work_folder_dir + "/AdaCompNUS/HyP-Despot-LargeObservation-WithGrasping-Table/src/HyP_examples/grasping_ros_mico"
 
     if command_list_file is not None:
         with open(command_list_file, 'r') as ff:
