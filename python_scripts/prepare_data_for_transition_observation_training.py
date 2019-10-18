@@ -326,7 +326,7 @@ class GraspObject():
             theta_z_degree = theta_z_degree + 360
         while theta_z_degree > 180:
             theta_z_degree = theta_z_degree - 360
-        theta_z_index = int(round(theta_z/10.0))
+        theta_z_index = int(round(theta_z_degree/10.0))
         if theta_z_index == -18:
             theta_z_index = 18
         return (x_index,y_index,theta_z_index)
