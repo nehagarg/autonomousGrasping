@@ -613,6 +613,20 @@ def get_cropped_depth_image_for_keras_models(gripper_3D_pose_x,gripper_3D_pose_y
     raw_image = data_loader.load_cropped_depth_image(image_dir,image_name)
     return list(raw_image.flatten())
 
+def get_pca_value_for_depth_image(gripper_3D_pose_x,gripper_3D_pose_y, gripper_3D_pose_z,image_name, image_dir, action):
+    import prepare_data_for_transition_observation_training as dataProcessor
+    import pickle
+    gripper_3D_pose = [gripper_3D_pose_x,gripper_3D_pose_y, gripper_3D_pose_z]
+    data_loader = dataProcessor.LoadTransitionData()
+    data_loader.get_depth_image(gripper_3D_pose, image_dir,image_name)
+    raw_image = data_loader.load_cropped_depth_image(image_dir,image_name)
+    default_image = []
+    default_image.append(raw_image.flatten())
+    pca_file_name = image_dir + "/scripts/structure_data_model/pca_action" + "_" + repr(action) + '.pkl'
+    with open(pca_file_name,'rb') as f:
+            pca = pickle.load(f)
+    pca_transform = pca.transform(default_image)
+    return list(pca_transform[0])
 #object_file_dir = point clod dir when not using keras model
 #object_file_dir = keras model dir when using keras model
 def get_belief_for_objects(object_group_name, object_file_dir, clip_objects = -1, keras_model_name = None, baseline_results_dir = None, env = 'simulator', debug = False, start_node=True):
