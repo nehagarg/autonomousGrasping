@@ -732,6 +732,7 @@ def get_hand_defined_actions(type):
 #type = 'headphones_train3_point_five_for_pick_combined_prob_output'
 #type = 'baseline_no_touch_wider_workspace_point_five_for_pick_combined_prob_output_<no>'
 #type = 'headphones_train3_discretize_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update'
+#type = 'baseline_no_touch_discretize_wider_workspace_probabilistic_neighbour_step_discrete_observation_in_update_<no>'
 def generate_grasping_config_files(type = 'g3db_instances_train1_discretize_weighted', ver='ver7'):
     cfg = ConfigFileGenerator(type)
     gsf = cfg.generate_setup_files(ver)

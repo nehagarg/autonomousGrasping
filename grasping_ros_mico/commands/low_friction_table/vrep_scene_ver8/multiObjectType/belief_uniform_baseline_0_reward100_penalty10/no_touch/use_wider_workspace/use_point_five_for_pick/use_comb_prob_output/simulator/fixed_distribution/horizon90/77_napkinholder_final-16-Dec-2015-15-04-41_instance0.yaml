@@ -1,0 +1,5 @@
+{additional_params: -u TRIVIAL --USEKERAS 1 --GPUID= -l CAP --number=, begin_index: 0,
+  belief_type: UNIFORM_WITH_STATE_IN, config_file: config_files/low_friction_table/vrep_scene_ver8/multiObjectType/baseline_0_reward100_penalty10/no_touch/use_wider_workspace/use_point_five_for_pick/use_comb_prob_output/simulator/77_napkinholder_final-16-Dec-2015-15-04-41_instance0.yaml,
+  end_index: 1000, file_name_prefix: Table_scene_77_napkinholder_final-16-Dec-2015-15-04-41_instance0,
+  horizon: 90, number_scenarios: 5, output_dir: ./results/despot_logs/low_friction_table/vrep_scene_ver8/multiObjectType/belief_uniform_baseline_0_reward100_penalty10/no_touch/use_wider_workspace/use_point_five_for_pick/use_comb_prob_output/simulator/fixed_distribution/horizon90,
+  planning_time: 1, solver: USERDEFINED}
