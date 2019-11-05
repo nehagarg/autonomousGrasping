@@ -24,6 +24,7 @@ last_assigned_node = None
 vrep_scene_version = "7"
 generic_scene = False
 unicorn_eagle = False
+unicorn_eagle_without_gpu = False
 gpu_to_vrep_port_mapping = {}
 gpu_to_vrep_port_mapping['unicorn0.d2.comp.nus.edu.sg'] = {0: '11312', 1:'11313', 2:'11314', 3:'11315'}
 gpu_to_vrep_port_mapping['unicorn1.d2.comp.nus.edu.sg'] = {0: '11316', 1:'11317', 2:'11318', 3:'11319'}
@@ -125,7 +126,7 @@ def generate_despot_command(t, n, l, c, problem_type, pattern, begin_index, end_
         command = command + ' -d data_for_regression > ' + out_file_name
         return command
     actual_command = ' python ../python_scripts/experiment_v2.py -e -p ' + problem_type
-    if problem_type == 'grasping_with_vision':
+    if 'grasping_with_vision' in problem_type:
         actual_command = ' python python_scripts/experiment_v2.py -e -p ' + problem_type
     actual_command = actual_command + ' -s ' + repr(begin_index)
     actual_command = actual_command + ' -c ' + repr(end_index)
@@ -151,11 +152,11 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
     global vrep_scene_version
     global generic_scene
     global unicorn_eagle
+    global unicorn_eagle_without_gpu
     global current_ros_port
     global num_gpus
     starting_ros_port = initial_ros_port
     vrep_ros_port = current_ros_port + 1
-
     tensorflow_path = tensorflow_path_input #Assumed location of tensorflow dir
     source_tensorflow = tensorflow_path != ''
     vrep_dir =  work_folder_dir + '/V-REP_PRO_EDU_V3_3_2_64_Linux'
@@ -253,11 +254,11 @@ def generate_commands_file(file_name, problem_type, work_folder_dir, starting_sc
                         script_start_command = 'script ' + despot_screen_name
                         f.write("screen -S " + despot_screen_name + " -X stuff '" + script_start_command + " ^M' \n")
 
-                        if unicorn_eagle:
+                        if unicorn_eagle or unicorn_eagle_without_gpu:
                             ros_master_uri_command = 'export ROS_MASTER_URI=http://node_name:gpu_port_name'
                             f.write("screen -S " + despot_screen_name + " -X stuff '" + ros_master_uri_command +  " ^M' \n")
 
-                        if separate_ros_vrep_port and not unicorn_eagle:
+                        if separate_ros_vrep_port and not unicorn_eagle and not unicorn_eagle_without_gpu:
                             ros_master_uri_command = 'export ROS_MASTER_URI=http://localhost:' +  repr(starting_ros_port)
                             roscore_command = 'roscore -p ' + repr(starting_ros_port)
                             f.write('screen -S ' + roscore_screen_name + ' -d -m  \n')
@@ -361,9 +362,11 @@ def port_running_on_node(screen_port, node, check_gpu_port = False):
     global reserved_nodes_to_screen
     if node in running_nodes_to_screen.keys():
         screen_name_list = list(running_nodes_to_screen[node])
+        #print screen_name_list
         if node in stopped_nodes_to_screen.keys():
             for screen_name in stopped_nodes_to_screen[node]:
                 screen_name_list.remove(screen_name)
+            #print screen_name_list
         if node in reserved_nodes_to_screen.keys():
             for screen_name in reserved_nodes_to_screen[node]:
                 screen_name_list.append(screen_name)
@@ -372,10 +375,22 @@ def port_running_on_node(screen_port, node, check_gpu_port = False):
             if(check_gpu_port):
                 if(screen_port == gpu_port):
                     return True
-                else:
-                    if screen_port == ros_port:
-                        return True
+            else:
+                if screen_port == ros_port:
+                    return True
     return False
+def num_running_processes_on_node(node):
+    global running_nodes_to_screen
+    global stopped_nodes_to_screen
+    global reserved_nodes_to_screen
+    ans = 0
+    if node in running_nodes_to_screen.keys():
+        ans = ans + len(running_nodes_to_screen[node])
+    if node in stopped_nodes_to_screen.keys():
+        ans = ans - len(stopped_nodes_to_screen[node])
+    if node in reserved_nodes_to_screen.keys():
+        ans = ans + len(reserved_nodes_to_screen[node])
+    return ans
 def get_maximum_load_for_node(node):
     if 'ncl' in node:
         return 20
@@ -384,6 +399,12 @@ def get_maximum_load_for_node(node):
     if 'unicorn' in node:
         return 28
     return 4
+def get_maximum_processes_on_node(node,screen_name):
+    if 'grasping_with_vision_table' in screen_name:
+        if 'unicorn' in node:
+            return 10
+    return 50
+
 
 def assign_node(node_list, screen_name, running_node_file):
 
@@ -403,6 +424,7 @@ def assign_node(node_list, screen_name, running_node_file):
     true_port = None
     assigned_port = None
     (screen_counter, screen_port, screen_GPU) = get_screen_counter_port_from_screen_name(screen_name)
+    print screen_port
     true_GPU = None
     assigned_GPU = None
 
@@ -431,20 +453,28 @@ def assign_node(node_list, screen_name, running_node_file):
         max_av_load = get_maximum_load_for_node(node)
         if avg_load > max_av_load:
             continue
+        num_running_process = num_running_processes_on_node(node)
+        maximum_running_processes = get_maximum_processes_on_node(node,screen_name)
+        if(num_running_process >= maximum_running_processes):
+            continue
 
         #if vrep node (screen_port is > initial_ros_port) node check in the file containing vrep ports and nodes
         if screen_port > initial_ros_port:
             true_port = screen_port
             if port_running_on_node(screen_port, node):
+                #print max_ros_port
                 for possible_port in range(initial_ros_port+1, max_ros_port ): #Search for available port
                     if not port_running_on_node(possible_port, node):
                         assigned_port = possible_port
                         break
                 if assigned_port is None:
                     continue;
+            else:
+                print "Port " + repr(screen_port) + " not running on node " + node
         elif 'despot_without_display' in screen_name or 'grasping_with_vision' in screen_name:
-            true_port = None
-            if not unicorn_eagle:
+            if not 'grasping_with_vision_table' in screen_name:
+                true_port = None
+            if not unicorn_eagle and not unicorn_eagle_without_gpu:
                 do_roscore_setup([node])
 
         if screen_GPU >= 0:
@@ -490,7 +520,7 @@ def run_command_on_node(command, node = None):
             command = command.replace('-j ' + repr(true_GPU) + ' ', '-j ' + repr(assigned_GPU) + ' ')
             command = command.replace('_'+repr(true_GPU)+ '_g', '_'+repr(assigned_GPU)+ '_g') #Added g for baseline_<no>_ commands
 
-        if unicorn_eagle:
+        if unicorn_eagle or unicorn_eagle_without_gpu:
             #print true_GPU
             #print assigned_GPU
             #print node
@@ -499,6 +529,11 @@ def run_command_on_node(command, node = None):
                 command = command.replace('gpu_port_name', gpu_to_vrep_port_mapping[node][assigned_GPU])
             elif true_GPU is not None :
                 command = command.replace('gpu_port_name', gpu_to_vrep_port_mapping[node][true_GPU])
+        if unicorn_eagle_without_gpu:
+            if assigned_port is not None:
+                command = command.replace('gpu_port_name', repr(assigned_port))
+            elif true_port is not None:
+                command = command.replace('gpu_port_name', repr(true_port))
         command = 'ssh ' + node + ' "' + command.replace('"', '\\"') + ' "'
     ans = None
     try:
@@ -531,7 +566,7 @@ def check_finished_processes(stopped_node_file):
         output = run_command_on_node(command, node_name)
         if output is None: #screen stopped
             (screen_counter, ros_port,gpu_port) = get_screen_counter_port_from_screen_name(screen_name)
-            if ros_port > initial_ros_port :
+            if ros_port > initial_ros_port and not unicorn_eagle_without_gpu:
                 #stop vrep and roscore screens
                 vrep_screen_name = '_'.join([repr(screen_counter), "vrep", repr(ros_port)])
                 roscore_screen_name = '_'.join([repr(screen_counter), "roscore", repr(ros_port)])
@@ -796,6 +831,9 @@ def main():
     k_roscore = False
     global generic_scene
     global unicorn_eagle
+    global unicorn_eagle_without_gpu
+    global max_ros_port
+    global initial_ros_port
     problem_type = None
     for opt, arg in opts:
       # print opt
@@ -818,6 +856,9 @@ def main():
              generic_scene = True
          if(int(arg) == 2):
              unicorn_eagle = True
+         if(int(arg) == 3):
+             unicorn_eagle_without_gpu = True
+             max_ros_port = initial_ros_port + 1 + 10
       elif opt == '-t':
          source_tensorflow = arg
       elif opt == '-p':
